@@ -11,7 +11,7 @@ https://github.com/keksnicoh/gl_plotting_experimental
 
 https://github.com/keksnicoh/numeric_gravity_experimental_2
 
-https://github.com/keksnicoh/opengl_plot_prototype/blob/master/README.md
+https://github.com/keksnicoh/opengl_plot_prototype
 
 At the moment this repository grows slowly as a migrate old code and
 create new code to finally obtain a nice set of utilities to create
