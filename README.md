@@ -16,3 +16,8 @@ https://github.com/keksnicoh/opengl_plot_prototype
 At the moment this repository grows slowly as a migrate old code and
 create new code to finally obtain a nice set of utilities to create
 fun OpenGL projects.
+
+demos
+=====
+The demos implement some scenarios using only plain pyopengl api to
+show the basic usage. A demo can be executed by `python -m demos.NAME`.
