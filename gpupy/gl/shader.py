@@ -26,7 +26,7 @@ XXX
 
 from gpupy.gl.errors import GlError
 from gpupy.gl.gltype import *
-from gpupy.gl.common import gpupy_gl_warning, gpupy_gl_hint
+from gpupy.gl.common import gpupy_gl_warning, gpupy_gl_hint, gpupy_gl_info
 import re
 from OpenGL.GL import *
 import numpy as np
@@ -41,7 +41,7 @@ STRING_SHADER_NAMES = {
     GL_COMPUTE_SHADER        : 'GL_COMPUTE_SHADER',
 }
 
-UNIFORM_TYPES = {
+GLTYPY_NUMPY_DTYPE = {
     'mat2'  : (np.float32, (2, 2)),
     'mat3'  : (np.float32, (3, 3)),
     'mat4'  : (np.float32, (4, 4)),
@@ -100,28 +100,69 @@ class Shader():
 
         # a list of all uniforms within the shader
         self.uniforms = None
+        self.structs = None
 
         self.attributes = None
 
+        self._inject_gl_code = []
         # uniform declaration
         self.uniforms_require_declraration = {}
         self.uniforms_declarations = {}
         self.uniform_dtype = {} # contains information about uniform block dtypes
         self.uniform_blocks = [] # a list of all uniform blocks within the shader
 
+        # struct declaration
+        self.structs_require_declraration = {}
+        self.structs_declarations = {}
+        self.structs_dtype = {} # contains information about struct dtypes
+
+        self.precomplied_source = None
         self.precompile()
+
+        self._auto_declare_struct_ubo = {}
 
     def precompile(self):
 
-        matches = re.findall(r'uniform\s+(\w+)\s+([\w]+)\s*=?\s*(.*?)(?:\[\d+\])?;', 
-                             self.source, 
-                             flags=re.MULTILINE)
-        self.uniforms = {k: (t, d) for t, k, d in matches}
 
         matches = re.findall(r'(in|out)\s+(\w+)\s+([\w]+).*?;', 
                              self.source, 
                              flags=re.MULTILINE)
         self.attributes = {k: (s, t) for s, t, k in matches}
+
+        ### -- structs
+
+        # find struct placeholders
+        # {% struct <name> %}
+        self.structs = []
+        def struct_block_replacememt(match):
+            struct_name = match.group(1)
+            self.structs.append(struct_name)
+            self.structs_require_declraration[struct_name] = '/*--###GPUPY-PRECOMPILE-STRUCT-TARGET-{}###--*/'.format(struct_name)
+            return self.structs_require_declraration[struct_name]
+
+        self.source = re.sub(r'\{\%\s+struct\s+([a-zA-Z0-9_]+)\s+\%\}', 
+                              struct_block_replacememt, 
+                              self.source, 
+                              flags=re.MULTILINE)
+        # Read struct block
+        self.structs_dtype = self._find_struct_declarations(self.source)
+        intersection_struct_block_declr = set(self.structs) & set(self.structs_dtype.keys())
+        if len(intersection_struct_block_declr):
+            raise ShaderError(self, ('a struct tag for "{}" was found. '
+                               'But there is an explicit declaration within '
+                               'glsl code defined as well.').format(', '.join(intersection_struct_block_declr)))
+
+        self.structs.extend(self.structs_dtype.keys())
+
+        ### -- uniforms and uniform blocks
+
+        # find atomic uniforms
+        self.uniforms = {k: (t, d) for t, k, d in re.findall(
+            # example: uniform float dorp = 2;
+            #          uniform vec3 burb;
+            r'uniform\s+(\w+)\s+([\w]+)\s*=?\s*(.*?)(?:\[\d+\])?;', 
+            self.source, 
+            flags=re.MULTILINE)}
 
         # find uniform placeholders
         # {% uniform <name> %}
@@ -132,54 +173,79 @@ class Shader():
             return self.uniforms_require_declraration[uniform_name]
 
         self.source = re.sub(r'\{\%\s+uniform_block\s+([a-zA-Z0-9_]+)\s+\%\}', 
-                              uniform_block_replacememt, 
-                              self.source, 
-                              flags=re.MULTILINE)
+                             uniform_block_replacememt, 
+                             self.source, 
+                             flags=re.MULTILINE)
 
-        # Read uniform block
+        # read explicit uniform block declarations
         self.uniform_dtype = self._find_uniform_declarations(self.source)
-        intersection_uniform_block_declr = set(self.uniform_blocks) & set(self.uniform_dtype.keys())
 
+        # there should be no explicit uniform declaration if there is
+        # a {% uniform %} tag within the shader.
+        intersection_uniform_block_declr = set(self.uniform_blocks) & set(self.uniform_dtype.keys())
         if len(intersection_uniform_block_declr):
             raise ShaderError(self, ('a uniform_block tag for "{}" was found. '
-                               'But there is an explicit declaration within '
-                               'glsl code defined as well.').format(', '.join(intersection_uniform_block_declr)))
+                              'But there is an explicit declaration within '
+                              'glsl code defined as well.').format(', '.join(intersection_uniform_block_declr)))
 
         self.uniform_blocks.extend(self.uniform_dtype.keys())
 
-        # XXX
-        # - layout qualifier parsing
+    def declare_struct(self, name, declr):
+        """ declares a struct. 
+            if declr is numpy dtype it will be rendered to glsl
+            shader code.
 
-    def _find_uniform_declarations(self, gl_code):
-        """ extract numpy dtype for many uniform block
-            declarations from a given glsl code """
-        uniform_dtypes = {}
-        matches = re.findall(r'uniform\s+(\w+)\s*\{(.*?)\}\s*(\w*)\s*(?:\[\s*(\d*)\s*\]|)\s*;', 
-                             gl_code, 
-                             flags=re.S)
-        for match in matches:
-            uniform_block_name = match[0]
-            uniform_block_var = match[2]
-            uniform_block_size = int(match[3]) if match[3] != '' else 1
+            While rendering a numpy dtype the function tries
+            to find bad declarations and raises ShaderError if
+            bad declarations are found."""
 
-            declr_matches = re.findall(r'\s*(\w+)\s*(\w+)\s*;', match[1], flags=re.S)
-            dtype_members = []
-            for (declr_type, declr_name) in declr_matches:
-                if not declr_type in UNIFORM_TYPES:
-                    raise ShaderError(self, ('invalid uniform block type "{}" for member'
-                                           + ' "{}". Allowed types are {}').format(', '.join(UNIFORM_TYPES)))
+        if not name in self.structs:
+            raise ValueError('no struct "{}" found within shader. Available structs: {}'.format(
+                name, ', '.join(self.structs)))
 
-                if type(UNIFORM_TYPES[declr_type]) is tuple:
-                    dtype_members.append((declr_name, UNIFORM_TYPES[declr_type][0], UNIFORM_TYPES[declr_type][1]))
-                else:
-                    dtype_members.append((declr_name, UNIFORM_TYPES[declr_type]))
+        if name in self._auto_declare_struct_ubo:
+            gpupy_gl_warning('declaration of struct "{}" was allready done implicitly by the uniform_block declaration of "{}".'.format(name, self._auto_declare_struct_ubo[name]))
+            gpupy_gl_hint('always declare structs before declaring uniform blocks to avoid leak of information!')
 
-            uniform_dtype = np.dtype(dtype_members)
-            uniform_dtypes[uniform_block_name] = uniform_dtype
+        if hasattr(declr, 'dtype'):
+            declr = declr.dtype
 
-        return uniform_dtypes
+        # declare struct block by numpy dtype
+        if isinstance(declr, np.dtype):
+            gl_code = render_struct_from_dtype(name, declr)
+            dtype = declr
 
-    def declare_uniform(self, name, declr, layout='std140'):
+        # a gl_code declaration was given. It will be parsed to check
+        # whether it matches with specified struct name.
+        elif type(declr) is str:
+            gl_code = declr
+            uniform_dtype = self._find_struct_declarations(gl_code)
+            if not name in uniform_dtype:
+                raise ShaderError(self, 'struct name "{}" not defined in declaration: \n{}\n.'.format(name, gl_code))
+            dtype = uniform_dtype[name]
+
+        # invalid arguments
+        else:
+            raise ValueError('argument declr must be either a glsl code declaration or a numpy dtype')
+
+        # register
+        if name in self.structs_dtype and dtype != self.structs_dtype[name]:
+            if not name in self.structs_declarations:
+                gpupy_gl_warning((
+                    'struct declaration for "{}" differs '
+                    'from glsl declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
+                gpupy_gl_hint((
+                    'you may use {% struct <name> %} tag to generate '
+                    'struct declaration from numpy dtype within glsl code.'))
+            else:
+                gpupy_gl_warning((
+                    'struct declaration for "{}" differs '
+                    'from previous declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
+
+        self.structs_declarations[name] = gl_code
+        self.structs_dtype[name] = dtype
+
+    def declare_uniform(self, name, declr, layout='std140', variable=None, length=None):
         """ declares uniform interface block. if declr
             is numpy dtype it will be rendered to glsl
             shader code.
@@ -193,11 +259,68 @@ class Shader():
                 name, ', '.join(self.uniform_blocks)))
 
         if hasattr(declr, 'dtype'):
+            if hasattr(declr, '__len__'):
+                length = len(declr)
             declr = declr.dtype
 
         # declare uniform block by numpy dtype
         if isinstance(declr, np.dtype):
-            gl_code = render_uniform_block_from_dtype(name, declr, layout)
+
+            for a in declr.descr:
+                field = a[0]
+                fdtype = a[1]
+
+                # the field type is a structure
+                # we need to check whether the structure allready exists 
+                # within the shader.
+                if isinstance(a[1], list):
+                    struct_dtype = np.dtype(a[1])
+                    found_struct = None
+
+                    # look for existing structures. 
+                    for (def_struct, def_struct_dtype) in self.structs_dtype.items():
+                        if struct_dtype == def_struct_dtype:
+                            # if we find more than two identical structure we cannot
+                            # identify the field structure. In such rare cases we 
+                            # cannot proceed. If we would proceed we might allow sick
+                            # naming bugs to develop.
+                            if found_struct is not None:
+                                gpupy_gl_hint('if there are two identical struct declarations with different names and one ')
+                                gpupy_gl_hint('is used as a type of a field of a uniform block, then declare the other struct ')
+                                gpupy_gl_hint('after the declaration of the uniform_block to allow identification of the uniform block field type:')
+                                gpupy_gl_hint('')
+                                gpupy_gl_hint('shader.declare_struct("A", dtype);')
+                                gpupy_gl_hint('shader.declare_uniform(...);')
+                                gpupy_gl_hint('shader.declare_struct("B", dtype);')
+                                raise ShaderError(self, ('uniform block field "{}" type is a structure which is identical to '
+                                                         'different defined structures ("{}" and "{}").'.format(field, def_struct, found_struct)))
+
+                            gpupy_gl_info('declaration of uniform "{}" contains a struct for field "{}"'.format(name, field))
+                            gpupy_gl_info('found matching struct definition "{}"'.format(def_struct))
+                            found_struct = def_struct
+
+                            if found_struct == field:
+                                gpupy_gl_warning('there exists a struct with the same name as field "{}" which might lead to syntax errors'.format(found_struct))
+                    
+                    if found_struct is None:
+                        gpupy_gl_warning('declaration of uniform "{}" contains a struct ("{}") for field "{}"'.format(name, a[0], field))
+                        gpupy_gl_warning('no such structure was declared within the shader.'.format(name, a[0]))
+                        gpupy_gl_hint('please use {% struct <name> %} tag with Shader.declare_struct() or')
+                        gpupy_gl_hint('declare the struct explicitly within the shader.')
+                        gpupy_gl_info('auto declare struct "{}" as "t_{}".'.format(a[0], a[0]))
+
+                        struct_name = 't_{}'.format(a[0])
+                        placeholder = '/*--###GPUPY-PRECOMPILE-STRUCT-INJECTION-TARGET-{}###--*/'
+                        self._inject_gl_code.append(placeholder)
+                        self.structs_require_declraration[struct_name] = placeholder
+                        self.structs.append(struct_name)
+                        self.declare_struct(struct_name, struct_dtype)
+
+                        # if the user invokes declare_struct() in the future we can
+                        # warn him that we allready defined the structure implicitly.
+                        self._auto_declare_struct_ubo[struct_name] = name
+
+            gl_code = render_uniform_block_from_dtype(name, declr, layout, length, self.structs_dtype, variable=variable)
             dtype = declr
 
         # a gl_code declaration was given. It will be parsed to check
@@ -216,19 +339,18 @@ class Shader():
             raise ValueError('argument declr must be either a glsl code declaration or a numpy dtype')
 
         # register
-        if name in self.uniform_dtype:
-            if dtype != self.uniform_dtype[name]:
-                if not name in self.uniforms_declarations:
-                    gpupy_gl_warning((
-                        'uniform block declaration for "{}" differs '
-                        'from glsl declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
-                    gpupy_gl_hint((
-                        'you may use {% uniform_block <name> %} tag to generate '
-                        'uniform block declaration from numpy dtype within glsl code.'))
-                else:
-                    gpupy_gl_warning((
-                        'uniform block declaration for "{}" differs '
-                        'from previous declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
+        if name in self.uniform_dtype and dtype != self.uniform_dtype[name]:
+            if not name in self.uniforms_declarations:
+                gpupy_gl_warning((
+                    'uniform block declaration for "{}" differs '
+                    'from glsl declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
+                gpupy_gl_hint((
+                    'you may use {% uniform_block <name> %} tag to generate '
+                    'uniform block declaration from numpy dtype within glsl code.'))
+            else:
+                gpupy_gl_warning((
+                    'uniform block declaration for "{}" differs '
+                    'from previous declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
 
         self.uniforms_declarations[name] = gl_code
         self.uniform_dtype[name] = dtype
@@ -251,7 +373,11 @@ class Shader():
                 self.gl_id = None
                 raise ShaderError(self, 'glCreateShader returns an invalid id.')
 
-            source = self.source
+            source = self.source.split('\n')
+            for inject in reversed(self._inject_gl_code):
+                source.insert(2, inject)
+            source = '\n'.join(source)
+
             for name, code in self.substitutions.items():
                 source = source.replace('/*{$%s$}*/'%name, str(code))
 
@@ -261,8 +387,16 @@ class Shader():
                     raise ShaderError(self, 'tag {{% uniform_block {} %}} not defined. Did you use Shader.declare_uniform()?'.format(name))
                 source = source.replace(replc, self.uniforms_declarations[name])
 
+            # uniform declarations
+            for name, replc in self.structs_require_declraration.items():
+                if name not in self.structs_declarations:
+                    raise ShaderError(self, 'tag {{% struct {} %}} not defined. Did you use Shader.declare_uniform()?'.format(name))
+                source = source.replace(replc, self.structs_declarations[name])
+
+            # substitutions
             source = re.sub(r'\{\%\s+version\s+\%\}', "#version {}".format(self.substitutions['VERSION']), source, flags=re.MULTILINE)
 
+            self.precomplied_source = source 
             glShaderSource(self.gl_id, source)
             glCompileShader(self.gl_id)
 
@@ -272,6 +406,53 @@ class Shader():
                 raise ShaderError(self, '{}'.format(error_log))
 
         return self.gl_id
+
+    def _find_struct_declarations(self, gl_code):
+        """ extract numpy dtype for many uniform block
+            declarations from a given glsl code """
+        uniform_dtypes = {}
+        matches = re.findall(r'struct\s+(\w+)\s*\{(.*?)\}\s*(\w*)\s*;', 
+                             gl_code, 
+                             flags=re.S)
+        for match in matches:
+            uniform_block_name = match[0]
+            uniform_block_var = match[2]
+            dtype_members = self._extract_dtype_from_struct_declaration_string(match[1])
+            uniform_dtype = np.dtype(dtype_members)
+            uniform_dtypes[uniform_block_name] = uniform_dtype
+
+        return uniform_dtypes
+
+    def _find_uniform_declarations(self, gl_code):
+        """ extract numpy dtype for many uniform block
+            declarations from a given glsl code """
+        uniform_dtypes = {}
+        matches = re.findall(r'uniform\s+(\w+)\s*\{(.*?)\}\s*(\w*)\s*(?:\[\s*(\d*)\s*\]|)\s*;', 
+                             gl_code, 
+                             flags=re.S)
+        for match in matches:
+            uniform_block_name = match[0]
+            uniform_block_var = match[2]
+            uniform_block_size = int(match[3]) if match[3] != '' else 1
+            dtype_members = self._extract_dtype_from_struct_declaration_string(match[1])
+            uniform_dtype = np.dtype(dtype_members)
+            uniform_dtypes[uniform_block_name] = uniform_dtype
+
+        return uniform_dtypes
+
+    def _extract_dtype_from_struct_declaration_string(self, struct_declr):
+        declr_matches = re.findall(r'\s*(\w+)\s*(\w+)\s*;', struct_declr, flags=re.S)
+        dtype_members = []
+        for (declr_type, declr_name) in declr_matches:
+            if not declr_type in GLTYPY_NUMPY_DTYPE:
+                raise ShaderError(self, ('invalid struct "{}" for member'
+                                       + ' "{}". Allowed types are {}').format(', '.join(GLTYPY_NUMPY_DTYPE)))
+
+            if type(GLTYPY_NUMPY_DTYPE[declr_type]) is tuple:
+                dtype_members.append((declr_name, GLTYPY_NUMPY_DTYPE[declr_type][0], GLTYPY_NUMPY_DTYPE[declr_type][1]))
+            else:
+                dtype_members.append((declr_name, GLTYPY_NUMPY_DTYPE[declr_type]))
+        return dtype_members
 
 class Program():
     """
@@ -346,7 +527,7 @@ class Program():
             # implicit type declarations
             if len(shader.uniforms_require_declraration):
                 for name in shader.uniforms_require_declraration:
-                    if name in self.uniform_dtype:
+                    if not name in shader.uniforms_declarations and name in self.uniform_dtype:
                         shader.declare_uniform(name, self.uniform_dtype[name])
 
             shader.compile()
@@ -400,16 +581,27 @@ class Program():
         #
         #self.flush_uniforms()
 
-    def declare_uniform(self, name, declr):
+    def declare_uniform(self, name, declr, variable=None, length=None):
         found_at_least_one = False
         for shader in self.shaders:
             if name in shader.uniform_blocks:
-                shader.declare_uniform(name, declr)
+                shader.declare_uniform(name, declr, variable=variable, length=length)
                 found_at_least_one = True
 
 
         if not found_at_least_one:
             raise ProgramError(('no uniform block "{}" found within program'.format(name)))
+
+    def declare_struct(self, name, declr):
+        found_at_least_one = False
+        for shader in self.shaders:
+            if name in shader.structs:
+                shader.declare_struct(name, declr)
+                found_at_least_one = True
+
+
+        if not found_at_least_one:
+            raise ProgramError(('no struct "{}" found within program'.format(name)))
 
     def flush_uniforms(self, force=False):
         for name, value in self._uniform_changes.items():
@@ -543,9 +735,29 @@ class Program():
         glUniformBlockBinding(self.gl_id, self.uniform_block_index[name], index)
 
 
-
-def render_uniform_block_from_dtype(name, dtype, layout):
+def render_uniform_block_from_dtype(name, dtype, layout, length=None, structs={}, variable=None):
     gl_code = "layout ({}) uniform {}\n{{\n".format(layout, name)
+    gl_code += render_struct_items_from_dtype(dtype, structs=structs, length=length)
+
+    if variable is not None:
+        # XXX: is length a good idea in ubo??
+        gl_code += "}} {}{};\n".format(variable, '[{:d}]'.format(length) if length is not None else '')
+    else:
+        gl_code += '};\n'
+
+    return gl_code
+
+
+def render_struct_from_dtype(name, dtype):
+    gl_code = "struct {}\n{{\n".format(name)
+    gl_code += render_struct_items_from_dtype(dtype)
+    gl_code += "};\n"
+#    gl_code += "}} {};\n".format(name)
+
+    return gl_code
+
+def render_struct_items_from_dtype(dtype, structs={}, length=None):
+    gl_code = ''
     supported_vector_types = {'<i4': 'int', '|b1': 'bool', '<u4': 'uint', '<f4': 'float', '<f8': 'double'}
     supported_matrix_types = {'<f4': 'mat', '<f8': 'dmat'}
     np_to_glvector = {'<i4': 'ivec', '|b1': 'bvec', '<u4': 'uvec', '<f4': 'vec', '<f8': 'dvec'}
@@ -556,23 +768,37 @@ def render_uniform_block_from_dtype(name, dtype, layout):
 
         if len(shape) == 1:
             # invalid vector type
-            if not dtype_descr in supported_vector_types:
-                raise ShaderError(self, ('invalid type ({}) declaration in dtype field "{}")'
-                                         ' for uniform "{}". Supported {} types are: {}').format(
-                                            dtype_descr, field, name, ('vector' if shape[0] > 1 else 'scalar'),
-                                             ', '.join(supported_vector_types.values())))
+            if isinstance(dtype_descr, list):
+                sub_dtype = np.dtype(dtype_descr)
+                sub_struct_name = None
+                for struct_name, struct_dtype in structs.items():
+                    if struct_dtype == sub_dtype:
+                        sub_struct_name = struct_name
+                        break
 
-            # check vector size
-            if shape[0] == 1:
-                gl_type = supported_vector_types[dtype_descr]
-            elif shape[0] < 5:
-                gl_type = '{}{}'.format(np_to_glvector[dtype_descr], shape[0])
+                if sub_struct_name is None:
+                    raise Exception('FOO')
+                    raise ShaderError(self, 'struct makes problems')
+
+                gl_type = sub_struct_name
             else:
-                raise ShaderError(self, ('invalid type declaration in dtype field "{}" for uniform "{}".'
-                                         ' {} components declrared but maximum is 4.').format(field, name, shape[0]))
+                if not dtype_descr in supported_vector_types:
+                    raise ShaderError(self, ('invalid type ({}) declaration in dtype field "{}")'
+                                             ' for uniform "{}". Supported {} types are: {}').format(
+                                                dtype_descr, field, name, ('vector' if shape[0] > 1 else 'scalar'),
+                                                 ', '.join(supported_vector_types.values())))
+
+                # check vector size
+                if shape[0] == 1:
+                    gl_type = supported_vector_types[dtype_descr]
+                elif shape[0] < 5:
+                    gl_type = '{}{}'.format(np_to_glvector[dtype_descr], shape[0])
+                else:
+                    raise ShaderError(self, ('invalid type declaration in dtype field "{}" for uniform "{}".'
+                                             ' {} components declrared but maximum is 4.').format(field, name, shape[0]))
 
             # create scalar or vector declarations
-            gl_code += "\t{} {};\n".format(gl_type, field)
+            gl_code += "\t{} {}{};\n".format(gl_type, field, '[{:d}]'.format(length) if length is not None else '')
 
         if len(shape) == 2:
             # matrix size check
@@ -590,8 +816,4 @@ def render_uniform_block_from_dtype(name, dtype, layout):
             # create matN or matNxM as well as dmatN or dmatNxM
             dimensions = '{}x{}'.format(*shape) if shape[0] != shape[1] else shape[0]
             gl_code += "\t{}{} {};\n".format(supported_matrix_types[dtype_descr], dimensions, field)
-
-    gl_code += "}} {};\n".format(name)
-
     return gl_code
-

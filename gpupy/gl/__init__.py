@@ -27,3 +27,5 @@ class Gl:
     DEBUG = False
     HINTS = True
     WARNINGS = True
+
+    INFO = True

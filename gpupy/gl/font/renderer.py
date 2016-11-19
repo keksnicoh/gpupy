@@ -103,6 +103,12 @@ class FontRenderer():
 
             glyphatlas[i] = glyphdata
 
+        # upload glyph information
+        glyphdata = np.empty(len(self._fnt.glyphs), dtype=np.dtype([('glyph', self.GLYPH_DTYPE)]))
+        glyphdata[:] = [(c.dump(),) for c in self._fnt.glyphs]
+        self.font_buffer = BufferObject.to_device(glyphdata, target=GL_UNIFORM_BUFFER)
+        self.font_buffer.bind_buffer_base(self._buffer_base if self._buffer_base is not None else Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.font'])
+
         # texture glyph atlas
         self.texture = Texture2D(array=True)
         self.texture.load(glyphatlas)
@@ -113,21 +119,18 @@ class FontRenderer():
         self.shader_program.shaders.append(Shader(GL_VERTEX_SHADER, VERTEX_SHADER))
         self.shader_program.shaders.append(Shader(GL_GEOMETRY_SHADER, GEOMETRY_SHADER.replace('$n$', str(len(self._fnt.glyphs)))))
         self.shader_program.shaders.append(Shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER.replace('$n$', str(len(self._fnt.glyphs)))))
-        self.shader_program.declare_uniform('camera', Camera.DTYPE if self.camera is None else self.camera)
+        self.shader_program.declare_uniform('camera', Camera.DTYPE if self.camera is None else self.camera, variable='camera')
+        self.shader_program.declare_struct('t_glyph', FontRenderer.GLYPH_DTYPE)
+        self.shader_program.declare_uniform('ubo_font_objects', self.font_buffer)
+
         self.shader_program.link()
 
         # create vbo/vao
         self.buffer = BufferObject.empty(1, dtype=self.CHAR_DTYPE)
         self.vao = create_vao_from_program_buffer_object(self.shader_program, self.buffer)
 
-        # upload glyph information
-        glyphdata = np.empty(len(self._fnt.glyphs), dtype=self.GLYPH_DTYPE)
-        glyphdata[:] = [c.dump() for c in self._fnt.glyphs]
-        self.font_buffer = BufferObject.to_device(glyphdata, target=GL_UNIFORM_BUFFER)
-        self.font_buffer.bind_buffer_base(self._buffer_base if self._buffer_base is not None else Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.font'])
-        self.shader_program.uniform_block_binding('ubo_font_objects', self.font_buffer)
-
         # shader configuration
+        self.shader_program.uniform_block_binding('ubo_font_objects', self.font_buffer)
         self.shader_program.uniform_block_binding('camera', Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'] if self.camera is None else self.camera)
         self.shader_program.uniform('tex_scale', (1.0/glypthatlas_width, 1.0/glyphatlas_height))
         self.shader_program.uniform('fontsize_real', 60)
@@ -463,19 +466,8 @@ void main()
 GEOMETRY_SHADER = """
 #version /*{$VERSION$}*/
 
-struct glyph {
-  vec4 pos;
-  vec4 size;
-  vec4 offset;
-  float page;
-  float xadvance;
-
-  float c;
-};
-uniform ubo_font_objects
-{
-    glyph glyphs[$n$];
-};
+{% struct t_glyph %}
+{% uniform_block ubo_font_objects %}
 
 layout (points)           in;
 layout (triangle_strip)   out;
@@ -504,7 +496,7 @@ mat4  glyph_rotation;
 
 float xo, yo;
 
-glyph current;
+t_glyph current;
 
 void main(void)
 {
@@ -513,7 +505,7 @@ void main(void)
     glyph_rotation[2] = vec4(0,0,1,0);
     glyph_rotation[3] = vec4(0,0,0,1);
 
-    current = glyphs[geom_glyph_id[0]];
+    current = glyph[geom_glyph_id[0]];
     sizefactor = geom_glyph_size[0]/fontsize_real;
 
     xo = sizefactor*current.offset.x;
@@ -523,7 +515,7 @@ void main(void)
 
     // lower left - to upper left
     gl_Position = camera.mat_projection*camera.mat_view*(gl_in[0].gl_Position + glyph_rotation*vec4(xo, ywidth+yo,0,0));
-    tex_coord = vec2(tex_scale.x*current.pos.x,tex_scale.x*(current.pos.y+current.size.y));
+    tex_coord = vec2(tex_scale.x*current.position.x,tex_scale.x*(current.position.y+current.size.y));
     color=geom_glyph_color[0];
     page_id=current.page;
     frag_glyph_size=geom_glyph_size[0];
@@ -531,7 +523,7 @@ void main(void)
 
     // upper left - to upper right
     gl_Position = camera.mat_projection*camera.mat_view*(gl_in[0].gl_Position + glyph_rotation*vec4(xwidth+xo, ywidth+yo,0,0));
-    tex_coord = vec2(tex_scale.x*(current.pos.x+current.size.x),tex_scale.x*(current.pos.y+current.size.y));
+    tex_coord = vec2(tex_scale.x*(current.position.x+current.size.x),tex_scale.x*(current.position.y+current.size.y));
     color=geom_glyph_color[0];
     page_id=current.page;
     frag_glyph_size=geom_glyph_size[0];
@@ -539,7 +531,7 @@ void main(void)
 
     // upper right - to lower left
     gl_Position = camera.mat_projection*camera.mat_view*(gl_in[0].gl_Position + glyph_rotation*vec4(xo, yo, 0,0));
-    tex_coord = vec2(tex_scale.x*current.pos.x, tex_scale.x*current.pos.y);
+    tex_coord = vec2(tex_scale.x*current.position.x, tex_scale.x*current.position.y);
     color=geom_glyph_color[0];
     page_id=current.page;
     frag_glyph_size=geom_glyph_size[0];
@@ -548,7 +540,7 @@ void main(void)
 
     // lower left - to lower right
     gl_Position = camera.mat_projection*camera.mat_view*(gl_in[0].gl_Position + glyph_rotation*vec4(xwidth+xo, yo, 0,0));
-    tex_coord = vec2(tex_scale.x*(current.pos.x+current.size.x), tex_scale.x*current.pos.y);
+    tex_coord = vec2(tex_scale.x*(current.position.x+current.size.x), tex_scale.x*current.position.y);
     color=geom_glyph_color[0];
     page_id=current.page;
     frag_glyph_size=geom_glyph_size[0];

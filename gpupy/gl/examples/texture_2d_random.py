@@ -51,7 +51,7 @@ class TextureContorller():
         program = Program()
         program.shaders.append(vertex_shader)
         program.shaders.append(fragment_shader)
-        program.declare_uniform('camera', camera)
+        program.declare_uniform('camera', camera, variable='camera')
         program.link()
 
         program.uniform_block_binding('camera', camera)
