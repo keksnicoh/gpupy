@@ -208,7 +208,7 @@ def mesh3d_rectangle(a=1, b=1, color=(1, 1, 1, 1), center=(0, 0)):
 
     return mesh
 
-def mesh3d_quad(a=1, b=1, c=1, color=(1, 1, 1, 1)):
+def mesh3d_cube(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     if not callable(color):
         b = color
         del color
@@ -219,19 +219,19 @@ def mesh3d_quad(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
-    mesh['vertex'][i] = (100, 0, 0)
-    mesh['color'][i] = color(i)
-    mesh['normal'][i] = (0, 0, 1)
-    i += 1
     mesh['vertex'][i] = (100, 100, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
-    mesh['vertex'][i] = (0, 100, 0)
+    mesh['vertex'][i] = (100, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
     mesh['vertex'][i] = (0, 0, 0)
+    mesh['color'][i] = color(i)
+    mesh['normal'][i] = (0, 0, 1)
+    i += 1
+    mesh['vertex'][i] = (0, 100, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
@@ -240,11 +240,15 @@ def mesh3d_quad(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['normal'][i] = (0, 0, 1)
 
     i += 1
-    mesh['vertex'][i] = (0, 0, -100)
+    mesh['vertex'][i] = (100, 0, -100)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
     i += 1
-    mesh['vertex'][i] = (100, 0, -100)
+    mesh['vertex'][i] = (100, 100, -100)
+    mesh['color'][i] = color(i)
+    mesh['normal'][i] = (0, 0, -1)
+    i += 1
+    mesh['vertex'][i] = (0, 0, -100)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
     i += 1
@@ -259,12 +263,8 @@ def mesh3d_quad(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['vertex'][i] = (0, 0, -100)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
-    i += 1
-    mesh['vertex'][i] = (100, 100, -100)
-    mesh['color'][i] = color(i)
-    mesh['normal'][i] = (0, 0, -1)
-    i += 1
 
+    i += 1
     mesh['vertex'][i] = (0, 100, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 1, 0)
@@ -290,18 +290,11 @@ def mesh3d_quad(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['normal'][i] = (0, 1, 0)
     i += 1
 
-    mesh['vertex'][i] = (0, 0, 0)
-    mesh['color'][i] = color(i)
-    mesh['normal'][i] = (0, -1, 0)
-    i += 1
+
     mesh['vertex'][i] = (0, 0, -100)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
-    mesh['vertex'][i] = (100, 0, -100)
-    mesh['color'][i] = color(i)
-    mesh['normal'][i] = (0, -1, 0)
-    i += 1
     mesh['vertex'][i] = (0, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
@@ -310,16 +303,26 @@ def mesh3d_quad(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
+    mesh['vertex'][i] = (0, 0, 0)
+    mesh['color'][i] = color(i)
+    mesh['normal'][i] = (0, -1, 0)
+    i += 1
     mesh['vertex'][i] = (100, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
+    mesh['vertex'][i] = (100, 0, -100)
+    mesh['color'][i] = color(i)
+    mesh['normal'][i] = (0, -1, 0)
+    i += 1
 
-    mesh['vertex'][i] = (100, 0, 0)
+
+
+    mesh['vertex'][i] = (100, 0, -100)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (100, 0, -100)
+    mesh['vertex'][i] = (100, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
@@ -356,13 +359,14 @@ def mesh3d_quad(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (0, 100, 0)
-    mesh['color'][i] = color(i)
-    mesh['normal'][i] = (-1, 0, 0)
-    i += 1
     mesh['vertex'][i] = (0, 100, -100)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
+    mesh['vertex'][i] = (0, 100, 0)
+    mesh['color'][i] = color(i)
+    mesh['normal'][i] = (-1, 0, 0)
+    i += 1
+
 
     return mesh

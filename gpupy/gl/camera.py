@@ -229,7 +229,7 @@ class Camera(object):
         elif self.projection == Camera.PROJECTION_PERSPECTIVE:
             return np.array([
                 2.0 * self.near / (self.right - self.left), 0,                                          (self.right + self.left) / (self.right - self.left), 0,
-                0,                                          -2.0 * self.near / (self.top - self.bottom), (self.top + self.bottom) / (self.top - self.bottom), 0,
+                0,                                          2.0 * self.near / (self.top - self.bottom), (self.top + self.bottom) / (self.top - self.bottom), 0,
                 0,                                          0,                                          - (self.far + self.near) / (self.far - self.near),   -2.0 * self.far * self.near / (self.far - self.near),
                 0,                                          0,                                          -1,                                                  0
             ], dtype=np.float32).reshape((4, 4)).T
@@ -251,7 +251,6 @@ class Camera(object):
         self._camera['mat_view']        = self.mat_view
         self._camera['mat_projection']  = self.mat_projection
         self._camera['yaw']             = self._rotation[1]
-
         self._camera['pitch']           = self._rotation[0]
         self._camera['roll']            = self._rotation[2]
         self._camera['position']        = self._position
@@ -319,24 +318,36 @@ class Camera(object):
 
 def keyboard_flyaround(move_yaw=(83, 87), move_pitch=(65, 68), move_roll=32):
     def _handler(camera, keyboard):
+        did_something = False
         if move_yaw[0] in keyboard:
-            camera.translate(5*camera.direction_top[0], 5*camera.direction_top[1], 5*camera.direction_top[2])
+            camera.translate(5*camera.direction_top[0], -5*camera.direction_top[1], 5*camera.direction_top[2])
+            did_something = True
         if move_yaw[1] in keyboard:
-            camera.translate(-5*camera.direction_top[0], -5*camera.direction_top[1], -5*camera.direction_top[2])
+            camera.translate(-5*camera.direction_top[0], 5*camera.direction_top[1], -5*camera.direction_top[2])
+            did_something = True
         if move_pitch[0] in keyboard:
-            camera.translate(-5*camera.direction_right[0], -5*camera.direction_right[1], -5*camera.direction_right[2])
+            camera.translate(-5*camera.direction_right[0], 5*camera.direction_right[1], -5*camera.direction_right[2])
+            did_something = True
         if move_pitch[1] in keyboard:
-            camera.translate(5*camera.direction_right[0], 5*camera.direction_right[1], 5*camera.direction_right[2])
+            camera.translate(5*camera.direction_right[0], -5*camera.direction_right[1], 5*camera.direction_right[2])
+            did_something = True
         if move_roll in keyboard and 340 in keyboard:
             camera.translate(-5*camera.direction[0], -5*camera.direction[1], -5*camera.direction[2])
+            did_something = True
         elif move_roll in keyboard:
             camera.translate(x=5*camera.direction[0], y=5*camera.direction[1], z=5*camera.direction[2])
+            did_something = True
         if 262 in keyboard:
-            camera.rotate(yaw=-0.1)
+            camera.rotate(yaw=-0.01)
+            did_something = True
         if 263 in keyboard:
-            camera.rotate(yaw=+0.1)
+            camera.rotate(yaw=+0.01)
+            did_something = True
         if 265 in keyboard:
-            camera.rotate(pitch=+0.1)
+            camera.rotate(pitch=+0.01)
+            did_something = True
         if 264 in keyboard:
-            camera.rotate(pitch=-0.1)
+            camera.rotate(pitch=-0.01)
+            did_something = True
+        return did_something
     return _handler

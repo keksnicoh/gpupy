@@ -268,7 +268,7 @@ class GLFW_Window():
     into the given controller. a GLFW_Window does not render something,
     it is the adapter between a Controller and Glfw.
     """
-    def __init__(self, width, height, title='no title', x=None, y=None):
+    def __init__(self, width, height, title='no title', x=None, y=None, hidden=False):
         """
         basic state initialization.
         """
@@ -291,7 +291,7 @@ class GLFW_Window():
         self.on_resize = Event()
 
         self.gl_state = GlState()
-
+        self._hidden = hidden
         self._in_cycle = False
 
 
@@ -299,7 +299,11 @@ class GLFW_Window():
         """
         glfw initialization.
         """
+        if self._hidden:
+            glfwWindowHint(GLFW_VISIBLE, 0)
+
         self._glfw_window = glfwCreateWindow(self.initial_size[0], self.initial_size[1], self.title)
+
         if not self._glfw_window:
             raise RuntimeError('glfw.CreateWindow() error')
         self._glfw_initialized = True
@@ -312,6 +316,7 @@ class GLFW_Window():
 
         glfwMakeContextCurrent(self._glfw_window)
         Gl.STATE = self.gl_state
+        
 
         glfwSetWindowSizeCallback(self._glfw_window, self.resize_callback)
         glfwSetKeyCallback(self._glfw_window, self.key_callback)

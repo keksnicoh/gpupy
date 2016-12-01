@@ -26,6 +26,31 @@ NEAREST_FILTERS = {
     GL_TEXTURE_MIN_FILTER: GL_NEAREST
 }
 
+def gl_texture_id(texture):
+    if hasattr(texture, 'gl_texture_id'):
+        texture_id = texture.gl_texture_id
+    else:
+        texture_id = texture 
+
+    # XXX
+    # - check type
+
+    return texture_id
+
+def gl_texture_unit(texture):
+    if hasattr(texture, 'gl_texture_unit'):
+        texture_unit = texture.gl_texture_unit
+    else:
+        texture_unit = texture 
+
+    # XXX
+    # - check unit
+
+    return texture_unit
+
+def to_device(ndarray, gl_target=None):
+    pass
+
 class AbstractTexture():
     def __init__(self,
         gl_texture_id=None,
@@ -33,6 +58,7 @@ class AbstractTexture():
 
         self.gl_texture_id = gl_texture_id
         self.gl_texture_parameters = gl_texture_parameters
+        self.gl_texture_unit = None
 
         self._is_bound = False
         self._gl_format = None
@@ -81,7 +107,7 @@ class AbstractTexture():
         return texture
 
     @classmethod
-    def empty(cls, dtype, shape, *args, **kwargs):
+    def empty(cls, shape, dtype, *args, **kwargs):
         """
         creates an empty texture by using dtype and shape
         """
@@ -127,11 +153,24 @@ class AbstractTexture():
         self._gl_type = gl_type
         self._data = ndarray
 
+        self.size = size
+
     def __enter__(self):
         self.bind()
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.unbind()
+
+    def activate(self, unit=0):
+        unit_str = 'GL_TEXTURE%d' % unit
+        gl_unit = globals()[unit_str]
+        glActiveTexture(gl_unit)
+
+        glBindTexture(self.gl_target, self.gl_texture_id)
+        self._is_bound = True
+        self.gl_texture_unit = unit
+
+        return unit
 
     def bind(self):
         if not self._is_bound:
@@ -156,6 +195,10 @@ class AbstractTexture():
                 glTexParameterf(self.gl_target, p, v)
 
 
+    def parameter(self, p, v):
+        with self:
+            glTexParameterf(self.gl_target, p, v)
+            
     def _gl_texture_parameters(self):
         """
         assign texture parameters to texture
@@ -356,4 +399,77 @@ class Texture2D(AbstractTexture):
                 raise ValueError('shapes with len(shape) > 4 are only allowed when they are of the following form: (x,y,c,1,1,1,...)')
 
         return np_shape[0:2], np_shape[2]
+
+
+class Texture3D(AbstractTexture):
+    """
+    2d texture.
+
+    ..code ::
+        texture = Texture2D.from_numpy(ndarray)
+
+    if texture allready exists it is possible to wrap
+    an instance around it:
+
+    .. code ::
+        my_texture_id = glGenTextures(1)
+        # ...
+        texture = Texture2D(gl_texture_id=my_texture_id)
+    """
+    def __init__(self,
+        gl_texture_id=None,
+        gl_texture_parameters=DEFAULT_TEXRURE_PARAMETERS,
+        multisample=False):
+
+        """
+        creates a GL_TEXTURE_2D_* texture
+
+        :param gl_texture_id: an opengl texture id, if None a new texture will be generated
+        :param gl_texture_parameters: a list of tuples p which are compatible to glTexParameterf(target, *p)
+        :param multisample: level of multisampling. if False or 0 no multisampling is used.
+        :param array: if the texture is actually an array of textures.
+        """
+
+        AbstractTexture.__init__(self, gl_texture_id, gl_texture_parameters)
+
+        if multisample != False:
+            raise NotImplementedError('multisample texture not implemented yet')
+
+        self.gl_target = GL_TEXTURE_3D
+
+
+        if self.gl_texture_id is not None:
+            with self:
+                self._gl_texture_parameters()
+
+    # API methods
+
+    def __gl_tex_image__(self, gl_internal_format, size, gl_format, gl_type, data):
+        """
+        wrapper for glTexImage* functions
+        """
+        gpupy_debug_wrap(glTexImage3D, self.gl_target,
+                                       0,
+                                       gl_internal_format,
+                                       np.int32(size[2]),
+                                       np.int32(size[0]),
+                                       np.int32(size[1]),
+                                       0,
+                                       gl_format,
+                                       gl_type,
+                                       data)
+
+    def __get_size_and_channels_from_shape__(self, np_shape):
+
+        # a 3d texture array must have shape (z, x, y [, c [, 1]*])
+        if len(np_shape) == 3:
+            return np_shape, 1
+        elif len(np_shape) == 4:
+            if np_shape[3] > 4:
+                raise ValueError('ndarray can only have 4 color channels (third np_shape component). {} given'.format(np_shape[3]))
+        elif len(np_shape) > 4:
+            tail = np_shape[4:]
+            if tail[0] != 1 or len(set(tail)) != 1:
+                raise ValueError('shapes with len(shape) > 5 are only allowed when they are of the following form: (z,x,y,c,1,1,1,...)')
+        return np_shape[0:3], np_shape[3]
 

@@ -27,6 +27,9 @@ XXX
 from gpupy.gl.errors import GlError
 from gpupy.gl.gltype import *
 from gpupy.gl.common import gpupy_gl_warning, gpupy_gl_hint, gpupy_gl_info
+
+from gpupy.gl.texture import gl_texture_unit
+
 import re
 from OpenGL.GL import *
 import numpy as np
@@ -68,6 +71,10 @@ GLTYPY_NUMPY_DTYPE = {
     'dvec3' : (np.float64, (3, )),
     'dvec4' : (np.float64, (4, )),
 }
+
+SUPPORTED_VECOTR_TYPS = {'<i4': 'int', '|b1': 'bool', '<u4': 'uint', '<f4': 'float', '<f8': 'double'}
+SUPPORTED_MATRIX_TYPES = {'<f4': 'mat', '<f8': 'dmat'}
+NPVECTOR_TO_GLVECTOR = {'<i4': 'ivec', '|b1': 'bvec', '<u4': 'uvec', '<f4': 'vec', '<f8': 'dvec'}
 
 class ShaderError(GlError):
     def __init__(self, shader, msg, *args, **kwargs):
@@ -638,13 +645,15 @@ class Program():
         elif type == 'vec4':
             glUniform4f(location, *value)
         elif type == 'sampler2D':
-            glUniform1i(location, value)
+            glUniform1i(location, gl_texture_unit(value))
+        elif type == 'sampler3D':
+            glUniform1i(location, gl_texture_unit(value))
         elif type == 'sampler1D':
-            glUniform1i(location, value)
+            glUniform1i(location, gl_texture_unit(value))
         elif type == 'sampler2DMS':
-            glUniform1i(location, value)
+            glUniform1i(location, gl_texture_unit(value))
         elif type == 'sampler2DArray':
-            glUniform1i(location, value)
+            glUniform1i(location, gl_texture_unit(value))
         elif type == 'bool':
             glUniform1i(location, value)
         else:
@@ -741,6 +750,7 @@ def render_uniform_block_from_dtype(name, dtype, layout, length=None, structs={}
 
     if variable is not None:
         # XXX: is length a good idea in ubo??
+        length = None
         gl_code += "}} {}{};\n".format(variable, '[{:d}]'.format(length) if length is not None else '')
     else:
         gl_code += '};\n'
@@ -758,9 +768,6 @@ def render_struct_from_dtype(name, dtype):
 
 def render_struct_items_from_dtype(dtype, structs={}, length=None):
     gl_code = ''
-    supported_vector_types = {'<i4': 'int', '|b1': 'bool', '<u4': 'uint', '<f4': 'float', '<f8': 'double'}
-    supported_matrix_types = {'<f4': 'mat', '<f8': 'dmat'}
-    np_to_glvector = {'<i4': 'ivec', '|b1': 'bvec', '<u4': 'uvec', '<f4': 'vec', '<f8': 'dvec'}
 
     for ndeclr in dtype.descr:
         shape = ndeclr[2] if len(ndeclr) > 2 else (1, )
@@ -782,17 +789,17 @@ def render_struct_items_from_dtype(dtype, structs={}, length=None):
 
                 gl_type = sub_struct_name
             else:
-                if not dtype_descr in supported_vector_types:
+                if not dtype_descr in SUPPORTED_VECOTR_TYPS:
                     raise ShaderError(self, ('invalid type ({}) declaration in dtype field "{}")'
                                              ' for uniform "{}". Supported {} types are: {}').format(
                                                 dtype_descr, field, name, ('vector' if shape[0] > 1 else 'scalar'),
-                                                 ', '.join(supported_vector_types.values())))
+                                                 ', '.join(SUPPORTED_VECOTR_TYPS.values())))
 
                 # check vector size
                 if shape[0] == 1:
-                    gl_type = supported_vector_types[dtype_descr]
+                    gl_type = SUPPORTED_VECOTR_TYPS[dtype_descr]
                 elif shape[0] < 5:
-                    gl_type = '{}{}'.format(np_to_glvector[dtype_descr], shape[0])
+                    gl_type = '{}{}'.format(NPVECTOR_TO_GLVECTOR[dtype_descr], shape[0])
                 else:
                     raise ShaderError(self, ('invalid type declaration in dtype field "{}" for uniform "{}".'
                                              ' {} components declrared but maximum is 4.').format(field, name, shape[0]))
@@ -808,12 +815,12 @@ def render_struct_items_from_dtype(dtype, structs={}, length=None):
                                          field, name, shape[0], shape[1]))
 
             # matrix type check
-            if dtype_descr not in supported_matrix_types:
+            if dtype_descr not in SUPPORTED_MATRIX_TYPES:
                 raise ShaderError(self, ('invalid type ({}) declaration in dtype field "{}" for uniform "{}". '
                                          'Supported matrix types are: {}').format(
-                                         dtype_descr, field, name, ', '.join(supported_matrix_types.values())))
+                                         dtype_descr, field, name, ', '.join(SUPPORTED_MATRIX_TYPES.values())))
 
             # create matN or matNxM as well as dmatN or dmatNxM
             dimensions = '{}x{}'.format(*shape) if shape[0] != shape[1] else shape[0]
-            gl_code += "\t{}{} {};\n".format(supported_matrix_types[dtype_descr], dimensions, field)
+            gl_code += "\t{}{} {};\n".format(SUPPORTED_MATRIX_TYPES[dtype_descr], dimensions, field)
     return gl_code

@@ -67,7 +67,6 @@ def main(window):
         elif {69, 47} == window.keyboard.active:
             render_parameters['edge'] -= 0.001
             print(render_parameters)
-
         font_renderer.render()
 
     window.on_init.append(init)

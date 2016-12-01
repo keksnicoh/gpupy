@@ -1,0 +1,1 @@
+# will be an implementation of old gllib.renderer.window 

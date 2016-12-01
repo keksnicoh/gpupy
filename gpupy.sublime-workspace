@@ -1,0 +1,1790 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"ste",
+				"strength\tstatement"
+			],
+			[
+				"str",
+				"strength_value\tstatement"
+			],
+			[
+				"stre",
+				"strength_value\tstatement"
+			],
+			[
+				"Str",
+				"StrengthValues\tclass"
+			],
+			[
+				"Stren",
+				"StrengthGroup\tclass"
+			],
+			[
+				"Streng",
+				"StrengthValues\tclass"
+			],
+			[
+				"stren",
+				"strength_group"
+			],
+			[
+				"Strength",
+				"StrengthGroupValue\tclass"
+			],
+			[
+				"Feed",
+				"FeedbackExternPerson\tclass"
+			],
+			[
+				"manda",
+				"mandantId\tstatement"
+			],
+			[
+				"entit",
+				"entity_id"
+			],
+			[
+				"mess",
+				"message"
+			],
+			[
+				"Tr",
+				"TransferCompass\tclass"
+			],
+			[
+				"transf",
+				"transfer_compass_id"
+			],
+			[
+				"back",
+				"background-origin"
+			],
+			[
+				"trn",
+				"transfer_compass"
+			],
+			[
+				"trans",
+				"transfer_compass\tstatement"
+			],
+			[
+				"transfe",
+				"transfer_compass"
+			],
+			[
+				"transfer",
+				"transfer_compass_id\tparam"
+			],
+			[
+				"form",
+				"form_data\tstatement"
+			],
+			[
+				"im",
+				"implementationPartner"
+			],
+			[
+				"Stre",
+				"StrengthSet\tclass"
+			],
+			[
+				"mand",
+				"mandant_id"
+			],
+			[
+				"Strengt",
+				"StrengthSet"
+			],
+			[
+				"strn",
+				"strengthsetcategory_id"
+			],
+			[
+				"hidd",
+				"hidden_category_element"
+			],
+			[
+				"Strn",
+				"StrengthSetCategory\tclass"
+			],
+			[
+				"tr",
+				"transfer_admin"
+			],
+			[
+				"staer",
+				"staerkenkompass2"
+			],
+			[
+				"Impo",
+				"ImproperlyConfigured\tclass"
+			],
+			[
+				"impo",
+				"import_data_path\tstatement"
+			],
+			[
+				"fil",
+				"filename\tstatement"
+			],
+			[
+				"file",
+				"filename"
+			],
+			[
+				"NotIm",
+				"NotImplementedError\tclass"
+			],
+			[
+				"cont",
+				"contextDict\tstatement"
+			],
+			[
+				"pre",
+				"prec_flt\tstatement"
+			],
+			[
+				"VARU_F",
+				"VARU_FACTOR"
+			],
+			[
+				"ca",
+				"cache_folder\tstatement"
+			],
+			[
+				"devi",
+				"device_id"
+			],
+			[
+				"inte",
+				"integrator_param\tstatement"
+			],
+			[
+				"thermal_",
+				"thermal_values\tstatement"
+			],
+			[
+				"ther",
+				"thermal_values\tstatement"
+			],
+			[
+				"themr",
+				"thermal_value\tstatement"
+			],
+			[
+				"lock_",
+				"lock_file\tstatement"
+			],
+			[
+				"LOCK",
+				"LOCK_BASE"
+			],
+			[
+				"LOCK_D",
+				"LOCK_DEVICES"
+			],
+			[
+				"LO",
+				"LOCK_DEVICES"
+			],
+			[
+				"plat",
+				"platform_devices\tstatement"
+			],
+			[
+				"drv",
+				"drv_field\tstatement"
+			],
+			[
+				"field",
+				"field_shape\tstatement"
+			],
+			[
+				"fiel",
+				"field_shape\tstatement"
+			],
+			[
+				"jump",
+				"jumping_configuration_j\tfunction"
+			],
+			[
+				"queue_f",
+				"queue_fname\tstatement"
+			],
+			[
+				"exec",
+				"execute_queue\tstatement"
+			],
+			[
+				"exe",
+				"execute_queue\tstatement"
+			],
+			[
+				"ome",
+				"omega_drv\tparam"
+			],
+			[
+				"VAR",
+				"VARJ_FILE"
+			],
+			[
+				"color_",
+				"color_schema_dyn\tstatement"
+			],
+			[
+				"DRV_KA",
+				"DRV_KAPITZA_WM"
+			],
+			[
+				"prec",
+				"prec_cmplx\tstatement"
+			],
+			[
+				"gr",
+				"graph_shape_render\tstatement"
+			],
+			[
+				"cre",
+				"create_sin"
+			],
+			[
+				"JUMPIN",
+				"JUMPING_ID"
+			],
+			[
+				"crea",
+				"create_approx_states"
+			],
+			[
+				"ope",
+				"operator\tparam"
+			],
+			[
+				"latte",
+				"latter_index\tstatement"
+			],
+			[
+				"la",
+				"latter_index\tstatement"
+			],
+			[
+				"c",
+				"callable\tfunction"
+			],
+			[
+				"HAM",
+				"HAMILTON_ARGS\tstatement"
+			],
+			[
+				"POST_",
+				"OBS_POST_CODE"
+			],
+			[
+				"buf",
+				"buf_size_expr\tstatement"
+			],
+			[
+				"dyn_",
+				"dyn_data_frq\tstatement"
+			],
+			[
+				"dy",
+				"dyn_data_frq\tstatement"
+			],
+			[
+				"PLOT",
+				"PLOT_VERT_X"
+			],
+			[
+				"PLT_",
+				"PLOT_VERT_X"
+			],
+			[
+				"matr_",
+				"matrix_buffers\tstatement"
+			],
+			[
+				"matr",
+				"matrix_buffers\tstatement"
+			],
+			[
+				"ar",
+				"argv"
+			],
+			[
+				"EXIT_",
+				"EXIT_CORRUPT_WRK_STATE\tstatement"
+			],
+			[
+				"_PR",
+				"_PRGRSno"
+			],
+			[
+				"cnam",
+				"cname_t\tstatement"
+			],
+			[
+				"base",
+				"base_file\tstatement"
+			],
+			[
+				"DFT_",
+				"DFT_KERNEL_SYMMETRY"
+			],
+			[
+				"Domai",
+				"NumpyDomain"
+			],
+			[
+				"dft",
+				"dft_buffer\tstatement"
+			],
+			[
+				"t0_int",
+				"t0_int_param_buffer\tstatement"
+			],
+			[
+				"np",
+				"np_matrix_pprint\tfunction"
+			],
+			[
+				"oper",
+				"operator_1\tstatement"
+			],
+			[
+				"exp",
+				"expm\tfunction"
+			],
+			[
+				"varsin",
+				"varsin_obs"
+			],
+			[
+				"sin",
+				"sin_obs\tstatement"
+			],
+			[
+				"cr",
+				"create_id\tfunction"
+			],
+			[
+				"arg",
+				"arguments\tstatement"
+			],
+			[
+				"outpu",
+				"output_prefix\tparam"
+			],
+			[
+				"out",
+				"output_prefix\tparam"
+			],
+			[
+				"ma",
+				"map_broken_b\tstatement"
+			],
+			[
+				"folder_",
+				"folder_path\tstatement"
+			],
+			[
+				"time",
+				"time_gatter\tstatement"
+			],
+			[
+				"h",
+				"h0\tstatement"
+			],
+			[
+				"tra",
+				"transform_operator\tfunction"
+			],
+			[
+				"inje",
+				"inject_1"
+			],
+			[
+				"in",
+				"inject_1\tstatement"
+			],
+			[
+				"ind",
+				"indx_w\tstatement"
+			],
+			[
+				"log",
+				"log10\tinstance"
+			],
+			[
+				"SMP",
+				"SMPL_N"
+			],
+			[
+				"wr",
+				"wrk_state\tstatement"
+			],
+			[
+				"create",
+				"create_dn\tfunction"
+			],
+			[
+				"sy",
+				"symmetric_threads"
+			],
+			[
+				"creat",
+				"create_e_mat\tfunction"
+			],
+			[
+				"int",
+				"integrator_param\tstatement"
+			],
+			[
+				"pro",
+				"probing_parameters\tstatement"
+			],
+			[
+				"DRV",
+				"DRV_CURRENT_I0"
+			],
+			[
+				"PROTO",
+				"PROTOCOL_ARGS"
+			],
+			[
+				"DRV_",
+				"DRV_KAP_WM\tstatement"
+			],
+			[
+				"DT",
+				"DTYPE_INTEGRATOR_PARAM\tinstance"
+			],
+			[
+				"sigm",
+				"sigma_n1\tfunction"
+			],
+			[
+				"sigma",
+				"sigma_data"
+			],
+			[
+				"posit",
+				"position_stack\tstatement"
+			],
+			[
+				"T_COM",
+				"T_COMMAND_ARG\tstatement"
+			],
+			[
+				"pote",
+				"potential_domain\tstatement"
+			],
+			[
+				"the",
+				"theta_domain\tstatement"
+			],
+			[
+				"fit_nd",
+				"fit_indexes_low\tstatement"
+			],
+			[
+				"y",
+				"yskip"
+			],
+			[
+				"scr",
+				"screen_mode\tSCREEN_MODE_STRECH"
+			],
+			[
+				"folde",
+				"folder_path\tstatement"
+			],
+			[
+				"glBin",
+				"glBindFramebuffer\tfunction"
+			],
+			[
+				"wps",
+				"wps_tmp\tstatement"
+			],
+			[
+				"dev",
+				"device_ptrs\tparam"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "gpupy/gl/texture.py",
+			"settings":
+			{
+				"buffer_size": 15712,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/camera.py",
+			"settings":
+			{
+				"buffer_size": 12765,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/matrix.py",
+			"settings":
+			{
+				"buffer_size": 1247,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/framebuffer.py",
+			"settings":
+			{
+				"buffer_size": 1627,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/examples/volumetric_raycasting.py",
+			"settings":
+			{
+				"buffer_size": 8013,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/shader.py",
+			"settings":
+			{
+				"buffer_size": 35155,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/components/__init__.py",
+			"settings":
+			{
+				"buffer_size": 88,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "__init__.py"
+			}
+		},
+		{
+			"file": "gpupy/gl/components/frame.py",
+			"settings":
+			{
+				"buffer_size": 57,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "frame.py"
+			}
+		},
+		{
+			"contents": "# will be an fps counter\n",
+			"file": "gpupy/gl/components/fps.py",
+			"file_size": 24,
+			"file_write_time": 131249761090000000,
+			"settings":
+			{
+				"buffer_size": 25,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "# will be a dynamic layout \n",
+			"file": "gpupy/gl/components/framelayout.py",
+			"file_size": 27,
+			"file_write_time": 131249761170000000,
+			"settings":
+			{
+				"buffer_size": 28,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 354.0,
+		"last_filter": "pack en ",
+		"selected_items":
+		[
+			[
+				"pack en ",
+				"Package Control: Enable Package"
+			],
+			[
+				"Package Control: dele",
+				"Package Control: Disable Package"
+			],
+			[
+				"pa inst",
+				"Package Control: Install Package"
+			],
+			[
+				"color",
+				"Colorsublime: Install Theme"
+			],
+			[
+				"pa ins ",
+				"Package Control: Install Package"
+			],
+			[
+				"pa ins",
+				"Package Control: Install Package"
+			],
+			[
+				"pac ins",
+				"Package Control: Install Package"
+			],
+			[
+				"pa int",
+				"Package Control: Install Package"
+			],
+			[
+				"pacl ins",
+				"Package Control: Install Package"
+			],
+			[
+				"pa in ",
+				"Package Control: Install Package"
+			],
+			[
+				"pa in s",
+				"Package Control: Install Package"
+			],
+			[
+				"pack ins",
+				"Package Control: Install Package"
+			],
+			[
+				"pack in",
+				"Package Control: Install Package"
+			],
+			[
+				"pack remo ve ",
+				"Package Control: Remove Package"
+			],
+			[
+				"pack",
+				"Package Control: Add Repository"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"Install package",
+				"Package Control: Install Package"
+			],
+			[
+				"Instal",
+				"Package Control: Install Package"
+			],
+			[
+				"package control: inst",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"gitp ush ",
+				"Git: Push"
+			],
+			[
+				"git commt cur",
+				"Git: Quick Commit Current File"
+			],
+			[
+				"git commit cur",
+				"Git: Quick Commit Current File"
+			],
+			[
+				"git pull",
+				"Git: Pull"
+			],
+			[
+				"git push ",
+				"Git: Push"
+			],
+			[
+				"",
+				"About"
+			],
+			[
+				"git comm",
+				"Git: Commit"
+			],
+			[
+				"git statu",
+				"Git: Status"
+			],
+			[
+				"git push",
+				"Git: Push"
+			],
+			[
+				"git com",
+				"Git: Commit"
+			],
+			[
+				"git status",
+				"Git: Status"
+			],
+			[
+				"git p",
+				"Git: Pull"
+			],
+			[
+				"git commit",
+				"Git: Commit"
+			],
+			[
+				"git stat",
+				"Git: Status"
+			],
+			[
+				"git pus",
+				"Git: Push"
+			],
+			[
+				"git psuh",
+				"Git: Push Current Branch"
+			],
+			[
+				"gitp ul",
+				"Git: Pull"
+			],
+			[
+				"git pl",
+				"Git: Pull"
+			],
+			[
+				"git sttu",
+				"Git: Status"
+			],
+			[
+				"git pul",
+				"Git: Pull"
+			],
+			[
+				"gitp ush",
+				"Git: Push"
+			],
+			[
+				"git pull ",
+				"Git: Pull"
+			],
+			[
+				"sublimeGit:A",
+				"SublimeGit: Add License"
+			],
+			[
+				"gitpl",
+				"Git: Pull"
+			],
+			[
+				"git checkout",
+				"Git: Checkout"
+			],
+			[
+				"gitpull",
+				"Git: Pull"
+			]
+		],
+		"width": 575.0
+	},
+	"console":
+	{
+		"height": 139.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/keksnicoh/gpupy",
+		"/Users/keksnicoh/gpupy/gpupy",
+		"/Users/keksnicoh/gpupy/gpupy/__pycache__",
+		"/Users/keksnicoh/gpupy/gpupy/gl",
+		"/Users/keksnicoh/gpupy/gpupy/gl/examples",
+		"/Users/keksnicoh/gpupy/gpupy/gl/font",
+		"/Users/keksnicoh/gpupy/gpupy/plot"
+	],
+	"file_history":
+	[
+		"/Users/keksnicoh/gpupy/gpupy/gl/components/fps.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/components/framelayout.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/greeting.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/greeting_transfer.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/strengthWidget.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/templates/boxes/hint_box.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/views/rating.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/step.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/views/briefing.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/commands/transfer_briefing_strengths.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/commands/exportdata.py",
+		"/Users/keksnicoh/wrk/sk/skdeploy/docker-compose.yml",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/services/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/compass_admin.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/locale/de/LC_MESSAGES/django.po",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/templates/inviteExternFeedbackEmailTransfer.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/templates/evaluationHintContainer.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/static/js/evaluation.js",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/views/evaluation.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/views/transfer.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/templates/evaluation.html",
+		"/Users/keksnicoh/wrk/sk/skdeploy/container/web/Dockerfile",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/overview.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/services/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/confirm_delete.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/stepBase.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/teams/teamWidget.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/views.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/services/ratingServices.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/views/ajaxRating.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/rating.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/complete.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/popups/savePopup.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/migrations/0003_data.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/persons/personWidget.html",
+		"/Users/keksnicoh/wrk/sk/infos",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/static/css/mandant.css",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/static/js/overview.js",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/static/css/overview.css",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/employee/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/invite_popup.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/counter.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/commands/dummystrengths.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/migrations/0005_compass_names.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/forms.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/forms.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/implementationPartner/templates/ipActiveWidget.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/static/admin/js/jquery.js",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/forms.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/libs/common/views/utilities.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/mandantBase.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/views/mandant.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/static/js/mandant.js",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/edit_popup.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/content/business.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/static/js/strengthWizard.js",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/templates/strengthsWizard.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/views/strengthsWizard.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/cockpit/templates/feedBackCounter.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/urls.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/urls.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/forms.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/libs/ePatrolLib/static/js/ePatrolLib.js",
+		"/private/var/folders/66/zvyw8rz567j_npv1350f31540000gn/T/fz3temp-2/extension.ts",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/templates/base.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/libs/common/services/decorators.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/settings/base/__init__.py",
+		"/Users/keksnicoh/wrk/sk/skdeploy/nginx/sites-enabled/sk",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/mandantNavigation.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/settings/production/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/add_popup.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/views/load_predefined_sets.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/services/strengthServices.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/content/strengthsSets.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/strengthSets/addstrengthSetPopup.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/migrations/0023_migrate_employee_strengthset_data.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/commands/importdata.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/settings/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/settings/urls.py",
+		"/Users/keksnicoh/wrk/sk/kompass-docker/nginx/test2.nginx",
+		"/Users/keksnicoh/wrk/sk/kompass-docker/nginx/wp-nginx",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/.gitignore",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/README.md",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/migrations/0012_permissions.py",
+		"/Users/keksnicoh/wrk/sk/skdeploy/container/web/requirements.txt",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/migrations/0017_new_groups.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/migrations/0015_auto__add_strengthsetcategory__add_field_strengthset_category.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/roles/templates/rolesTable.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/strengthSets/strengthSetWidget.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/usermanagement/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/migrations/0021_types.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/dummy.html",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/migrations/0016_first_data.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/views/ajaxStrengthsWizard.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/migrations/0020_auto__del_field_strengthsetcategory_type__add_field_strengthsetcategor.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/libs/common/helpers.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/migrations/0019_types.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/migrations/0003_compass.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/migrations/0002_compass.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/migrations/0001_initial.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/migrations/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/tmp/dataimport/skdump-20161012-221800/dbdump.sql",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/.env",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/wsgi.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/manage.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/commands/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/__init__.py",
+		"/Users/keksnicoh/wrk/sk/skdeploy-py3/docker-compose.yml",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/usermanagement/middleware.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/usermanagement/views/login.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/settings/base/urls.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/settings/test/__init__.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/roles/views/rolesDelete.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/usermanagement/views/ajaxChangePw.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/usermanagement/views/ajaxDelete.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/usermanagement/views/changeLang.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/coach/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/faq/models.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/employee/admin.py",
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/services/evaluationServices.py"
+	],
+	"find":
+	{
+		"height": 22.0
+	},
+	"find_in_files":
+	{
+		"height": 158.0,
+		"where_history":
+		[
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/skdeploy",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/skdeploy",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/files/static",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass",
+			"/Users/keksnicoh/wrk/sk/staerkenkompass/files/static",
+			"",
+			"/Users/keksnicoh/unih/GPU-approach-to-Quantum-Kapitza-Effect/numerics",
+			"/Users/keksnicoh/slice-dice/valuenet.life/frontend",
+			"/Users/keksnicoh/slice-dice/valuenet.life/frontend/src",
+			"services/vbm",
+			"",
+			"from services.vbm.",
+			"",
+			"Collins\\Bundle\\Module\\Command",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"_camera",
+			"texture_id",
+			"TRANSFER",
+			"transfer",
+			"TRANSFER",
+			"transfer",
+			"TRANSFER",
+			"getFromIdFromTypeByAssessmentKey",
+			"TransferCompass",
+			"transfer",
+			"transfer_compass",
+			"EntityTypes",
+			"transfer",
+			"Transfer",
+			"TransferCompass",
+			"transfer",
+			"TRANSFER",
+			"EntityTypes",
+			"Transfer",
+			"_no_activated_briefing_compass",
+			"_compass_transfer",
+			"transfer",
+			"Transfer",
+			"transfer",
+			"Transfer",
+			"transfer",
+			"_briefing_ip",
+			"transfer_",
+			"transfer",
+			"_compass_transfer",
+			"_compass_transfer_compass_lowercase",
+			"transfer",
+			"Transfer",
+			"TransferCompassInvitationForm",
+			"TRANSFER",
+			"EntityTypes",
+			"TransferCompass",
+			"transfer",
+			"13",
+			"%}\n",
+			"13",
+			"sampleCompassCompany",
+			"superv",
+			"preSubject",
+			"von Ihnen erfahren, welche ",
+			"enkompass und möchte von Ihnen erfahren, welch",
+			"preSubject",
+			"feedb",
+			"und möchte von Ihnen erfahren, welche Stärken das Unter",
+			"macht mit beim Stärkenkompass und möchte von",
+			"ExternFeedbackForm",
+			"invit",
+			"email",
+			"employee_evaluation_text",
+			"evaluationHintText",
+			"_analysis_self_detail_text_transfer",
+			"descr",
+			"description",
+			"data-hintname",
+			"data-hintName",
+			"data-hintcategory",
+			"setHintNameAndText",
+			"HintText",
+			"hinttext",
+			"hintText",
+			"HintText",
+			"hintText",
+			"evaluationHintContainer",
+			"hint",
+			"TRANSFER",
+			"_mandant_evaluation_hint",
+			"t einem Klick auf die einze",
+			"rating_type",
+			"redirect",
+			"def comp",
+			"zu deiner Auswahle",
+			"sampleCom",
+			"_transfer_conversion_thanks_for_text_feedback",
+			"Hier der Überblick zu",
+			"Hier der ",
+			"chdir",
+			"outfile",
+			"phpmy",
+			"TRANSFER_STRENGTHS",
+			", '",
+			"('",
+			"options",
+			"args",
+			"TRANSFER_1",
+			"Employee",
+			"class Person",
+			"getTeamReceivedFeedbackCount",
+			"http://www.tv-nostalgie.de/Sound/Heidi10.jpg",
+			"'http://www.tv-nostalgie.de/Sound/Heidi10.jpg'",
+			"_transfer_compass_strength_set",
+			"_employee_compass_strength_set",
+			"#, fuzzy",
+			"_strengthset",
+			"apps",
+			"StrengthServices",
+			"ratingURL",
+			"notWatchAnalysis",
+			"Feedback",
+			"feedback",
+			"Feedback",
+			"{% if rating_type == 'TRANSFER' %}",
+			"transfer",
+			"TRANSFER",
+			"transfer",
+			"TRANSFER",
+			"{% if not rating_type == 'MANDANT' %}",
+			"_transfer_",
+			"Hier der Überblick zu Deiner Auswahl",
+			"transfer__rating_",
+			"_transfer_rating__step_1_hint_0_employee",
+			"_transfer_rating_step_1_hint_0_employee",
+			"__",
+			"greet",
+			"Feedback",
+			"feedback",
+			"Feedback",
+			"feedback",
+			"Feedback",
+			"updateSelectedStrength",
+			"get_image_path",
+			"mandantImages",
+			"greeting.keys.ratingStartUrl",
+			"greeting.keys.sessionVarUrl"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"content_type=\"application/json\"",
+			"except $1 as $2",
+			"except $1 as $2:",
+			"try:\n    from django.utils import simplejson\nexcept:\n    import simplejson",
+			"transaction.atomic",
+			"@ransaction.atomic",
+			"@transaction.atomic",
+			"from django.template.defaultfilters import truncatewords as truncate_words",
+			"SafeText",
+			"except $1 as e",
+			"except Exception as e",
+			"--EC='1'",
+			"--N_0='0'",
+			"sfd_field_ec4j1b50",
+			"--wd=1.0",
+			"sjj",
+			"numerics",
+			"freibetrag",
+			"einmalzahlung",
+			"services.vbm.rechner.neo",
+			"IdenticalTo('services.vbm.",
+			"from services.vbm.",
+			"[1]",
+			"a",
+			"bundle.command.",
+			"bundle.log.",
+			"Collins\\Bundle\\Log",
+			"Collins\\Bundle\\Command\\Command\\Yii",
+			"Collins\\Bundle\\Command",
+			"Collins\\Bundle\\Module\\Command",
+			"ac",
+			"Module\\Ac"
+		],
+		"reverse": false,
+		"show_context": false,
+		"use_buffer2": false,
+		"whole_word": false,
+		"wrap": true
+	},
+	"folders":
+	[
+		{
+			"path": "/Users/keksnicoh/gpupy"
+		}
+	],
+	"groups":
+	[
+		{
+			"selected": 5,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "gpupy/gl/texture.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15712,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								621,
+								621
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "gpupy/gl/camera.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 12765,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8538,
+								8545
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2702.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "gpupy/gl/matrix.py",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 1247,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "gpupy/gl/framebuffer.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1627,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								486,
+								486
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "gpupy/gl/examples/volumetric_raycasting.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8013,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6671,
+								6671
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1442.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "gpupy/gl/shader.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 35155,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								10865,
+								10865
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 7422.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "gpupy/gl/components/__init__.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 88,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								88,
+								88
+							]
+						],
+						"settings":
+						{
+							"auto_name": "__init__.py",
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "gpupy/gl/components/frame.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 57,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								57,
+								57
+							]
+						],
+						"settings":
+						{
+							"auto_name": "frame.py",
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "gpupy/gl/components/fps.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 25,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								25,
+								25
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "gpupy/gl/components/framelayout.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 28,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								28,
+								28
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 20.0
+	},
+	"input":
+	{
+		"height": 64.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 27.0
+	},
+	"output.find_results":
+	{
+		"height": 156.0
+	},
+	"output.git-checkout":
+	{
+		"height": 112.0
+	},
+	"output.git-commit":
+	{
+		"height": 112.0
+	},
+	"output.git-pull":
+	{
+		"height": 216.0
+	},
+	"output.git-push":
+	{
+		"height": 162.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 118.0
+	},
+	"pinned_build_system": "",
+	"project": "",
+	"replace":
+	{
+		"height": 40.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"vre_pla",
+				"services/vbm/application/vre_playground.py"
+			],
+			[
+				"client",
+				"services/vbm/api/client.py"
+			],
+			[
+				"param",
+				"services/vbm/rechner/parameters.py"
+			],
+			[
+				"tax.",
+				"services/vbm/rechner/tax.py"
+			],
+			[
+				"vre",
+				"services/vbm/application/vre.py"
+			],
+			[
+				"optlib",
+				"services/vbm/rechner/calculator/optlib_neo.py"
+			],
+			[
+				"test_",
+				"valuenet.vbm/vbm/rechner/test/test_schema.py"
+			],
+			[
+				"luecken",
+				"vre-java-src/code/Entgeltoptimierer/src/rechner/logic/LueckenBerechnung.java"
+			],
+			[
+				"basics",
+				"vre-java-src/code/Entgeltoptimierer/src/utils/Basics.java"
+			],
+			[
+				"luece",
+				"valuenet.vbm/vbm/rechner/calculator/luecke.py"
+			],
+			[
+				"",
+				"__init__.py"
+			],
+			[
+				"ste",
+				"rechner_future/steuerrechner.py"
+			],
+			[
+				"brut",
+				"rechner_future/calculator/brutto.py"
+			],
+			[
+				"fa",
+				"lib/engine/keyboard/flyaroundHandler.py"
+			],
+			[
+				"timelin",
+				"src/timeline-extensions.js"
+			],
+			[
+				"migsubsi",
+				"migrations/m130621_083047_position_subsize_alter.php"
+			],
+			[
+				"add_more_ro",
+				"migrations/m140227_121658_add_more_roles.php"
+			],
+			[
+				"io",
+				"modules/Command/Helper/IO.php"
+			],
+			[
+				"stotest",
+				"tests/Module/Command/Model/StoryTest.php"
+			],
+			[
+				"debepos",
+				"models/DeliveryBillOrderPosition.php"
+			],
+			[
+				"bidapronrag",
+				"models/business/Tasks/BiDataProviderProductCategorySecondaryAggregationTask.php"
+			],
+			[
+				"provacon",
+				"controllers/ProductVariantController.php"
+			],
+			[
+				"orcont",
+				"controllers/OrderController.php"
+			],
+			[
+				"cdbcommand",
+				"commands/BiDataCommand.php"
+			],
+			[
+				"mautoc",
+				"extensions/Metronic/MAutoCompleteField.php"
+			],
+			[
+				"reconformmo",
+				"modules/Ac/Framework/RequestConfiguration/FormModel.php"
+			],
+			[
+				"supcon",
+				"controllers/SupplierController.php"
+			],
+			[
+				"main.p",
+				"config/main.php"
+			],
+			[
+				"bas",
+				"config/base.php"
+			],
+			[
+				"mana",
+				"modules/Ac/Framework/Manager.php"
+			],
+			[
+				"manager",
+				"modules/Ac/Framework/Manager.php"
+			],
+			[
+				"acl",
+				"config/acl.php"
+			],
+			[
+				"docma",
+				"models/Ac/Framework/Mapper/DocumentMapper.php"
+			],
+			[
+				"pro",
+				"models/Product.php"
+			],
+			[
+				"_orderlist",
+				"views/deliveryBill/_orderList.php"
+			],
+			[
+				"stddocum",
+				"models/Ac/Framework/Mapper/StdDocument.php"
+			],
+			[
+				"managertest",
+				"tests/Model/Ac/Framework/ManagerTest.php"
+			],
+			[
+				"order",
+				"models/Order.php"
+			],
+			[
+				"modemodel",
+				"models/PositionsReportModel.php"
+			],
+			[
+				"debilord",
+				"models/DeliveryBillOrder.php"
+			],
+			[
+				"warcomm",
+				"commands/WarehouseMovementCommand.php"
+			],
+			[
+				"debcon",
+				"controllers/DeliveryBillController.php"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"~/py/plt/plt.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 320.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 444.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 183.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

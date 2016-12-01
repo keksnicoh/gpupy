@@ -12,9 +12,9 @@ from gpupy.gl.buffer import BufferObject, create_vao_from_program_buffer_object
 from gpupy.gl.shader import Program, Shader
 from gpupy.gl.camera import Camera, keyboard_flyaround
 from gpupy.gl.mesh import mesh3d_rectangle
-
 from OpenGL.GL import *
 import numpy as np
+
 
 class TextureContorller():
     def __init__(self, window):
@@ -76,7 +76,6 @@ class TextureContorller():
         self.program.use()
         self.texture.bind()
         glActiveTexture(GL_TEXTURE0);
-        self.program.uniform('tex', 0)
 
         glBindVertexArray(self.vao)
         glDrawArrays(GL_TRIANGLES, 0, len(self.render_data))
@@ -109,6 +108,7 @@ class TextureContorller():
 
         self.last_random = new_data[0][0][0]
         self.step += 1
+
 
 @GLFW_WindowFunction
 def main(window):

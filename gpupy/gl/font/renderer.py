@@ -35,39 +35,75 @@ import re
 class FontException(Exception):
     pass
 
-class FontRenderer():
-    # definition of a character:
-    #
-    # a character has a glyph_id and properties like position.
-    # this dtype is the dtype of the opengl buffer object of 
-    # a list of character which should be rendered.
-    CHAR_DTYPE = np.dtype([
-        # a character has a certain position
-        ('position', np.float32, (2,)),
+GLYPH_DTYPE = np.dtype([
+    ('position',  np.float32, (4,)),
+    ('size',      np.float32, (4,)),
+    ('offset',    np.float32, (4,)),
+    ('xadvance',  np.float32),
+    ('page',      np.float32),
+    ('chnl',      np.float32),
+    ('buff',      np.float32),
+])
 
-        # a character has a color
-        ('color',    np.float32, (4,)),
+# definition of a character:
+#
+# a character has a glyph_id and properties like position.
+# this dtype is the dtype of the opengl buffer object of 
+# a list of character which should be rendered.
+CHAR_DTYPE = np.dtype([
+    # a character has a certain position
+    ('position', np.float32, (2,)),
 
-        # a character has a size
-        ('size',     np.float32),
+    # a character has a color
+    ('color',    np.float32, (4,)),
 
-        # a character might be rotated
-        ('rot',      np.float32),
+    # a character has a size
+    ('size',     np.float32),
 
-        # font id of the glyph
-        ('glyph_id',   np.int32),
-    ])
+    # a character might be rotated
+    ('rot',      np.float32),
+
+    # font id of the glyph
+    ('glyph_id',   np.int32),
+])
+
+
+class FontAtlas():
 
     # definition of a glyph
-    GLYPH_DTYPE = np.dtype([
-        ('position',  np.float32, (4,)),
-        ('size',      np.float32, (4,)),
-        ('offset',    np.float32, (4,)),
-        ('xadvance',  np.float32),
-        ('page',      np.float32),
-        ('chnl',      np.float32),
-        ('buff',      np.float32),
-    ])
+
+    def __init__(self, font_file, buffer_base):
+        self.font_file = font_file
+        self.buffer_base = buffer_base 
+
+        # prepare glyph atlas
+        page_data         = [imread(img_path)[:,:,3] for img_path in font_file.page_paths]
+        glypthatlas_width = page_data[0].shape[0]
+        glyphatlas_height = page_data[0].shape[1]
+        glyphatlas        = np.empty((len(page_data), glypthatlas_width, glyphatlas_height), dtype=np.float32)
+        for i, glyphdata in enumerate(page_data):
+            if glyphdata.shape[0:2] != (glypthatlas_width,glyphatlas_height):
+                raise FontException((
+                    'font "{}" corrupt: font page id={} file="{}" image size {}x{}'
+                    + ' differs from the first page id=0 file="{}" {}x{}').format(
+                        self.font, i, font_file.page_paths[i], glyphdata.shape[0],
+                        glyphdata.shape[1], font_file.page_paths[0],
+                        page_data[0].shape[0], page_data[0].shape[1]))
+
+            glyphatlas[i] = glyphdata
+
+        # upload glyph information
+        glyphdata = np.empty(len(font_file.glyphs), dtype=np.dtype([('glyph', GLYPH_DTYPE)]))
+        glyphdata[:] = [(c.dump(),) for c in font_file.glyphs]
+        self.glyph_buffer = BufferObject.to_device(glyphdata, target=GL_UNIFORM_BUFFER)
+        self.glyph_buffer.bind_buffer_base(self.buffer_base)
+
+        # texture glyph atlas
+        self.texture = Texture2D(array=True)
+        self.texture.load(glyphatlas)
+        self.texture.interpolation_linear()
+
+class FontRenderer():
 
     def __init__(self, font=None, camera=None, buffer_base=None):
         self.camera = camera
@@ -86,53 +122,22 @@ class FontRenderer():
     def init(self):
         # load font file
         self._fnt = FNTFile.load_from_file(self.font_path)
-
-        # prepare glyph atlas
-        page_data         = [imread(img_path)[:,:,3] for img_path in self._fnt.page_paths]
-        glypthatlas_width = page_data[0].shape[0]
-        glyphatlas_height = page_data[0].shape[1]
-        glyphatlas        = np.empty((len(page_data), glypthatlas_width, glyphatlas_height), dtype=np.float32)
-        for i, glyphdata in enumerate(page_data):
-            if glyphdata.shape[0:2] != (glypthatlas_width,glyphatlas_height):
-                raise FontException((
-                    'font "{}" corrupt: font page id={} file="{}" image size {}x{}'
-                    + ' differs from the first page id=0 file="{}" {}x{}').format(
-                        self.font, i, self._fnt.page_paths[i], glyphdata.shape[0],
-                        glyphdata.shape[1], self._fnt.page_paths[0],
-                        page_data[0].shape[0], page_data[0].shape[1]))
-
-            glyphatlas[i] = glyphdata
-
-        # upload glyph information
-        glyphdata = np.empty(len(self._fnt.glyphs), dtype=np.dtype([('glyph', self.GLYPH_DTYPE)]))
-        glyphdata[:] = [(c.dump(),) for c in self._fnt.glyphs]
-        self.font_buffer = BufferObject.to_device(glyphdata, target=GL_UNIFORM_BUFFER)
-        self.font_buffer.bind_buffer_base(self._buffer_base if self._buffer_base is not None else Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.font'])
-
-        # texture glyph atlas
-        self.texture = Texture2D(array=True)
-        self.texture.load(glyphatlas)
-        self.texture.interpolation_linear()
+        self.font_atlas = FontAtlas(self._fnt, self._buffer_base if self._buffer_base is not None else Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.font'])
 
         # create shader
         self.shader_program = Program()
         self.shader_program.shaders.append(Shader(GL_VERTEX_SHADER, VERTEX_SHADER))
-        self.shader_program.shaders.append(Shader(GL_GEOMETRY_SHADER, GEOMETRY_SHADER.replace('$n$', str(len(self._fnt.glyphs)))))
-        self.shader_program.shaders.append(Shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER.replace('$n$', str(len(self._fnt.glyphs)))))
+        self.shader_program.shaders.append(Shader(GL_GEOMETRY_SHADER, GEOMETRY_SHADER))
+        self.shader_program.shaders.append(Shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER))
         self.shader_program.declare_uniform('camera', Camera.DTYPE if self.camera is None else self.camera, variable='camera')
-        self.shader_program.declare_struct('t_glyph', FontRenderer.GLYPH_DTYPE)
-        self.shader_program.declare_uniform('ubo_font_objects', self.font_buffer)
-
+        self.shader_program.declare_struct('t_glyph', GLYPH_DTYPE)
+        self.shader_program.declare_uniform('glyph_data', self.font_atlas.glyph_buffer)
         self.shader_program.link()
 
-        # create vbo/vao
-        self.buffer = BufferObject.empty(1, dtype=self.CHAR_DTYPE)
-        self.vao = create_vao_from_program_buffer_object(self.shader_program, self.buffer)
-
         # shader configuration
-        self.shader_program.uniform_block_binding('ubo_font_objects', self.font_buffer)
+        self.shader_program.uniform_block_binding('glyph_data', self.font_atlas.glyph_buffer)
         self.shader_program.uniform_block_binding('camera', Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'] if self.camera is None else self.camera)
-        self.shader_program.uniform('tex_scale', (1.0/glypthatlas_width, 1.0/glyphatlas_height))
+        self.shader_program.uniform('tex_scale', (1.0/self.font_atlas.texture.size[1], 1.0/self.font_atlas.texture.size[2]))
         self.shader_program.uniform('fontsize_real', 60)
         self.shader_program.uniform('tex', 1)
 
@@ -173,7 +178,7 @@ class FontRenderer():
         glClearColor(1,1,1,1)
         glActiveTexture(GL_TEXTURE1) # XXX disale texture later??
 
-        with self.texture:
+        with self.font_atlas.texture:
             glEnable (GL_BLEND)
             glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -190,6 +195,8 @@ class FontRenderer():
 
 
 class TextObject(object):
+
+
     """
     basic text object.
     """
@@ -251,7 +258,7 @@ class TextObject(object):
             return self._LATEX_CHARACTER_MAPPING[match.group(1)]
             
         chars = re.sub(r'\$([a-zA-Z0-9]+)\$', _map_latex_placeholder, chars)
-        chardata = np.empty(len(chars), dtype=FontRenderer.CHAR_DTYPE)
+        chardata = np.empty(len(chars), dtype=CHAR_DTYPE)
 
         char_list = []
         position = [self.position[0], self.position[1]]
@@ -466,9 +473,6 @@ void main()
 GEOMETRY_SHADER = """
 #version /*{$VERSION$}*/
 
-{% struct t_glyph %}
-{% uniform_block ubo_font_objects %}
-
 layout (points)           in;
 layout (triangle_strip)   out;
 layout (max_vertices = 4) out;
@@ -483,8 +487,11 @@ out       vec2  tex_coord;
 out       vec4  color;
 flat      out   float page_id;
 
-uniform float  fontsize_real;
+{% struct t_glyph %}
+{% uniform_block glyph_data %}
 {% uniform_block camera %}
+
+uniform float  fontsize_real;
 uniform vec2   tex_scale;
 
 float xwidth;
@@ -583,7 +590,7 @@ void main()
     alpha = 1.0-smoothstep(_w, _w+_e, distance);
 
     // colorize
-    out_color = vec4(color.x,color.y,color.z,color.a*alpha);
+    out_color = vec4(color.x, color.y, color.z, color.a*alpha);
 
 }
 
