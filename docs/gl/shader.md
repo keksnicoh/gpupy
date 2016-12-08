@@ -43,6 +43,17 @@ program.uniform('color', (1, 0, 0, 1))
 ``` 
 To avoid memory transfer from the host to gpu, the shader keeps all changes of uniforms within a buffer until the program is used. 
 
+Let's use the program:
+```python 
+program.use()
+# do something
+program.unuse()
+
+# OR
+with program:
+   # do something
+``` 
+
 structures
 ----------
 The `{% struct <name> %}` tag allows to define structures within the shader via python. 
