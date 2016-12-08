@@ -66,3 +66,30 @@ program.declare_struct('some_structure', np.dtype([
   ('b', np,float32)
 ])
 ```
+
+uniform buffer objects
+----------------------
+The uniform buffer block binding can be set 
+```python
+vertex_shader = Shader(GL_VERTEX_SHADER, """
+  {% version %}
+  uniform block xyz {...};
+  //...
+""")
+#...
+shader.uniform_block_binding('xyz', 1)
+```
+
+An implicit declaration is possible with the `{% uniform_block <name> %}` tag:
+```python
+vertex_shader = Shader(GL_VERTEX_SHADER, """
+  {% version %}
+  {% uniform_block xyz %}
+  //...
+""")
+#...
+program.declare_uniform_block('xyz', np.dtype([
+  ('a', np.float32, 4),
+  ('b', np.float32, 4)
+])
+program.uniform_block_binding('xyz', 0)
