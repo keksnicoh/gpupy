@@ -15,6 +15,9 @@ from gpupy.gl.framebuffer import Framebuffer
 from OpenGL.GL import *
 import numpy as np
 from gpupy.gl import Gl
+from functools import partial 
+
+CUBE_TEXTURE_SIZE = (400, 400)
 
 Gl.DEBUG = True
 class RaycastingController():
@@ -22,17 +25,24 @@ class RaycastingController():
         self.window = window
         window.on_init.append(self.init)
         window.on_cycle.append(self.draw)
+        window.on_resize.append(self.resize)
 
+    def resize(self):
+        self.camera.set_screensize(self.window.get_size())
+        self.draw()
+        
     def init(self):
+
         glEnable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LESS)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glFrontFace(GL_CW); 
         
-        camera = Camera(self.window.get_size(), projection=Camera.PROJECTION_PERSPECTIVE)
+        camera = Camera(self.window.get_size(), 
+                        projection=Camera.PROJECTION_PERSPECTIVE)
         camera.translate(x=0, y=-10, z=-300)
- 
+       # self.window.on_framebuffer_resize.append(camera.set_capturesize)
 
         ray_program = Program()
         ray_program.shaders.append(Shader(GL_VERTEX_SHADER, """
@@ -136,13 +146,25 @@ class RaycastingController():
         self.camera = camera
         self.keyboard_flyaround = keyboard_flyaround()
 
-        self.texture_front = Texture2D.empty((*self.window.get_size(), 4), np.float32)
+        # create texture for front and backside
+        #
+        # since we'll use the same camera inside the framebuffer we have
+        # to put the framebuffer size to the size of the main window framebuffer.
+        # 
+        # otherwise we could scale the camera to compensate the difference in window
+        # size and framebuffer size.
+        self.texture_front = Texture2D.empty((*CUBE_TEXTURE_SIZE, 4), np.float32)
         self.framebuffer_front = Framebuffer()
         self.framebuffer_front.color_attachment(self.texture_front)
 
-        self.texture_back = Texture2D.empty((*self.window.get_size(), 4), np.float32)
+        self.texture_back = Texture2D.empty((*CUBE_TEXTURE_SIZE, 4), np.float32)
         self.framebuffer_back = Framebuffer()
         self.framebuffer_back.color_attachment(self.texture_back)
+
+        # e.g. retina support 
+       # self.window.on_framebuffer_resize.append(self.texture_front.resize)
+       # self.window.on_framebuffer_resize.append(self.texture_back.resize)
+       # self.window.on_framebuffer_resize.append(partial(setattr, self, 'force_viewbox_render'))
 
         rect_size = [2,2]
         rect_position = (-rect_size[0]/2, -rect_size[1]/2)
@@ -174,9 +196,12 @@ class RaycastingController():
         self.force_viewbox_render = True
 
     def draw(self):
+       # print(glGetIntegerv(GL_VIEWPORT))
+       # glViewport(0, 0, *self.window.get_framebuffer_size())
         moved_keyboard = self.keyboard_flyaround(self.camera, self.window.keyboard.active)
         if moved_keyboard or self.force_viewbox_render:
-
+            old_viewport = glGetIntegerv(GL_VIEWPORT)
+            glViewport(0, 0, *CUBE_TEXTURE_SIZE)
             glEnable(GL_CULL_FACE); 
             glClearColor(0, 0, 0, 0)
             self.ray_program.use()
@@ -202,7 +227,7 @@ class RaycastingController():
             self.ray_program.unuse()
             glDisable(GL_CULL_FACE); 
             self.force_viewbox_render = False
-
+            glViewport(*old_viewport)
         glClearColor(0, 0, 0, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 

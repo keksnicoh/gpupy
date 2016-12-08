@@ -7,6 +7,7 @@ framebuffer utilities
 
 from OpenGL.GL import * 
 from gpupy.gl.texture import gl_texture_id
+from gpupy.gl.errors import GlError
 
 def create_framebuffer(color=None, depth=None, stencil=None):
     pass
@@ -50,6 +51,8 @@ class Framebuffer():
             self.gl_framebuffer_id = glGenFramebuffers(1)
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, self.gl_framebuffer_id)
+        if not glCheckFramebufferStatus(GL_FRAMEBUFFER):
+            raise GlError('framebuffer is not configured properly.')
 
     def unuse(self):
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)

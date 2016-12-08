@@ -253,7 +253,7 @@ class GLFW_Application():
             if state == '...':  state = colored(state, 'yellow')
 
             text = '[{}] {}'.format(state, text)
-        print(text)
+        gpupy_gl_debug(text)
 
 class Keyboard():
     def __init__(self):
@@ -289,11 +289,13 @@ class GLFW_Window():
         self.on_cycle = Event()
         self.on_close = Event()
         self.on_resize = Event()
+        self.on_framebuffer_resize = Event()
 
         self.gl_state = GlState()
         self._hidden = hidden
         self._in_cycle = False
 
+        self._frambuffer_size = None
 
     def init_glfw(self):
         """
@@ -317,12 +319,17 @@ class GLFW_Window():
         glfwMakeContextCurrent(self._glfw_window)
         Gl.STATE = self.gl_state
         
-
         glfwSetWindowSizeCallback(self._glfw_window, self.resize_callback)
         glfwSetKeyCallback(self._glfw_window, self.key_callback)
+        glfwSetFramebufferSizeCallback(self._glfw_window, self.framebuffer_size_callback)
+
+        self._frambuffer_size = glfwGetFramebufferSize(self._glfw_window)
 
         self.on_init()
 
+    def framebuffer_size_callback(self, window, width, height):
+        self._frambuffer_size = (width, height)
+        self.on_framebuffer_resize((width, height))
 
     def key_callback(self, window, keycode, scancode, action, option):
         """ put glfw keyboard event data into active and
@@ -335,6 +342,8 @@ class GLFW_Window():
         elif action == GLFW_REPEAT:
             self.keyboard.action.add((KEYBOARD_MAP[keycode], GLFW_KEY_OPTION[option]))
 
+    def get_framebuffer_size(self):
+        return self._frambuffer_size
 
     def resize_callback(self, win, width, height):
         """ triggers on_resize event queue and swaps GLFW buffers."""

@@ -130,6 +130,12 @@ class AbstractTexture():
         """
         self._push(ndarray, *self._numpy_to_gl_parameters(ndarray.dtype, ndarray.shape))
 
+    def resize(self, size):
+        """
+        resize texture dimensons - (a new empty texture is created).
+        """
+        self._push(None, size, self._gl_type, self._gl_format, self._gl_internal_format)
+
     def format(self, np_type, np_shape):
         """
         format texture by given numpy dtype and numpy shape

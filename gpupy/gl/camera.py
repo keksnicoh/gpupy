@@ -214,6 +214,8 @@ class Camera(object):
 
         return (projection_matrix, rot_roll.dot(rot_pitch.dot(rot_yaw.dot(position_matrix.dot(reflection_xy)))).T)
 
+    def set_screensize(self, framebuffer_size):
+        pass
 
     def create_projection_matrix(self):
         """ creates projection matricies. Thanks
