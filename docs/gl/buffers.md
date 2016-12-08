@@ -36,7 +36,7 @@ TODO: partial write / read.
 
 OpenCL interoperatibility 
 -------------------------
-One can create an pyopencl.array.Array from a buffer
+One can create an `pyopencl.array.Array` from a buffer
 ```python 
 opencl_buf = buffer.get_cl_array()
 ```
