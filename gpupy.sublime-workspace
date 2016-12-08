@@ -4,6 +4,18 @@
 		"selected_items":
 		[
 			[
+				"raise",
+				"raise_as_shader_error"
+			],
+			[
+				"_precom",
+				"_precompile_uniform_blocks"
+			],
+			[
+				"_pre",
+				"_precompile_uniforms"
+			],
+			[
 				"_gl",
 				"_glfw_window\tstatement"
 			],
@@ -502,18 +514,6 @@
 			[
 				"scr",
 				"screen_mode\tSCREEN_MODE_STRECH"
-			],
-			[
-				"folde",
-				"folder_path\tstatement"
-			],
-			[
-				"glBin",
-				"glBindFramebuffer\tfunction"
-			],
-			[
-				"wps",
-				"wps_tmp\tstatement"
 			]
 		]
 	},
@@ -551,6 +551,7 @@
 			"settings":
 			{
 				"buffer_size": 6991,
+				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
@@ -576,9 +577,19 @@
 			"file": "gpupy/gl/shader.py",
 			"settings":
 			{
-				"buffer_size": 35155,
+				"buffer_size": 31758,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/glsl.py",
+			"settings":
+			{
+				"buffer_size": 6791,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "glsl.py"
 			}
 		},
 		{
@@ -1036,6 +1047,36 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"_find_struct_declarations",
+			"_prepare_glsl_attributes",
+			"_precompile_uniform_blocks",
+			"_precompile_uniforms",
+			"_precompile_structs",
+			"_precompile_attributes",
+			"_precompile",
+			"_error_not_a_struct",
+			"_assert_struct_exists",
+			"_precomplied_source",
+			"source",
+			"_precompile_attributes",
+			"_compile",
+			"precomplied_source",
+			"GLTYPY_NUMPY_DTYPE",
+			"NPVECTOR_TO_GLVECTOR",
+			"SUPPORTED_MATRIX_TYPES",
+			"SUPPORTED_VECOTR_TYPS",
+			"ParseError",
+			"render_uniform_block_from_dtype",
+			"render_struct_items_from_dtype",
+			"ShaderError(self,",
+			"find_structs_as_dtype",
+			"struct_fields_to_dtype",
+			"_extract_dtype_from_struct_declaration_string",
+			"_find_uniform_block_declarations",
+			"extract_dtype_from_struct_declaration_string",
+			"_find_uniform_declarations",
+			":",
+			"render_struct_from_dtype",
 			"assert_framebuffer_target",
 			"initial_screensize",
 			"print",
@@ -1133,37 +1174,7 @@
 			"TRANSFER_1",
 			"Employee",
 			"class Person",
-			"getTeamReceivedFeedbackCount",
-			"http://www.tv-nostalgie.de/Sound/Heidi10.jpg",
-			"'http://www.tv-nostalgie.de/Sound/Heidi10.jpg'",
-			"_transfer_compass_strength_set",
-			"_employee_compass_strength_set",
-			"#, fuzzy",
-			"_strengthset",
-			"apps",
-			"StrengthServices",
-			"ratingURL",
-			"notWatchAnalysis",
-			"Feedback",
-			"feedback",
-			"Feedback",
-			"{% if rating_type == 'TRANSFER' %}",
-			"transfer",
-			"TRANSFER",
-			"transfer",
-			"TRANSFER",
-			"{% if not rating_type == 'MANDANT' %}",
-			"_transfer_",
-			"Hier der Überblick zu Deiner Auswahl",
-			"transfer__rating_",
-			"_transfer_rating__step_1_hint_0_employee",
-			"_transfer_rating_step_1_hint_0_employee",
-			"__",
-			"greet",
-			"Feedback",
-			"feedback",
-			"Feedback",
-			"feedback"
+			"getTeamReceivedFeedbackCount"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1219,7 +1230,7 @@
 	"groups":
 	[
 		{
-			"selected": 4,
+			"selected": 6,
 			"sheets":
 			[
 				{
@@ -1235,8 +1246,8 @@
 						"selection":
 						[
 							[
-								15041,
-								15045
+								622,
+								622
 							]
 						],
 						"settings":
@@ -1246,10 +1257,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2317.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
@@ -1276,7 +1287,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4743.0,
+						"translation.y": 1362.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
@@ -1305,17 +1316,17 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 6.0,
-						"translation.y": 3607.0,
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
 					"buffer": 3,
 					"file": "gpupy/gl/common.py",
-					"semi_transient": true,
+					"semi_transient": false,
 					"settings":
 					{
 						"buffer_size": 6991,
@@ -1325,8 +1336,8 @@
 						"selection":
 						[
 							[
-								2563,
-								2577
+								1932,
+								1932
 							]
 						],
 						"settings":
@@ -1336,10 +1347,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 986.0,
+						"translation.y": 34.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
@@ -1366,10 +1377,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 378.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
@@ -1399,7 +1410,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
@@ -1408,15 +1419,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 35155,
+						"buffer_size": 31758,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								51,
-								51
+								1524,
+								1524
 							]
 						],
 						"settings":
@@ -1425,15 +1436,44 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 60.0,
+						"translation.x": 7.0,
+						"translation.y": 2670.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
 					"buffer": 7,
+					"file": "gpupy/gl/glsl.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6791,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2416,
+								2423
+							]
+						],
+						"settings":
+						{
+							"auto_name": "glsl.py",
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
 					"file": "gpupy/gl/components/__init__.py",
 					"semi_transient": false,
 					"settings":
@@ -1458,11 +1498,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 10,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 9,
 					"file": "gpupy/gl/components/frame.py",
 					"semi_transient": false,
 					"settings":
@@ -1487,11 +1527,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 10,
 					"file": "gpupy/gl/components/fps.py",
 					"semi_transient": false,
 					"settings":
@@ -1515,11 +1555,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 11,
 					"file": "gpupy/gl/components/framelayout.py",
 					"semi_transient": false,
 					"settings":
@@ -1543,7 +1583,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 10,
+					"stack_index": 11,
 					"type": "text"
 				}
 			]
@@ -1822,7 +1862,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 183.0,
+	"side_bar_width": 211.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
