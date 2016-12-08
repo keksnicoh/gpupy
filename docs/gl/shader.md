@@ -1,7 +1,7 @@
 Shaders
 =======
 
-gpupy.gl.shader brings utilities to work with OpenGL shaders.
+gpupy.gl.shader brings utilities to work with OpenGL shaders. Any object which represents it self as a shader should have `gl_shader_id` attribute which contains the OpenGl program object.
 
 ```python
 from gpupy.gl.shaders import Shader, Program
