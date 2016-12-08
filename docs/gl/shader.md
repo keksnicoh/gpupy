@@ -42,3 +42,27 @@ uniforms can be defined by
 program.uniform('color', (1, 0, 0, 1))
 ``` 
 To avoid memory transfer from the host to gpu, the shader keeps all changes of uniforms within a buffer until the program is used. 
+
+structures
+----------
+The `{% struct <name> %}` tag allows to define structures within the shader via python. 
+```python
+vertex_shader = Shader(GL_VERTEX_SHADER, """
+  {% version %}
+  {% struct some_structure %}
+  //...
+""")
+#...
+program.declare_struct('some_structure', """some_structure {
+  float3 a;
+  float b;
+}""")
+```
+It is possible to use numpy dtype to declare a structure.
+```python 
+# this is equivalent to the latter code snippet
+program.declare_struct('some_structure', np.dtype([
+  ('a', np.float32, 3),
+  ('b', np,float32)
+])
+```
