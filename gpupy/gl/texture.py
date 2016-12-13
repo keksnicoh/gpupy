@@ -26,25 +26,29 @@ NEAREST_FILTERS = {
     GL_TEXTURE_MIN_FILTER: GL_NEAREST
 }
 
-def gl_texture_id(texture):
-    if hasattr(texture, 'gl_texture_id'):
-        texture_id = texture.gl_texture_id
-    else:
-        texture_id = texture 
+def gl_texture_id(texture_id):
+    """
+    returns a valid texture_id from a given object
+    or raises a ValueError
+    """
+    if hasattr(texture_id, 'gl_texture_id'):
+        texture_id = texture_id.gl_texture_id
 
-    # XXX
-    # - check type
+    if int(texture_id) != texture_id or texture_id < 1:
+        raise ValueError('invalid texture id ({})'.format(texture_id))
 
     return texture_id
 
-def gl_texture_unit(texture):
-    if hasattr(texture, 'gl_texture_unit'):
-        texture_unit = texture.gl_texture_unit
-    else:
-        texture_unit = texture 
+def gl_texture_unit(texture_unit):
+    """
+    returns a given texture_unit from a given object
+    or raises a ValueError
+    """
+    if hasattr(texture_unit, 'gl_texture_unit'):
+        texture_unit = texture_unit.gl_texture_unit
 
-    # XXX
-    # - check unit
+    if 'GL_TEXTURE'+str(texture_unit) not in globals():
+        raise ValueError('unvalid texture unit ({}). Please use GL_TEXTURE<N>'.format(texture_unit))
 
     return texture_unit
 

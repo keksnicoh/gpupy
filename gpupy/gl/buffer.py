@@ -26,12 +26,32 @@ import numpy as np
 from operator import mul
 from ctypes import c_void_p
 
+HAS_CL = False
+try:
+    import pyopencl as cl
+    HAS_CL = True
+except:
+
+    pass 
+
 # some link to docs to improve exceptions.
 DOCS = {
     'glBindBuffer': 'https://www.opengl.org/sdk/docs/man/html/glBindBuffer.xhtml',
     'glBindBufferBase': 'https://www.opengl.org/sdk/docs/man/docbook4/xhtml/glBindBufferBase.xml',
 }
 
+def assert_cl(f):
+    """
+    for methods which require pyopencl
+    """
+    def _f(*args, **kwargs):
+        if not HAS_CL:
+            raise RuntimeError('pyopencl is required')
+        if not cl.have_gl()
+            raise RuntimeError('pyopengl.have_gl() returned False')
+            
+        return f(*args, **kwargs)
+    return _f
 
 class BufferObject():
     """
@@ -88,7 +108,7 @@ class BufferObject():
         return cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
 
     @classmethod
-    def ones(cls, data, target=GL_ARRAY_BUFFER):
+    def ones(cls, shape, dtype, target=GL_ARRAY_BUFFER):
         data = np.ones(shape, dtype=dtype)
         return cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
 
@@ -193,14 +213,13 @@ class BufferObject():
         glBindBuffer(self._target, 0)
         return data.view(self.dtype).reshape(self.shape)
 
+    @assert_cl
     def get_cl_array(self, queue):
         """
         returns pyopencl array allocated to the vbo.
         note that interoperatibility must be enabled.
         """
         if self._cl_buffer is None:
-            import pyopencl as cl
-
             self._cl_array = cl.array.Array(
                 queue,
                 self.shape,
@@ -208,6 +227,13 @@ class BufferObject():
             )
 
         return self._cl_array
+
+    def sort(self, use_cl=None):
+        pass
+
+    @assert_cl
+    def sort_cl(self):
+        pass
 
     def bind(self):
         glBindBuffer(self._target, self.gl_vbo_id)
@@ -286,4 +312,6 @@ def create_vao_from_program_buffer_object(program, buffer_object):
     buffer_object.unbind()
 
     return vao
+
+
 

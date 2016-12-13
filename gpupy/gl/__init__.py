@@ -29,3 +29,5 @@ class Gl:
     WARNINGS = True
 
     INFO = True
+
+    USE_CL = True

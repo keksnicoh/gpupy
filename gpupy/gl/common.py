@@ -58,10 +58,11 @@ class GlDriver():
         self.version = version
         self.core_profile = bool(core_profile)
         self.forward_compat = bool(forward_compat)
-
+    
     def get_gl_information():
         return {
             'GL_MAX_UNIFORM_BUFFER_BINDINGS': glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS),
+            'GL_MAX_TEXTURE_IMAGE_UNITS': glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS),
         }
 
 def gpupy_gl_warning(text):
@@ -229,8 +230,11 @@ KEY_EVENT_REPEAT = 2
 def glbool(v): return GL_TRUE if v else GL_FALSE
 def glfloat(v): return np.float32(v)
 def glint(v): return int(v)
+
 def ensure_vec2(cast=(lambda x: x), *args):
     if len(args) == 1:
+        if not len(args[0]) == 2:
+            raise ValueError()
         return (cast(args[0][0]), cast(args[0][1]))
     elif len(args) == 2:
         return (cast(args[0]), cast(args[1]))
@@ -238,8 +242,21 @@ def ensure_vec2(cast=(lambda x: x), *args):
         raise ValueError()
 def ensure_vec3(cast=(lambda x: x), *args):
     if len(args) == 1:
+        if not len(args[0]) == 3:
+            raise ValueError()
         return (cast(args[0][0]), cast(args[0][1]), cast(args[0][2]))
     elif len(args) == 3:
         return (cast(args[0]), cast(args[1]), cast(args[2]))
     else:
         raise ValueError()
+def ensure_vec4(cast=(lambda x: x), *args):
+    if len(args) == 1:
+        return ensure_vec4(*args[0])
+    elif len(args) == 4:
+        return (cast(args[0]), cast(args[1]), cast(args[2]), cast(args[3]))
+    else:
+        raise ValueError()
+
+glvec2 = ensure_vec2
+glvec3 = ensure_vec3
+glvec4 = ensure_vec4

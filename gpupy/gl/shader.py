@@ -72,7 +72,7 @@ class Shader():
 
         self.source = source
         self.type = type
-        self.gl_id = None
+        self.gl_shader_id = None
 
         # a list of all uniforms within the shader
         self.uniforms = None
@@ -212,14 +212,13 @@ class Shader():
         if isinstance(declr, np.dtype):
 
             for a in declr.descr:
-                field = a[0]
-                fdtype = a[1]
+                field, fdtype= a[0:2]
 
                 # the field type is a structure
                 # we need to check whether the structure allready exists 
                 # within the shader.
-                if isinstance(a[1], list):
-                    struct_dtype = np.dtype(a[1])
+                if isinstance(fdtype, list):
+                    struct_dtype = np.dtype(fdtype)
                     found_struct = None
 
                     # look for existing structures. 
@@ -304,18 +303,18 @@ class Shader():
         """
         deletes gl shader if exists
         """
-        if self.gl_id is not None:
-            glDeleteShader(self.gl_id)
-            self.gl_id = None
+        if self.gl_shader_id is not None:
+            glDeleteShader(self.gl_shader_id)
+            self.gl_shader_id = None
 
     def compile(self):
         """
         compiles shader and returns gl id
         """
-        if self.gl_id is None:
-            self.gl_id = glCreateShader(self.type)
-            if self.gl_id < 1:
-                self.gl_id = None
+        if self.gl_shader_id is None:
+            self.gl_shader_id = glCreateShader(self.type)
+            if self.gl_shader_id < 1:
+                self.gl_shader_id = None
                 raise ShaderError(self, 'glCreateShader returns an invalid id.')
 
             self._precompiled_source = self.source
@@ -326,15 +325,15 @@ class Shader():
             self._compile_uniform_blocks()
             self._compile_tags()
 
-            glShaderSource(self.gl_id, self._precompiled_source)
-            glCompileShader(self.gl_id)
+            glShaderSource(self.gl_shader_id, self._precompiled_source)
+            glCompileShader(self.gl_shader_id)
 
-            error_log = glGetShaderInfoLog(self.gl_id)
+            error_log = glGetShaderInfoLog(self.gl_shader_id)
             if error_log:
                 self.delete()
                 raise ShaderError(self, '{}'.format(error_log))
 
-        return self.gl_id
+        return self.gl_shader_id
 
     def _compile_tags(self):
         # 
@@ -526,7 +525,7 @@ class Program():
         initialize the state
         """
         self.shaders    = []
-        self.gl_id      = None
+        self.gl_shader_id      = None
         self.attributes = {}
         self.uniforms   = {}
         self._uniform_changes = {}
@@ -538,21 +537,21 @@ class Program():
         """
         tells opengl state to use this program
         """
-        if Program.__LAST_USE_GL_ID is not None and Program.__LAST_USE_GL_ID != self.gl_id:
+        if Program.__LAST_USE_GL_ID is not None and Program.__LAST_USE_GL_ID != self.gl_shader_id:
             raise ProgramError('cannot use program {} since program {} is still in use'.format(
-                self.gl_id, Program.__LAST_USE_GL_ID
+                self.gl_shader_id, Program.__LAST_USE_GL_ID
             ))
 
-        if self.gl_id != Program.__LAST_USE_GL_ID:
-            glUseProgram(self.gl_id)
-            Program.__LAST_USE_GL_ID = self.gl_id
+        if self.gl_shader_id != Program.__LAST_USE_GL_ID:
+            glUseProgram(self.gl_shader_id)
+            Program.__LAST_USE_GL_ID = self.gl_shader_id
             self.flush_uniforms()
 
     def unuse(self):
         """
         tells opengl state to unuse this program
         """
-        if self.gl_id != Program.__LAST_USE_GL_ID:
+        if self.gl_shader_id != Program.__LAST_USE_GL_ID:
             raise ProgramError('cannot unuse program since its not used.')
 
         glUseProgram(0)
@@ -562,19 +561,19 @@ class Program():
         """
         deletes gl program if exists
         """
-        if self.gl_id is not None:
-            glDeleteProgram(self.gl_id)
-            self.gl_id = None
+        if self.gl_shader_id is not None:
+            glDeleteProgram(self.gl_shader_id)
+            self.gl_shader_id = None
 
     def link(self):
         """
         links all shaders together
         """
         # prepare
-        self.gl_id = glCreateProgram()
+        self.gl_shader_id = glCreateProgram()
 
-        if self.gl_id < 1:
-            self.gl_id = None
+        if self.gl_shader_id < 1:
+            self.gl_shader_id = None
             raise ProgramError('glCreateProgram returns an invalid id')
 
 
@@ -592,10 +591,10 @@ class Program():
                         shader.declare_uniform(name, self.uniform_dtype[name])
 
             shader.compile()
-            glAttachShader(self.gl_id, shader.gl_id)
-        glLinkProgram(self.gl_id)
+            glAttachShader(self.gl_shader_id, shader.gl_shader_id)
+        glLinkProgram(self.gl_shader_id)
 
-        error_log = glGetProgramInfoLog(self.gl_id)
+        error_log = glGetProgramInfoLog(self.gl_shader_id)
         if error_log:
             self.delete()
             raise ProgramError(error_log)
@@ -605,7 +604,7 @@ class Program():
 
         self._check_uniform_blocks()
 
-        return self.gl_id
+        return self.gl_shader_id
 
     def _check_uniform_blocks(self):
         for name, dtype in self.uniform_dtype.items():
@@ -635,7 +634,7 @@ class Program():
         if not name in self.uniforms:
             raise ProgramError('unkown uniform "{}"'.format(name))
 
-        if flush or self.gl_id == Program.__LAST_USE_GL_ID:
+        if flush or self.gl_shader_id == Program.__LAST_USE_GL_ID:
             self._uniform(name, value)
         else:
             self._uniform_changes[name] = deepcopy(value)
@@ -689,15 +688,15 @@ class Program():
         elif type == 'mat2':
             glUniformMatrix2fv(location, 1, GL_FALSE, mat2(value))
         elif type == 'float':
-            glUniform1f(location, value)
+            glUniform1f(location, glfloat(value))
         elif type == 'int':
-            glUniform1i(location, value)
+            glUniform1i(location, glint(value))
         elif type == 'vec2':
-            glUniform2f(location, *value)
+            glUniform2f(location, *glvec2(glfloat, value))
         elif type == 'vec3':
-            glUniform3f(location, *value)
+            glUniform3f(location, *glvec3(glfloat, value))
         elif type == 'vec4':
-            glUniform4f(location, *value)
+            glUniform4f(location, *glvec4(glfloat, value))
         elif type == 'sampler2D':
             glUniform1i(location, gl_texture_unit(value))
         elif type == 'sampler3D':
@@ -709,7 +708,7 @@ class Program():
         elif type == 'sampler2DArray':
             glUniform1i(location, gl_texture_unit(value))
         elif type == 'bool':
-            glUniform1i(location, value)
+            glUniform1i(location, glbool(glbool))
         else:
             raise NotImplementedError('oops! type "{}" not implemented by shader library.'.format(type))
         self._uniform_values[name] = value
@@ -739,12 +738,12 @@ class Program():
         vertex_shader = self.get_vertex_shader()
         if vertex_shader is not None:
             input_attributes = {k: d for k, d in vertex_shader.attributes.items() if d[0] == 'in'}
-            self.attributes.update({k: glGetAttribLocation(self.gl_id, k) for k in input_attributes})
+            self.attributes.update({k: glGetAttribLocation(self.gl_shader_id, k) for k in input_attributes})
 
        # geom_shader = self.get_geometry_shader()
        # if geom_shader is not None:
        #     input_attributes = {k: d for k, d in geom_shader.attributes.items() if d[0] == 'in'}
-       #     self.attributes.update({k: glGetAttribLocation(self.gl_id, k) for k in input_attributes})
+       #     self.attributes.update({k: glGetAttribLocation(self.gl_shader_id, k) for k in input_attributes})
 
     def _configure_uniforms(self):
         """
@@ -761,7 +760,7 @@ class Program():
                         t2=u[0]
                     ))
 
-                location = glGetUniformLocation(self.gl_id, k)
+                location = glGetUniformLocation(self.gl_shader_id, k)
                 if location == -1:
                     gpupy_gl_warning(('could not receive uniform location "{}". '
                                       'Maybe it was never used within main() function?').format(k))
@@ -773,7 +772,7 @@ class Program():
 
             # uniform block
             for block_name in shader.uniform_blocks:
-                block_index = glGetUniformBlockIndex(self.gl_id, block_name)
+                block_index = glGetUniformBlockIndex(self.gl_shader_id, block_name)
                 if block_index == GL_INVALID_INDEX:
                     gpupy_gl_warning(('could not receive uniform_block location "{}". '
                                       'Maybe it was never used within main() function?').format(block_name))
@@ -795,6 +794,6 @@ class Program():
 
        # if shape is not None:
        #     dd()
-        glUniformBlockBinding(self.gl_id, self.uniform_block_index[name], index)
+        glUniformBlockBinding(self.gl_shader_id, self.uniform_block_index[name], index)
 
 
