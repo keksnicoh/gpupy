@@ -26,7 +26,7 @@ XXX
 
 from gpupy.gl.errors import GlError
 from gpupy.gl.gltype import *
-from gpupy.gl.common import gpupy_gl_warning, gpupy_gl_hint, gpupy_gl_info
+from gpupy.gl.common import *
 from gpupy.gl.glsl import * 
 
 from gpupy.gl.texture import gl_texture_unit
@@ -166,7 +166,7 @@ class Shader():
             gl_code = declr
             uniform_dtype = self._find_struct_declarations(gl_code)
             if not name in uniform_dtype:
-                raise ShaderError(self, 'struct name "{}" not defined in declaration: \n{}\n.'.format(name, gl_code))
+                self._serr('struct name "{}" not defined in declaration: \n{}\n.'.format(name, gl_code))
             dtype = uniform_dtype[name]
 
         # invalid arguments
@@ -236,7 +236,7 @@ class Shader():
                                 gpupy_gl_hint('shader.declare_struct("A", dtype);')
                                 gpupy_gl_hint('shader.declare_uniform(...);')
                                 gpupy_gl_hint('shader.declare_struct("B", dtype);')
-                                raise ShaderError(self, ('uniform block field "{}" type is a structure which is identical to '
+                                self._serr(('uniform block field "{}" type is a structure which is identical to '
                                                          'different defined structures ("{}" and "{}").'.format(field, def_struct, found_struct)))
 
                             gpupy_gl_info('declaration of uniform "{}" contains a struct for field "{}"'.format(name, field))
@@ -274,7 +274,7 @@ class Shader():
             uniform_dtype = self.find_structs_as_dtype(gl_code)
 
             if not name in uniform_dtype:
-                raise ShaderError(self, 'uniform name "{}" not defined in declaration: \n{}\n.'.format(name, gl_code))
+                self._serr('uniform name "{}" not defined in declaration: \n{}\n.'.format(name, gl_code))
 
             dtype = uniform_dtype[name]
 
@@ -315,7 +315,7 @@ class Shader():
             self.gl_shader_id = glCreateShader(self.type)
             if self.gl_shader_id < 1:
                 self.gl_shader_id = None
-                raise ShaderError(self, 'glCreateShader returns an invalid id.')
+                self._serr('glCreateShader returns an invalid id.')
 
             self._precompiled_source = self.source
 
@@ -331,7 +331,7 @@ class Shader():
             error_log = glGetShaderInfoLog(self.gl_shader_id)
             if error_log:
                 self.delete()
-                raise ShaderError(self, '{}'.format(error_log))
+                self._serr('{}'.format(error_log))
 
         return self.gl_shader_id
 
@@ -345,14 +345,14 @@ class Shader():
         # uniform declarations
         for name, replc in self.structs_require_declraration.items():
             if name not in self.structs_declarations:
-                raise ShaderError(self, 'tag {{% struct {} %}} not defined. Did you use Shader.declare_uniform()?'.format(name))
+                self._serr('tag {{% struct {} %}} not defined. Did you use Shader.declare_uniform()?'.format(name))
             self._precompiled_source = self._precompiled_source.replace(replc, self.structs_declarations[name])
 
     def _compile_uniform_blocks(self):
         # uniform declarations
         for name, replc in self.uniforms_require_declraration.items():
             if name not in self.uniforms_declarations:
-                raise ShaderError(self, 'tag {{% uniform_block {} %}} not defined. Did you use Shader.declare_uniform()?'.format(name))
+                self._serr('tag {{% uniform_block {} %}} not defined. Did you use Shader.declare_uniform()?'.format(name))
             self._precompiled_source = self._precompiled_source.replace(replc, self.uniforms_declarations[name])
 
     def _compile_substitutions(self):
@@ -434,8 +434,8 @@ class Shader():
         # check if an explicit declaration has the same name as a struct tag.
         intersection_struct_block_declr = set(self.structs) & set(self.structs_dtype.keys())
         if len(intersection_struct_block_declr):
-            raise ShaderError(self, ('a struct tag for "{}" was found. '
-                               'But there is an explicit declaration within '
+            self._serr(('a struct tag for "{}" was found. '
+                        'But there is an explicit declaration within '
                                'glsl code defined as well.').format(', '.join(intersection_struct_block_declr)))
 
         self.structs.extend(self.structs_dtype.keys())
@@ -494,9 +494,10 @@ class Shader():
         # a {% uniform %} tag within the shader.
         intersection_uniform_block_declr = set(self.uniform_blocks) & set(self.uniform_dtype.keys())
         if len(intersection_uniform_block_declr):
-            raise ShaderError(self, ('a uniform_block tag for "{}" was found. '
-                              'But there is an explicit declaration within '
-                              'glsl code defined as well.').format(', '.join(intersection_uniform_block_declr)))
+            self._serr(('a uniform_block tag for "{}" was found. '
+                        'But there is an explicit declaration within '
+                        'glsl code defined as well.'
+                        ).format(', '.join(intersection_uniform_block_declr)))
 
         self.uniform_blocks.extend(self.uniform_dtype.keys())
 
@@ -508,11 +509,19 @@ class Shader():
 
     def _check_auto_declared_ubo_structs(self, name):
         if name in self._auto_declare_struct_ubo:
-            gpupy_gl_warning('declaration of struct "{}" was allready done implicitly by the uniform_block declaration of "{}".'.format(name, self._auto_declare_struct_ubo[name]))
-            gpupy_gl_hint('always declare structs before declaring uniform blocks to avoid leak of information!')
+            gpupy_gl_warning((
+                             'declaration of struct "{}" was allready done implicitly '
+                             'by the uniform_block declaration of "{}".'
+                             ).format(name, self._auto_declare_struct_ubo[name]))
+            gpupy_gl_hint((
+                          'always declare structs before declaring uniform '
+                          'blocks to avoid leak of information!'))
 
     def _error_not_a_struct(self):
         raise ValueError('argument declr must be either a glsl code declaration or a numpy dtype')
+
+    def _serr(self, *args, **kwargs):
+        raise ShaderError(self, *args, **kwargs)
 
 class Program():
     """

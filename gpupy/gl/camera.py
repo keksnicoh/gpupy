@@ -130,7 +130,7 @@ class Camera(object):
         self._camera = None
         self.init_ubo()
 
-
+        self._last_ubo = None 
     def _update_symmetric_projection_screensize(self):
         if self.projection == Camera.PROJECTION_ORTHOGRAPHIC:
             self.right = self.screensize[0] / 2.0
@@ -189,16 +189,15 @@ class Camera(object):
     def enable(self):
         """ enables the camera by binding the
             buffer target """
+        self._last_ubo = glGetIntegerv(GL_UNIFORM_BUFFER_BINDING)
         self._ubo.bind_buffer_base(self.buffer_base)
-
 
     def disable(self):
         """ disables the camera by unbinding the
             buffer target """
-        self._ubo.bind_buffer_base(-1)
-
-
-
+        self._ubo.bind_buffer_base(0)
+       # glBindBuffer(GL_UNIFORM_BUFFER, self._last_ubo)
+       # glBindBufferBase(GL_UNIFORM_BUFFER, self._last_ubo)
     def create_matricies(self):
         """ creates projection and view matrix.
 

@@ -47,7 +47,7 @@ def assert_cl(f):
     def _f(*args, **kwargs):
         if not HAS_CL:
             raise RuntimeError('pyopencl is required')
-        if not cl.have_gl()
+        if not cl.have_gl():
             raise RuntimeError('pyopengl.have_gl() returned False')
             
         return f(*args, **kwargs)

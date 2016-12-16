@@ -46,7 +46,6 @@ def gl_texture_unit(texture_unit):
     """
     if hasattr(texture_unit, 'gl_texture_unit'):
         texture_unit = texture_unit.gl_texture_unit
-
     if 'GL_TEXTURE'+str(texture_unit) not in globals():
         raise ValueError('unvalid texture unit ({}). Please use GL_TEXTURE<N>'.format(texture_unit))
 

@@ -24,6 +24,7 @@ class Framebuffer():
             'depth': [],
             'stencil': [],
         }
+        self.gl_framebuffer_id = glGenFramebuffers(1)
 
     def color_attachment(self, texture, n=0, target=None):
         self.use()
@@ -47,8 +48,7 @@ class Framebuffer():
         self.unuse()
 
     def use(self):
-        if self.gl_framebuffer_id is None:
-            self.gl_framebuffer_id = glGenFramebuffers(1)
+            
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, self.gl_framebuffer_id)
         if not glCheckFramebufferStatus(GL_FRAMEBUFFER):

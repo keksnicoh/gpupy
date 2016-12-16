@@ -194,6 +194,24 @@ class FontRenderer():
                 shader.unuse()
 
 
+    def render_text(self, textobj):
+        glActiveTexture(GL_TEXTURE1) # XXX disale texture later??
+
+        with self.font_atlas.texture:
+            glEnable (GL_BLEND)
+            glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+            # render
+            shader = textobj.get_shader(self.shader_program)
+            vao = textobj.get_vao(self.shader_program)
+
+            shader.use()
+            glBindVertexArray(vao)
+            glDrawArrays(GL_POINTS, 0, len(textobj))
+            glBindVertexArray(0)
+            shader.unuse()
+
+
 class TextObject(object):
 
 
@@ -294,8 +312,9 @@ class TextObject(object):
         if update_buffer_object and self._buffer_object is not None:
             self._buffer_object.set(self._char_data)
 
-    def get_data(self):
-        self._prepare()
+    def get_data(self,update_buffer_object=True):
+        if update_buffer_object:
+            self._prepare()
         return self._char_data
     
     def get_shader(self, default_shader):
@@ -306,7 +325,7 @@ class TextObject(object):
             self._buffer_object = BufferObject.to_device(self.get_data())
 
         elif self._has_changes:
-            self._buffer_object.set(self.get_data(update_buffer_object=False))
+            self._buffer_object.set(self.get_data(update_buffer_object=True))
 
         if self._vao is None:
             self._vao = create_vao_from_program_buffer_object(self.get_shader(default_shader), self._buffer_object)
@@ -328,7 +347,7 @@ class TextObject(object):
 
     @chars.setter
     def chars(self, chars):
-        self._chars = chars
+        self._chars = str(chars)
         self._has_changes = True
 
     @property

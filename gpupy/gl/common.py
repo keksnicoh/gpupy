@@ -7,6 +7,40 @@ from OpenGL.GL import *
 from gpupy.gl.util import Event
 from gpupy.gl import Gl
 import numpy as np
+
+from gpupy.gl.vector import * 
+
+class GlViewPort():
+    def __init__(self, position, size):
+        self._position = listenable(vec2(position))
+        self._size = listenable(vec2(size))
+        self._old_viewport = None
+
+    @classmethod
+    def create(cls):
+        vp = glGetIntegerv(GL_VIEWPORT)
+        return cls(vp[0:2], vp[2:4])
+
+    @property
+    def size(self):
+        return self._size 
+
+    @size.setter
+    def size(self, value):
+        self._size.xy = value
+
+    @property
+    def position(self):
+        return self._position 
+
+    def use(self):
+        self._old_viewport = glGetIntegerv(GL_VIEWPORT)
+        glViewport(self._position[0], self._position[1], self._size[0], self._size[1])
+
+    def unuse(self, restore=True):
+        if self._old_viewport is not None and restore:
+            glViewport(*self._old_viewport)
+
 class GlState():
     """
     XXX
@@ -251,7 +285,7 @@ def ensure_vec3(cast=(lambda x: x), *args):
         raise ValueError()
 def ensure_vec4(cast=(lambda x: x), *args):
     if len(args) == 1:
-        return ensure_vec4(*args[0])
+        return ensure_vec4(cast, *args[0])
     elif len(args) == 4:
         return (cast(args[0]), cast(args[1]), cast(args[2]), cast(args[3]))
     else:
