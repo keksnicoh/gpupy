@@ -2,7 +2,7 @@
 @author Nicolas 'keksnicoh' Heimann <nicolas.heimann@gmail.com>
 """
 from gpupy.gl.util import CommandQueue, Event
-from gpupy.gl import Gl
+from gpupy.gl import GlConfig
 from gpupy.gl.common import *
 
 from OpenGL.GL import *
@@ -317,7 +317,7 @@ class GLFW_Window():
         """
 
         glfwMakeContextCurrent(self._glfw_window)
-        Gl.STATE = self.gl_state
+        GlConfig.STATE = self.gl_state
         
         glfwSetWindowSizeCallback(self._glfw_window, self.resize_callback)
         glfwSetKeyCallback(self._glfw_window, self.key_callback)
@@ -353,7 +353,7 @@ class GLFW_Window():
             # was performed within the GLFW_Window.cycle() method.
             if not self._in_cycle:
                 glfwMakeContextCurrent(self._glfw_window)
-                Gl.STATE = self.gl_state
+                GlConfig.STATE = self.gl_state
 
             self.on_resize()
 
@@ -367,7 +367,7 @@ class GLFW_Window():
         self._in_cycle = True
 
         glfwMakeContextCurrent(self._glfw_window)
-        Gl.STATE = self.gl_state
+        GlConfig.STATE = self.gl_state
 
         self.event_queue.queue(self.resize_callback)
         self.on_cycle()

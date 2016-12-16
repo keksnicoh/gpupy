@@ -4,14 +4,16 @@ open a single glfw window without any controller
 
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl.driver.glfw import GLFW_WindowFunction
 from gpupy.gl.components.frame import Frame 
-from gpupy.gl.camera import Camera
-from gpupy.gl.common import GlViewPort
 from gpupy.gl.components.fps import Fps
+
+from gpupy.gl.driver.glfw import GLFW_WindowFunction
+from gpupy.gl import *
 from OpenGL.GL import *
+
 import numpy as np 
 from time import time 
+
 class PrototypeBaseController():
     def __init__(self, window):
         window.on_init.append(self._init)
@@ -23,7 +25,7 @@ class PrototypeBaseController():
         self.window = window 
 
     def _init(self):
-        viewport = GlViewPort((0,0), self.window.get_size())
+        viewport = ViewPort((0,0), self.window.get_size())
         viewport.use()
 
         self.viewport = viewport

@@ -15,16 +15,13 @@ XXX
 - define more complex stuff for ArrayObject. How to deal with strided data manually?
 - ensure that also plain opengl can be combined with all the stuff here.
 - UBO alignment warnings.
+- what if there is a opengl buffer and we want to wrap this object around?
+- array access: b[i], b[s:l], ... ???
 :author: Nicolas 'keksnicoh' Heimann
 """
 from gpupy.gl.errors import GlError
 
 from OpenGL.GL import *
-
-import numpy as np
-
-from operator import mul
-from ctypes import c_void_p
 
 HAS_CL = False
 try:
@@ -33,6 +30,11 @@ try:
 except:
 
     pass 
+
+import numpy as np
+
+from operator import mul
+from ctypes import c_void_p
 
 # some link to docs to improve exceptions.
 DOCS = {

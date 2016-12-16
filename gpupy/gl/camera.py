@@ -8,7 +8,7 @@ XXX
  - orthigraphic projection: cannot move in z direction.
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl import Gl
+from gpupy.gl import GlConfig
 from gpupy.gl.common import *
 from gpupy.gl.buffer import BufferObject
 from gpupy.gl.matrix import *
@@ -29,7 +29,7 @@ class Camera(object):
 
     The data is uploaded into an uniform buffer object
     which is binded to the default binding index reserved 
-    at Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camery'].
+    at GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camery'].
 
     .. code ::
 
@@ -157,7 +157,7 @@ class Camera(object):
         camera = np.zeros(1, self.dtype)
 
         self._ubo = BufferObject.to_device(camera, target=GL_UNIFORM_BUFFER)
-        self._ubo.bind_buffer_base(self.buffer_base if self.buffer_base is not None else Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+        self._ubo.bind_buffer_base(self.buffer_base if self.buffer_base is not None else GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
 
         self.gl_buffer_base = self._ubo.gl_buffer_base
         self._camera = camera

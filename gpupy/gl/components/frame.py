@@ -1,15 +1,18 @@
 #-*- coding: utf-8 -*-
-from OpenGL.GL import *
-from gpupy.gl.texture import Texture2D
-from gpupy.gl.common import GlViewPort
-from gpupy.gl.framebuffer import Framebuffer
-from gpupy.gl.buffer import BufferObject, create_vao_from_program_buffer_object
-from gpupy.gl.shader import Shader, Program
+"""
+component which allows allows to render
+scene into a framebuffer and renders a 
+display plane.
+
+:author: Nicolas 'keksnicoh' Heimann
+"""
+from gpupy.gl.buffer import create_vao_from_program_buffer_object
 from gpupy.gl.mesh import mesh3d_rectangle
-from gpupy.gl.camera import Camera
-from gpupy.gl import Gl
-import numpy as np 
 from gpupy.gl.vector import *
+
+from gpupy.gl import *
+from OpenGL.GL import *
+import numpy as np 
 
 class Frame():
     """
@@ -58,13 +61,15 @@ class Frame():
         if hasattr(self._capture_size, 'on_change'):
             self._capture_size.on_change.append(self._capture_size_changed)
 
-        self.viewport = GlViewPort((0, 0), self.capture_size)
+        self.viewport = ViewPort((0, 0), self.capture_size)
         self.texture = None
         self.camera = camera
         self.outer_camera = outer_camera
         self._init_capturing()
         self._init_plane()
         pass
+
+    # -- controlled properties --
 
     @property
     def size(self):
@@ -82,14 +87,15 @@ class Frame():
     def capture_size(self, value):
         self.capture_size.xy = value
 
-    def _viewport_position_changed(self, *args):
-        return self._size
+    ## -- event handlers --
 
     def _size_changed(self, size, old_size):
         self.plane_shader.uniform('size', size)
 
     def _capture_size_changed(self, size, old_size):
         self.texture.resize(size)      
+
+    # -- initialization --
 
     def _init_capturing(self):
         self.texture = Texture2D.empty((self.capture_size[0], self.capture_size[1], 4), np.float32)
@@ -107,7 +113,7 @@ class Frame():
         if self.outer_camera is not None:
             self.plane_shader.uniform_block_binding('outer_camera', outer_camera)
         else:
-            self.plane_shader.uniform_block_binding('outer_camera', Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+            self.plane_shader.uniform_block_binding('outer_camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
 
         self.buffer = BufferObject.to_device(mesh3d_rectangle())
         self.vao = create_vao_from_program_buffer_object(self.plane_shader, self.buffer)
@@ -141,6 +147,7 @@ class Frame():
         self.framebuffer.use()
         self.viewport.use()
         self.camera.enable()
+        
     def unuse(self): 
         self.camera.disable()
         self.viewport.unuse()

@@ -14,12 +14,12 @@ from gpupy.gl.mesh import mesh3d_cube, mesh3d_rectangle
 from gpupy.gl.framebuffer import Framebuffer
 from OpenGL.GL import *
 import numpy as np
-from gpupy.gl import Gl
+from gpupy.gl import GlConfig
 from functools import partial 
 
 CUBE_TEXTURE_SIZE = (400, 400)
 
-Gl.DEBUG = True
+GlConfig.DEBUG = True
 class RaycastingController():
     def __init__(self, window):
         self.window = window

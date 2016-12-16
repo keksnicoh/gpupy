@@ -16,7 +16,7 @@ XXX
 
 @author Nicolas 'keksnicoh' Heimann <nicolas.heimann@gmail.com>
 """
-from gpupy.gl import Gl
+from gpupy.gl import GlConfig
 from gpupy.gl.shader import Shader, Program
 from gpupy.gl.camera import Camera
 from gpupy.common.helper import load_lib_file, resource_path
@@ -122,7 +122,7 @@ class FontRenderer():
     def init(self):
         # load font file
         self._fnt = FNTFile.load_from_file(self.font_path)
-        self.font_atlas = FontAtlas(self._fnt, self._buffer_base if self._buffer_base is not None else Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.font'])
+        self.font_atlas = FontAtlas(self._fnt, self._buffer_base if self._buffer_base is not None else GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.font'])
 
         # create shader
         self.shader_program = Program()
@@ -136,7 +136,7 @@ class FontRenderer():
 
         # shader configuration
         self.shader_program.uniform_block_binding('glyph_data', self.font_atlas.glyph_buffer)
-        self.shader_program.uniform_block_binding('camera', Gl.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'] if self.camera is None else self.camera)
+        self.shader_program.uniform_block_binding('camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'] if self.camera is None else self.camera)
         self.shader_program.uniform('tex_scale', (1.0/self.font_atlas.texture.size[1], 1.0/self.font_atlas.texture.size[2]))
         self.shader_program.uniform('fontsize_real', 60)
         self.shader_program.uniform('tex', 1)

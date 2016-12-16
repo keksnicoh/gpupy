@@ -4,7 +4,7 @@ open a single glfw window without any controller
 
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl import Gl
+from gpupy.gl import GlConfig
 
 from gpupy.gl.driver.glfw import GLFW_WindowFunction
 from gpupy.gl.common import *
