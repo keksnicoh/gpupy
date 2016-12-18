@@ -67,11 +67,37 @@ class Vector(metaclass=VectorMeta):
     overloading
     """
 
+    def __init__(self):
+        self.on_change = Event()
+
+    def observe(self, transformation=lambda x: x):
+        """
+        creates a new vector which observes
+        this vector. 
+
+        Arguments:
+        - transformation: a callable which defines a 
+            transformation of the value. 
+
+        the new vector does listen to the
+        original vector on_change event. 
+        modify the state of the vector will
+        not affect the original vector change.
+        """
+        vector = self.__base_cls__(*self._values)
+
+        def _listener(subject, old):
+            vector.values = transformation(subject._values)
+            
+        self.on_change.append(_listener)
+
+        return vector
+
     def __deepcopy__(self, *args):
         """
         removes all event handlers
         """
-        return self.__ndarray_cls__(*self.values.copy())
+        return self.__ndarray_cls__(self.values.copy())
 
     def __str__(self):
         """
@@ -92,6 +118,8 @@ class Vector(metaclass=VectorMeta):
         return len(self.__fields__)
 
     # numpy wrappers
+    # XXX
+    # - define missing 
     def __add__(self, a):  return self.__ndarray_cls__(a + self._values)
     def __radd__(self, a): return self.__ndarray_cls__(self._values + a)
     def __sub__(self, a):  return self.__ndarray_cls__(self._values - a)
@@ -129,8 +157,6 @@ class Vector(metaclass=VectorMeta):
     def _modified(self, old_values):
         self.on_change(self, old_values)
 
-    def __init__(self):
-        self.on_change = Event()
 
 class Vec2(Vector):
     """
@@ -138,6 +164,7 @@ class Vec2(Vector):
     """
     __fields__ = ('x', 'y') 
     __ndarray_cls__ = None
+    __base_cls__ = None
 
     def __init__(self, x=0, y=0):
         self._values = np.array((x, y), dtype=np.float64)
@@ -149,6 +176,7 @@ class Vec3(Vector):
     """
     __fields__ = ('x', 'y', 'z') 
     __ndarray_cls__ = None
+    __base_cls__ = None
 
     def __init__(self, x=0, y=0, z=0):
         self._values = np.array((x, y, z), dtype=np.float64)
@@ -160,14 +188,15 @@ class Vec4(Vector):
     """
     __fields__ = ('x', 'y', 'z', 'w') 
     __ndarray_cls__ = None
+    __base_cls__ = None
 
     def __init__(self, x=0, y=0, z=0, w=0):
         self._values = np.array((x, y, z, w), dtype=np.float64)
         super().__init__()
 
 # -- VecNndarray allows to assign numpy ndarray directly via constructor.
-#    that way we can put the ndarray from arithmethic operations 
-#    defined in Vector.__XXX__ methods directly to the new vector.
+#    that way we can use the ndarray from arithmethic operations 
+#    defined in Vector.__XXX__ methods directly as the new vector.
 class Vec2ndarray(Vec2):
     def __init__(self, ndarray):
         self._values = ndarray
@@ -183,9 +212,13 @@ class Vec4ndarray(Vec4):
         self._values = ndarray
         super(Vector, self).__init__()
 
+# fast access of classes
 Vec2.__ndarray_cls__ = Vec2ndarray
 Vec3.__ndarray_cls__ = Vec3ndarray
 Vec4.__ndarray_cls__ = Vec4ndarray
+Vec2.__base_cls__ = Vec2
+Vec3.__base_cls__ = Vec3
+Vec4.__base_cls__ = Vec4
 
 # -- helper methods
 def _vecd(veccls, d, obj=None):

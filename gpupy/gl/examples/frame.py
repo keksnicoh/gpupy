@@ -78,11 +78,11 @@ class Controller(PrototypeBaseController):
         self.frame_static.program.uniform('mat_model', self.mat_static)
 
         # here the camera screensize is connected to the 
-        # framebuffers size but the capture size is not connected
-        # with the frame size.
+        # framebuffers size and capture size is connected to 
+        # size such that the x=size.x*0.25 and y=size.y*4
         size = vec2(cap_size)
         self.frame_bad_resolution = Frame(size, camera=Camera2D(screensize=size, position=(200, 100, 0)), 
-                                                capture_size=size*(0.25, 4))
+                                                capture_size=size.observe(lambda x: x*(0.25, 4)))
         self.mat_bad_resolution = mat4_translation(0, -400, 0).T
         self.frame_bad_resolution.program.uniform('mat_model', self.mat_bad_resolution)
 
