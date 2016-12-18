@@ -9,7 +9,11 @@ from gpupy.gl.components.fps import Fps
 
 from gpupy.gl.driver.glfw import GLFW_WindowFunction
 from gpupy.gl import *
+from gpupy.gl.components.camera import Camera2D
+from gpupy.gl.matrix import *
+from gpupy.gl.vector import *
 from OpenGL.GL import *
+
 
 import numpy as np 
 from time import time 
@@ -43,8 +47,6 @@ class PrototypeBaseController():
     def draw(self):
         self.tick()
         self.viewport.use()    
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
         self.scene()
         self.viewport.unuse()
 
@@ -55,37 +57,79 @@ class PrototypeBaseController():
 class Controller(PrototypeBaseController):
 
     def init(self):
-        cap_size = (100, 100)
+        self.fps = Fps(size=100)
 
-        inner_camera = Camera(screensize=(self.window.get_size()[0],self.window.get_size()[1]))
-        inner_camera.translate(x=200, y=200, z=-800)
+        # 200px height, scales with window size
+        cap_size = (self.window.get_size()[0], 200)
 
-        self.frame = Frame(self.window.get_size(), capture_size=cap_size, camera=inner_camera)
-        self.fps = Fps(size=200)
+        # create a frame with a capture size vector
+        # this way the size, capture_size and screensize of the camera are
+        # all bound by the same vector. 
+        #
+        # since the components listen to changes of the vector
+        # they'll automatically update if the size changes.
+        linked_cap_size = vec2(cap_size)
+        self.frame_dynamic = Frame(linked_cap_size, camera=Camera2D(screensize=linked_cap_size, position=(200, 100, 0)))
+
+        # in this example the capture size wont be connected to the camera's
+        # screensize.
+        self.frame_static = Frame(cap_size, camera=Camera2D(screensize=cap_size, position=(200, 100, 0)))
+        self.mat_static = mat4_translation(0, -200, 0).T
+        self.frame_static.program.uniform('mat_model', self.mat_static)
+
+        # here the camera screensize is connected to the 
+        # framebuffers size but the capture size is not connected
+        # with the frame size.
+        size = vec2(cap_size)
+        self.frame_bad_resolution = Frame(size, camera=Camera2D(screensize=size, position=(200, 100, 0)), 
+                                                capture_size=size*(0.25, 4))
+        self.mat_bad_resolution = mat4_translation(0, -400, 0).T
+        self.frame_bad_resolution.program.uniform('mat_model', self.mat_bad_resolution)
 
         glClearColor(0, 0, 0, 1)
 
     def resize(self):
+        """
+        we will resize the dynamic and the bad_resolution  frame.
+        for the dynamic frame we change the camera's position to
+        such that the content won't move on resize
+        """
         s = self.window.get_size()
 
-        # resize_inner
-        self.frame.size = s
-        self.frame.camera.set_screensize(s)
+        self.frame_dynamic.size = (s[0], 200)
+        self.frame_dynamic.camera.position = ((self.frame_dynamic.size[0]/2, 100, 0))
 
-        # resize_capture
+        self.frame_bad_resolution.size = (s[0], 200)
+
         self.draw()
 
     def tick(self):
         self.fps.tick()
-        self.frame.use()
+        self.frame_dynamic.use()
         glClearColor(0, 0, 0, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         self.fps.draw()
-        self.frame.unuse()
+        self.frame_dynamic.unuse()
+
+        self.frame_static.use()
+        glClearColor(0, 0, 0, 1)
+        self.fps.draw()
+        self.frame_static.unuse()
+
+        self.frame_bad_resolution.use()
+        glClearColor(0, 0, 0, 1)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        self.fps.draw()
+        self.frame_bad_resolution.unuse()
 
     def scene(self):
         self.camera.enable()
-        self.frame.draw()
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        self.frame_static.draw()
+        self.frame_dynamic.draw()
+        self.frame_bad_resolution.draw()
+
 
 @GLFW_WindowFunction
 def main(window):

@@ -28,6 +28,7 @@ from gpupy.gl.errors import GlError
 from gpupy.gl.gltype import *
 from gpupy.gl.common import *
 from gpupy.gl.glsl import * 
+from gpupy.gl.vector import * 
 
 from gpupy.gl.texture import gl_texture_unit
 
@@ -523,6 +524,9 @@ class Shader():
     def _serr(self, *args, **kwargs):
         raise ShaderError(self, *args, **kwargs)
 
+class UniformManager():
+    pass
+
 class Program():
     """
     opengl render program representation
@@ -541,6 +545,7 @@ class Program():
         self._uniform_values = {}
         self.uniform_block_index = {}
         self.uniform_dtype = None
+
 
     def use(self, flush_uniforms=True):
         """
@@ -675,11 +680,17 @@ class Program():
     def flush_uniforms(self, force=False):
         for name, value in self._uniform_changes.items():
             was_changed = False
+
+            # rethink this here, the problem is about the comparsion of objects.
             if not force:
                 if isinstance(value, np.ndarray):
                     was_changed = not np.array_equal(self._uniform_values[name], value)
                 else:
-                    was_changed = self._uniform_values[name] != value
+                    # if self._uniform_values[name] != value:
+                    #   does not work if self._uniform_values[name]  is a list and 
+                    #   value is a VectorN.
+                    was_changed = value != self._uniform_values[name]
+
             if force or was_changed:
                 self._uniform(name, value)
         self._uniform_changes = {}

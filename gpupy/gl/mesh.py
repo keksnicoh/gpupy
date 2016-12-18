@@ -6,6 +6,11 @@ contains some function which creates basic geometric meshes.
 """
 import numpy as np
 
+from gpupy.gl import BufferObject
+
+from OpenGL.GL import * 
+from ctypes import c_void_p
+
 # basic mesh dtype.
 MESH_DTYPE = np.dtype([
     ('vertex', np.float32, 3),
@@ -15,19 +20,87 @@ MESH_DTYPE = np.dtype([
 ])
 
 class Mesh():
-    def __init__(self, verticies, indices=None, textures=[]):
-        self.verticies = verticies
+    """
+    basic mesh class
+    """
+    def __init__(self, attribute_locations):
+        self.attribute_locations = attribute_locations
 
-        self.vbo = None
+    def init(self):
+        raise NotImplementedError('abstract method')
+
+    def draw(self):
+        raise NotImplementedError('abstract method')
+
+class StridedVertexMesh(Mesh):
+    """
+    strided mesh
+
+    mesh has a single buffer with strided data e.g.
+
+       1. (vertex1, color1, normal1, tex1)
+       2. (vertex2, color2, normal2, tex2)
+       3. (vertex3, color3, normal3, tex3)
+           ...
+
+    """
+    def __init__(self, vertices, vertex_type=GL_TRIANGLES, attribute_locations={'vertex': 1, 'color': 2, 'normal': 3, 'tex': 4}):
+        """
+        Arguments:
+            - vertices: strided numpy data (must have a dtype)
+
+                ..code ::
+                    np.array([...], dtype=np.dtype([
+                        ('vertex', np.float32, 3), 
+                        ('color', np.float32, 2), ...
+                    ]))
+
+            - vertex_type: how to interpret the data:
+
+                    GL_TRIANGLES, GL_LINES, ...
+
+            - attribute_locations: the locations of the attributes in the corresponding
+                shader program.
+        """
+        super().__init__(attribute_locations)
+        self.vertices = vertices
+        self.buffer = None 
         self.vao = None
-        self.textures = textures
-        self.indices = indices
-        self.init_mesh()
+        self.vertex_type = GL_TRIANGLES
+        self.init()
 
-    def init_mesh(self):
-        self.vbo = BufferObject.to_device(self.verticies)
+    def init(self):
+        self.buffer = BufferObject.to_device(self.vertices)
+        self.vao = glGenVertexArrays(1)
 
-        create_vao_from_program_buffer_object(program, buffer_object)
+        glBindVertexArray(self.vao)
+        self.buffer.bind()
+
+        for attribute, location in self.attribute_locations.items():
+            if self.buffer.dtype[attribute].subdtype is None:
+                components = 1
+            else:
+                components = self.buffer.dtype[attribute].subdtype[1][0]
+
+            glVertexAttribPointer(location, 
+                                  components, 
+                                  GL_FLOAT, 
+                                  GL_FALSE, 
+                                  self.buffer.dtype.itemsize, 
+                                  c_void_p(self.buffer.dtype.fields[attribute][1]))
+            glEnableVertexAttribArray(location)
+
+        self.buffer.unbind()
+        glBindVertexArray(0)
+
+    def draw(self):
+        """
+        draws the vertex array object
+        """
+        glBindVertexArray(self.vao)
+        glDrawArrays(self.vertex_type, 0, len(self.buffer))
+        glBindVertexArray(0)
+
 
 def mesh3d_cylinder(r=1, h=1, prec=50, color=(.5, .5, .5, 1)):
     if not callable(color):

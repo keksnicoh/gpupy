@@ -63,12 +63,14 @@ class AbstractTexture():
         self.gl_texture_parameters = gl_texture_parameters
         self.gl_texture_unit = None
 
-        self._is_bound = False
         self._gl_format = None
         self._gl_internal_format = None
         self._gl_type = None
         self._data = None
 
+    def __del__(self):
+        pass
+        
     def __gl_tex_image__(self, gl_internal_format, size, gl_format, gl_type, data):
         """
         invokes the glTexImageND method.
@@ -176,20 +178,15 @@ class AbstractTexture():
         glActiveTexture(gl_unit)
 
         glBindTexture(self.gl_target, self.gl_texture_id)
-        self._is_bound = True
         self.gl_texture_unit = unit
 
         return unit
 
     def bind(self):
-        if not self._is_bound:
-            glBindTexture(self.gl_target, self.gl_texture_id)
-            self._is_bound = True
+        glBindTexture(self.gl_target, self.gl_texture_id)
 
     def unbind(self):
-        if self._is_bound:
-            glBindTexture(self.gl_target, self.gl_texture_id)
-            self._is_bound = False
+        glBindTexture(self.gl_target, 0)
 
     def interpolation_nearest(self):
         self.gl_texture_parameters.update(NEAREST_FILTERS)

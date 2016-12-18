@@ -4,7 +4,7 @@ matrix utilities..
 
 :author: Nicolas 'keksnicoh' Heimann
 """
-
+from gpupy.gl.vector import *
 import numpy as np
 
 def mat4_rot_x(angle):
@@ -49,3 +49,12 @@ def mat4_reflection_xy():
         0, 0, -1, 0,
         0, 0, 0, 1,
     ], np.float32).reshape((4, 4))
+
+def MatModel2d():
+    def __init__(self, position=(0, 0), scaling=(0, 0), rotation=0):
+        self.position = vec2(position)
+        self.scaling = vec2(scaling)
+        self.rotation = vec2(rotation)
+
+        self.has_changes = changes
+

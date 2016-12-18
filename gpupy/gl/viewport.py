@@ -9,8 +9,8 @@ from gpupy.gl.vector import *
 
 class ViewPort():
     def __init__(self, position, size, restore=True):
-        self._position = listenable(vec2(position))
-        self._size = listenable(vec2(size))
+        self._position = vec2(position)
+        self._size = vec2(size)
         self._old_viewport = None
         self.restore = restore
 
@@ -33,7 +33,7 @@ class ViewPort():
 
     def use(self):
         self._old_viewport = glGetIntegerv(GL_VIEWPORT)
-        glViewport(self._position[0], self._position[1], self._size[0], self._size[1])
+        glViewport(*self._position.xy_gl_int, *self._size.xy_gl_int)
 
     def unuse(self, restore=None):
         if restore is None and self.restore or restore is not None and restore:

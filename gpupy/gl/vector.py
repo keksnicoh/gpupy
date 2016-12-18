@@ -1,164 +1,239 @@
-from gpupy.gl.util import Event 
+"""
+experimental!
 
-__all__ = ['vec2', 'vec3', 'vec4', 'listenable']
+let's see if this is a good idea or not ..
+"""
+from gpupy.gl.util import Event
 
-def vec2(x=None, y=None):
-    if isinstance(x, Vec2):
-        assert y == None
-        return x
-    if hasattr(x, '__iter__'):
-        assert y == None
-        x, y = x[0], x[1]
+import numpy as np 
+from functools import partial
 
-    return Vec2(x or 0, y or 0)
+__all__ = ['vec2', 'vec3', 'vec4', 'vecn']
 
-def vec3(x=None, y=None, z=None):
-    if (isinstance(x, Vec3)):
-        assert y == None and z == None
-        return x
-    return Vec2(x or 0, y or 0, z or 0)
+class VectorMeta(type): 
+    """
+    metaclass that spawns the vector attributes
+    and multiple attribute setters and getters
 
-def vec4(x=None, y=None, z=None, w=None):
-    if (isinstance(x, Vec4)):
-        assert y == None and z == None and w == None
-        return x
-    return Vec2(x or 0, y or 0, z or 0, w or 0)
+    e.g. __fields__ = ('x', 'y')
 
-def listenable(vec):
-    if isinstance(vec, ListenableVector):
-        return vec
+    the class will have x and y attribute
+    """
+    def __init__(cls, name, bases, namespace):
+        super().__init__(name, bases, namespace)
+        fields = namespace['__fields__'] if '__fields__' in namespace else () 
+        dim = len(fields)
 
-    return ListenableVector(vec)
+        def __create_fgetset(i, field):
+            def fget(self): 
+                return self.values[i]
 
-class Vec2():
-    _ALLOWED_ATTRIBUTES = ('x', 'y')
+            def fset(self, value): 
+                old_values = tuple(self._values)
+                self.values[i] = value
+                self._modified(old_values)
+            return fget, fset
 
-    def __init__(self, x, y):
-        self._v = (x, y)
-        self.x = x 
-        self.y = y 
+        # define vec.x, vec.x, etc. 
+        for i, field in enumerate(fields):
+            setattr(cls, field, property(*__create_fgetset(i, field)))
 
-    def __getitem__(self, i): 
-        return getattr(self, Vec4._ALLOWED_ATTRIBUTES[i])
+        # define vec.values
+        def fget(self):
+            return self._values 
 
-    @property
-    def xy(self):
-        return self.x, self.y
+        def fset(self, values):
+            if len(values) != len(fields):
+                raise ValueError('values must be a iteratable of length {}'.format(len(fields)))
+            old_values = tuple(self._values)
+            self._values[0:dim] = values
+            self._modified(old_values)
 
-    @xy.setter
-    def xy(self, xy):
-        self.x, self.y = xy
+        setattr(cls, 'values', property(fget, fset))
 
-    def __iter__(self):
-        yield self.x 
-        yield self.y
+        # define vec.xy or vec.xyz, ...
+        all_attr = ''.join(fields)
+        setattr(cls, all_attr, property(fget, fset))
+  
+        # opengl type conversions.  
+        setattr(cls, all_attr + '_gl_float', property(lambda s: s._values.astype(np.float32)))
+        setattr(cls, all_attr + '_gl_int', property(lambda s: s._values.astype(np.int32)))
+        setattr(cls, all_attr + '_gl_uint', property(lambda s: s._values.astype(np.uint32)))
+
+
+class Vector(metaclass=VectorMeta):
+    """
+    base vector class implements all operator 
+    overloading
+    """
+
+    def __deepcopy__(self, *args):
+        """
+        removes all event handlers
+        """
+        return self.__ndarray_cls__(*self.values.copy())
 
     def __str__(self):
-        return 'vec2({})'.format(', '.join('{:.2f}'.format(f) for f in self))
+        """
+        string representation
 
-class Vec3():
-    _ALLOWED_ATTRIBUTES = ('x', 'y', 'z')
+           VecN(x, y, ...)
 
-    def __init__(self, x=0, y=0, z=0):
-        self.x = x 
-        self.y = y 
-        self.z = z 
+        """
+        return '{}({})'.format(str(self.__class__.__name__), ', '.join(str(a) for a in self))
 
-    def __getitem__(self, i): 
-        return getattr(self, Vec4._ALLOWED_ATTRIBUTES[i])
-
-    @property
-    def xyz(self):
-        return self.x, self.y, self.z
-
-    @xyz.setter
-    def xyz(self, xyz):
-        self.x, self.y, self.z = xyz
+    def __unicode__(self):
+        return self.__str__()
 
     def __iter__(self):
-        yield self.x 
-        yield self.y
-        yield self.z
+        return iter(self.values)
 
-class Vec4():
-    _ALLOWED_ATTRIBUTES = ('x', 'y', 'z', 'w')
+    def __len__(self): 
+        return len(self.__fields__)
 
-    def __init__(self, x, y, z, w):
+    # numpy wrappers
+    def __add__(self, a):  return self.__ndarray_cls__(a + self._values)
+    def __radd__(self, a): return self.__ndarray_cls__(self._values + a)
+    def __sub__(self, a):  return self.__ndarray_cls__(self._values - a)
+    def __rsub__(self, a): return self.__ndarray_cls__(a - self._values)
+    def __mul__(self, a):  return self.__ndarray_cls__(self._values * a)
+    def __rmul__(self, a): return self.__ndarray_cls__(a * self._values)
+    def __div__(self, a):  return self.__ndarray_cls__(self._values / a)
+    def __rdiv__(self, a): return self.__ndarray_cls__(a / self._values)
 
-        self.x = x 
-        self.y = y 
-        self.z = z 
-        self.w = w 
+    def __iadd__(self, a):
+        self.values = self.values + a
+        return self 
 
-    def __getitem__(self, i): 
-        return getattr(self, Vec4._ALLOWED_ATTRIBUTES[i])
-
-    @property
-    def xyzw(self):
-        return self.x, self.y, self.z, self.w
-
-    @xyzw.setter
-    def xyzw(self, xyzw):
-        self.x, self.y, self.z, self.w = xyzw
-
-    def __iter__(self):
-        yield self.x 
-        yield self.y
-        yield self.z 
-        yield self.w
-
-class ListenableVector():
-    """
-    wraps a object around a vector which provides
-    an on_change event 
-    """
-    PASSTHRU = (
-        'xy', 'xyz', 'xyzw'
-    )
-    def __init__(self, vec):
-        self.vec = vec
-
-        # args: old_values, new_values
-        self.on_change = Event()
-
-    def __getattribute__(self, name):
-        if name in ListenableVector.PASSTHRU:
-            return getattr(self.vec, name)
-        if name == 'vec' or name not in self.vec._ALLOWED_ATTRIBUTES:
-            return super().__getattribute__(name)
-
-        return getattr(self.vec, name)
-
-    def __setattr__(self, name, value):
-        if name in ListenableVector.PASSTHRU:
-            old_values = tuple(self.vec)
-            result = setattr(self.vec, name, value)
-            self.on_change(tuple(self.vec), old_values)
-            return result
-
-        if name == 'vec' or name not in self.vec._ALLOWED_ATTRIBUTES:
-            return super().__setattr__(name, value)
-
-        old_values = tuple(self.vec)
-        setattr(self.vec, name, value)
-
-        self.on_change(self.vec, old_values)
-
-    def __iter__(self):
-        return self.vec.__iter__()
+    def __isub__(self, a):
+        self.values = self.values - a
+        return self 
 
     def __getitem__(self, i):
-        return self.vec[i]
+        return self._values[i]
 
-    def __str__(self):
-        return 'listenable {}'.format(self.vec)
+    def __setitem__(self, i, value):
+        return setattr(self, self.__fields__[i], value)
 
+    # order relations
+    def __eq__(self, a):
+        return (self._values == a).all()
 
-class WatchableFactory():
-    def __rmatmul__(self, x):
-        print(x)
-        return vec2(*x)
-    def __matmul__(self, x):
-        raise Exception('this is not allowed')
-watchable = WatchableFactory()
-print((2,2) @ watchable)
+    def __ne__(self, a):
+        return (self._values != a).any()
+
+    def assert_comparable_vector(self, v):
+        if len(v) != len(self):
+            raise ValueError('value ({}) must be some vector type of length {}'.format(v, len(self)))
+
+    def _modified(self, old_values):
+        self.on_change(self, old_values)
+
+    def __init__(self):
+        self.on_change = Event()
+
+class Vec2(Vector):
+    """
+    vector of two components
+    """
+    __fields__ = ('x', 'y') 
+    __ndarray_cls__ = None
+
+    def __init__(self, x=0, y=0):
+        self._values = np.array((x, y), dtype=np.float64)
+        super().__init__()
+
+class Vec3(Vector):
+    """
+    vector of three components
+    """
+    __fields__ = ('x', 'y', 'z') 
+    __ndarray_cls__ = None
+
+    def __init__(self, x=0, y=0, z=0):
+        self._values = np.array((x, y, z), dtype=np.float64)
+        super().__init__()
+
+class Vec4(Vector):
+    """
+    vector of four components
+    """
+    __fields__ = ('x', 'y', 'z', 'w') 
+    __ndarray_cls__ = None
+
+    def __init__(self, x=0, y=0, z=0, w=0):
+        self._values = np.array((x, y, z, w), dtype=np.float64)
+        super().__init__()
+
+# -- VecNndarray allows to assign numpy ndarray directly via constructor.
+#    that way we can put the ndarray from arithmethic operations 
+#    defined in Vector.__XXX__ methods directly to the new vector.
+class Vec2ndarray(Vec2):
+    def __init__(self, ndarray):
+        self._values = ndarray
+        Vector.__init__(self)
+
+class Vec3ndarray(Vec3):
+    def __init__(self, ndarray):
+        self._values = ndarray
+        super(Vector, self).__init__()
+
+class Vec4ndarray(Vec4):
+    def __init__(self, ndarray):
+        self._values = ndarray
+        super(Vector, self).__init__()
+
+Vec2.__ndarray_cls__ = Vec2ndarray
+Vec3.__ndarray_cls__ = Vec3ndarray
+Vec4.__ndarray_cls__ = Vec4ndarray
+
+# -- helper methods
+def _vecd(veccls, d, obj=None):
+    if obj is None:
+        return veccls()
+
+    vector = None
+    if isinstance(obj, Vector):
+        return obj
+
+    if hasattr(obj, '__iter__') and hasattr(obj, '__len__'):
+        if len(obj) == d:
+            vector = veccls(*obj) 
+
+    if vector is None:
+        raise ValueError('argument {} cannot be transformed to a {}-dimensional vector.'.format(obj, d))
+
+    return vector
+
+# -- shotcurts
+
+        
+def vecn(obj):
+    """
+    transforms any object into a corresponding 
+    n-dimensional vector if possible. 
+
+    throws:
+      -  ValueError
+    """
+    vector = None
+    if isinstance(obj, Vector):
+        return obj
+
+    if hasattr(obj, '__iter__') and hasattr(obj, '__len__'):
+        if len(obj) == 2:
+            vector = Vec2(*obj)
+        elif len(obj) == 3:
+            vector = Vec3(*obj)
+        elif len(obj) == 4:
+            vector = Vec4(*obj)
+
+    if vector is None:
+        raise ValueError('argument {} cannot be transformed to a vector.'.format(obj))
+
+    return vector
+
+vec2 = partial(_vecd, Vec2, 2)
+vec3 = partial(_vecd, Vec3, 3) 
+vec4 = partial(_vecd, Vec4, 4) 
+

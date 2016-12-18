@@ -41,9 +41,8 @@ class Framebuffer():
         assert_framebuffer_target(target)
 
         attachment = globals()['GL_COLOR_ATTACHMENT%d' % n]
-        glDrawBuffer(attachment)
+        #glDrawBuffer(attachment)
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, target, gl_texture_id(texture), 0);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
         
         self.unuse()
 
