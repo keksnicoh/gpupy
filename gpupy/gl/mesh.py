@@ -66,7 +66,7 @@ class StridedVertexMesh(Mesh):
         self.vertices = vertices
         self.buffer = None 
         self.vao = None
-        self.vertex_type = GL_TRIANGLES
+        self.vertex_type = vertex_type
         self.init()
 
     def init(self):

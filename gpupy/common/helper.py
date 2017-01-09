@@ -8,3 +8,4 @@ def load_lib_file(relative_path):
 
 def resource_path(*path):
     return os.path.join(BASE, 'resources', *path)
+

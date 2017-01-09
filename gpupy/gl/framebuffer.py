@@ -36,12 +36,9 @@ class Framebuffer():
         elif target is None:
             target = GL_TEXTURE_2D
 
-        # XXX
-        # validate target 
         assert_framebuffer_target(target)
 
         attachment = globals()['GL_COLOR_ATTACHMENT%d' % n]
-        #glDrawBuffer(attachment)
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, target, gl_texture_id(texture), 0);
         
         self.unuse()

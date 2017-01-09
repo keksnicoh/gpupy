@@ -89,6 +89,9 @@ def gpupy_gl_debug(text):
     if GlConfig.DEBUG:
         print('\033[34mGPUPY DEBUG:\033[0m ' + text)
 
+def gpupy_gl_deprecated(text):
+    print('\033[34mGPUPY DEPRECATED:\033[0m ' + text)
+
 def gpupy_debug_wrap(func, *args, **kwargs):
     if GlConfig.DEBUG:
         gpupy_gl_debug('{}({}{}{})'.format(
@@ -236,6 +239,7 @@ def glfloat(v): return np.float32(v)
 def glint(v): return int(v)
 
 def ensure_vec2(cast=(lambda x: x), *args):
+    gpupy_gl_deprecated('ensure_vec2, use vectors.vec2')
     if len(args) == 1:
         if not len(args[0]) == 2:
             raise ValueError()
@@ -245,6 +249,8 @@ def ensure_vec2(cast=(lambda x: x), *args):
     else:
         raise ValueError()
 def ensure_vec3(cast=(lambda x: x), *args):
+    gpupy_gl_deprecated('ensure_vec3, use vectors.vec3')
+
     if len(args) == 1:
         if not len(args[0]) == 3:
             raise ValueError()
@@ -254,6 +260,8 @@ def ensure_vec3(cast=(lambda x: x), *args):
     else:
         raise ValueError()
 def ensure_vec4(cast=(lambda x: x), *args):
+    gpupy_gl_deprecated('ensure_vec4, use vectors.vec4')
+
     if len(args) == 1:
         return ensure_vec4(cast, *args[0])
     elif len(args) == 4:

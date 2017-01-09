@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 """
-component which allows allows to render
+component  allows allows to render
 scene into a framebuffer and renders a 
 display plane.
 
@@ -33,7 +33,7 @@ class Frame():
                 if not defined the viewport is set to 
                     ViewPort((0, 0), capture_size)
     - camera: camera which will be enabled when the Framebuffer 
-              starts capturing
+              starts cawhichpturing
     - outer_camera: camera for rendering the screen
 
 
@@ -53,11 +53,13 @@ class Frame():
          +----------------------------------------+
 
     """
-    def __init__(self, size, capture_size=None, outer_camera=None, camera=None):
+    def __init__(self, size, capture_size=None, position=(0,0,0), outer_camera=None, camera=None):
         self._size = vec2(size)
         self._size.on_change.append(self._size_changed)
+        self._position = vec3(position)
         self._capture_size = vec2(capture_size) if capture_size is not None else self._size
         self._capture_size.on_change.append(self._capture_size_changed)
+        self._position.on_change.append(self._position_changed)
 
         self.viewport = ViewPort((0, 0), self.capture_size)
         self.texture = None
@@ -79,6 +81,14 @@ class Frame():
         self.size.xy = value
 
     @property
+    def position(self):
+        return self._position 
+
+    @position.setter
+    def position(self, value):
+        self.position.xyz = value
+
+    @property
     def capture_size(self):
         return self._capture_size 
 
@@ -93,6 +103,9 @@ class Frame():
 
     def _capture_size_changed(self, size, old_size):
         self.texture.resize(size)
+
+    def _position_changed(self, position, old_position):
+        self.program.uniform('position', position.xyz)
  
     # -- initialization --
 
@@ -116,7 +129,7 @@ class Frame():
 
         self.program.uniform('size', self.size.xy)
         self.program.uniform('mat_model', np.identity(4, dtype=np.float32))
-
+        self.program.uniform('position', self._position.xyz)
         self.mesh = StridedVertexMesh(mesh3d_rectangle(), 
                                       GL_TRIANGLES, 
                                       attribute_locations=self.program.attributes)
@@ -132,7 +145,9 @@ class Frame():
         shader.use()
         if GlConfig.DEBUG:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            self.program.uniform('color', (0, 1, 0, 1))
             self.mesh.draw()
+            self.program.uniform('color', (0, 0, 0, 0))
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         shader.unuse()
 
@@ -143,7 +158,7 @@ class Frame():
 
     def unuse(self): 
         self.camera.disable()
-        self.viewport.unuse()
+        self.viewport.unuse(restore=True)
         self.framebuffer.unuse()
 
 
@@ -155,13 +170,18 @@ class FrameProgram(Program):
             {% version %}
             {% uniform_block outer_camera %}
             in vec4 vertex;
+            uniform vec3 position;
             in vec2 tex;
             out vec2 frag_pos;
             uniform mat4 mat_model;
             uniform vec2 size;
-
             void main() {
-                gl_Position = outer_camera.mat_projection * outer_camera.mat_view * mat_model * vec4(size.x*vertex.x, size.y*vertex.y, vertex.zw);
+                gl_Position = outer_camera.mat_projection 
+                            * outer_camera.mat_view * mat_model 
+                            * vec4(position.x + size.x*vertex.x, 
+                                   position.y + size.y*vertex.y, 
+                                   position.z + vertex.z, 
+                                   vertex.w);
                 frag_pos = tex;
             }
         """))
@@ -174,10 +194,12 @@ class FrameProgram(Program):
             uniform vec4 color = vec4(0.1, 0, 0, 1);
             void main() {
             if(texture(frame_texture, frag_pos).x == 1) {}
-                frag_color = texture(frame_texture, frag_pos) + color;
+                frag_color = texture(frame_texture, frag_pos);
                 //;
             }
         """))
 
         self.declare_uniform('outer_camera', Camera.DTYPE, variable='outer_camera')
         self.link()
+
+

@@ -23,13 +23,11 @@ from gpupy.gl.errors import GlError
 
 from OpenGL.GL import *
 
-HAS_CL = False
 try:
     import pyopencl as cl
     HAS_CL = True
 except:
-
-    pass 
+    HAS_CL = False 
 
 import numpy as np
 
@@ -229,13 +227,6 @@ class BufferObject():
             )
 
         return self._cl_array
-
-    def sort(self, use_cl=None):
-        pass
-
-    @assert_cl
-    def sort_cl(self):
-        pass
 
     def bind(self):
         glBindBuffer(self._target, self.gl_vbo_id)
