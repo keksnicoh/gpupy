@@ -1,3 +1,4 @@
+""" experimental! """
 from gpupy.common.color import hex_to_rgba
 
 def parse_4f1_1c4(string):
@@ -17,14 +18,16 @@ def parse_2f1(string):
     if len(split) == 1:
         return tuple(split[0] for i in range(2))
     return (float(split[0]), float(split[1]))
-
-
+    
 def parse_1c4(string):
     return hex_to_rgba(string.strip().replace('#', ''))
 
 class Style():
+    """ experimental! """
     def __init__(self, description, style=None):
-        self._description = description
+        self._description = {
+            k: v if isinstance(v, tuple) else (v, lambda *x: None)
+            for k, v in description.items() }
         self._style = {}
         if style is not None:
             self.load(style)
@@ -33,8 +36,10 @@ class Style():
             self.set(k, style[k])
     def set(self, key, value):
         if key in self._description:
-            value = self._description[key](value)
-        self._style[key] = value
+            value = self._description[key][0](value)
+        if not key in self._style or self._style[key] != value:
+            self._style[key] = value
+            self._description[key][1]()
     def get(self, key):
         return self._style[key]
     def __getitem__(self, key): return self.get(key)

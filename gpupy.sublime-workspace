@@ -4,6 +4,22 @@
 		"selected_items":
 		[
 			[
+				"_plot",
+				"_plot_camera"
+			],
+			[
+				"size",
+				"size_changed"
+			],
+			[
+				"trans",
+				"transformation\tstatement"
+			],
+			[
+				"int",
+				"instance_obj"
+			],
+			[
 				"vertex",
 				"vertex_count"
 			],
@@ -18,10 +34,6 @@
 			[
 				"confiu",
 				"configuration_space"
-			],
-			[
-				"_plot",
-				"_plot_camera\tstatement"
 			],
 			[
 				"_siz",
@@ -154,10 +166,6 @@
 			[
 				"trn",
 				"transfer_compass"
-			],
-			[
-				"trans",
-				"transfer_compass\tstatement"
 			],
 			[
 				"transfe",
@@ -506,14 +514,6 @@
 			[
 				"log",
 				"log10\tinstance"
-			],
-			[
-				"SMP",
-				"SMPL_N"
-			],
-			[
-				"wr",
-				"wrk_state\tstatement"
 			]
 		]
 	},
@@ -523,9 +523,37 @@
 			"file": "gpupy/plot/plotter2d.py",
 			"settings":
 			{
-				"buffer_size": 10964,
+				"buffer_size": 12956,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/util.py",
+			"settings":
+			{
+				"buffer_size": 1278,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/plot/test/integration/plotter2d_basic.py",
+			"settings":
+			{
+				"buffer_size": 1480,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "plotter2d_basic.py"
+			}
+		},
+		{
+			"file": "gpupy/plot/style.py",
+			"settings":
+			{
+				"buffer_size": 1685,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "style.py"
 			}
 		},
 		{
@@ -578,7 +606,7 @@
 			"file": "gpupy/gl/components/frame.py",
 			"settings":
 			{
-				"buffer_size": 6466,
+				"buffer_size": 6431,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -596,19 +624,18 @@
 			"file": "gpupy/gl/vector.py",
 			"settings":
 			{
-				"buffer_size": 8321,
+				"buffer_size": 12138,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "gpupy/plot/test/integration/plotter2d_basic.py",
+			"file": "gpupy/gl/test/test_vector.py",
 			"settings":
 			{
-				"buffer_size": 1211,
+				"buffer_size": 1993,
 				"encoding": "UTF-8",
-				"line_ending": "Unix",
-				"name": "plotter2d_basic.py"
+				"line_ending": "Unix"
 			}
 		},
 		{
@@ -616,6 +643,32 @@
 			"settings":
 			{
 				"buffer_size": 7852,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/driver/glfw.py",
+			"settings":
+			{
+				"buffer_size": 13055,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/camera.py",
+			"settings":
+			{
+				"buffer_size": 13053,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/shader.py",
+			"settings":
+			{
+				"buffer_size": 32981,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -854,10 +907,16 @@
 		"/Users/keksnicoh/gpupy/gpupy/__pycache__",
 		"/Users/keksnicoh/gpupy/gpupy/common",
 		"/Users/keksnicoh/gpupy/gpupy/gl",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components"
+		"/Users/keksnicoh/gpupy/gpupy/gl/components",
+		"/Users/keksnicoh/gpupy/gpupy/gl/examples",
+		"/Users/keksnicoh/gpupy/gpupy/gl/font",
+		"/Users/keksnicoh/gpupy/gpupy/plot"
 	],
 	"file_history":
 	[
+		"/Users/keksnicoh/gpupy/gpupy/gl/components/fps.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/font/renderer.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/components/camera.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/__init__.py",
@@ -871,7 +930,6 @@
 		"/Users/keksnicoh/gpupy/gpupy/gl/config.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/matrix.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/framebuffer.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/camera.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples/frame.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/viewport.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/__init__.py",
@@ -884,9 +942,7 @@
 		"/Users/keksnicoh/gpupy/gpupy/gl/driver/glfw.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples/font.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples/volumetric_raycasting.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/font/renderer.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/settings.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/fps.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/test/test_vector.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/boxlayout.py",
 		"/Users/keksnicoh/gpupy/runtests.sh",
@@ -997,6 +1053,8 @@
 		"where_history":
 		[
 			"/Users/keksnicoh/gpupy/gpupy/gl",
+			"/Users/keksnicoh/gpupy/gpupy",
+			"/Users/keksnicoh/gpupy/gpupy/gl",
 			"/Users/keksnicoh/wrk/sk/staerkenkompass",
 			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
 			"/Users/keksnicoh/wrk/sk/staerkenkompass",
@@ -1043,6 +1101,33 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"2",
+			"type ",
+			"type",
+			"glvec2",
+			"ensure_vec2",
+			"ensure_ve",
+			"_border_vertex",
+			"('border')",
+			"'border'",
+			"rule",
+			"plotframe_size",
+			"self.size",
+			"_values",
+			"assertEqual",
+			"+",
+			"40",
+			"_init_axis",
+			"OrderedDict",
+			"_margin_changed",
+			"self._changed",
+			"_changed",
+			"_modified",
+			"SIZE_HAG",
+			"components",
+			"self._layout.scope['margin']",
+			"self._layout.scope['margin'][1]",
+			"instance",
 			"vertex",
 			"init",
 			"_plots",
@@ -1143,34 +1228,7 @@
 			"vec",
 			"*args",
 			"''.join(fields)",
-			"tuple",
-			"data",
-			"_data",
-			"__call__",
-			"Listenable",
-			"*a",
-			"a",
-			"'_'+field",
-			"attr",
-			"__cast__",
-			"Meta",
-			"Derp",
-			"_AutoFloatProperties",
-			"from gpupy.gl.config import Gl",
-			"Gl.",
-			"GlViewPort",
-			"from gpupy.gl.settings import LibrarySettings",
-			"from gpupy.gl import Gl",
-			"camera",
-			"self.window.get_size()",
-			"vecotr",
-			"_old_viewport",
-			"size",
-			"200",
-			"enable",
-			"gl_texture_unit",
-			"texture_unit",
-			"gl_texture_unit"
+			"tuple"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1240,15 +1298,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10964,
+						"buffer_size": 12956,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1521,
-								1521
+								10902,
+								10902
 							]
 						],
 						"settings":
@@ -1258,7 +1316,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3260.0,
+						"translation.y": 4091.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -1266,6 +1324,98 @@
 				},
 				{
 					"buffer": 1,
+					"file": "gpupy/gl/util.py",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 1278,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 64.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "gpupy/plot/test/integration/plotter2d_basic.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1480,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								439,
+								439
+							]
+						],
+						"settings":
+						{
+							"auto_name": "plotter2d_basic.py",
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "gpupy/plot/style.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1685,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1067,
+								1067
+							]
+						],
+						"settings":
+						{
+							"auto_name": "style.py",
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 35.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
 					"file": "gpupy/common/color.py",
 					"semi_transient": false,
 					"settings":
@@ -1290,11 +1440,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 14,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 5,
 					"file": "gpupy/common/helper.py",
 					"semi_transient": false,
 					"settings":
@@ -1318,11 +1468,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 15,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 6,
 					"file": "gpupy/gl/mesh.py",
 					"semi_transient": false,
 					"settings":
@@ -1345,14 +1495,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 956.0,
+						"translation.y": 2339.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 11,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 7,
 					"file": "gpupy/gl/buffer.py",
 					"semi_transient": false,
 					"settings":
@@ -1378,11 +1528,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 12,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 8,
 					"file": "gpupy/gl/framebuffer.py",
 					"semi_transient": false,
 					"settings":
@@ -1394,8 +1544,8 @@
 						"selection":
 						[
 							[
-								1018,
-								1018
+								22,
+								22
 							]
 						],
 						"settings":
@@ -1405,27 +1555,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 10.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 9,
 					"file": "gpupy/gl/components/frame.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6466,
+						"buffer_size": 6431,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6101,
-								6101
+								3043,
+								3043
 							]
 						],
 						"settings":
@@ -1435,14 +1585,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1292.0,
+						"translation.y": 2475.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 10,
 					"file": "gpupy/gl/viewport.py",
 					"semi_transient": false,
 					"settings":
@@ -1468,24 +1618,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 13,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 11,
 					"file": "gpupy/gl/vector.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 8321,
+						"buffer_size": 12138,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5343,
-								5343
+								1410,
+								1410
 							]
 						],
 						"settings":
@@ -1495,45 +1645,44 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2417.0,
+						"translation.y": 496.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 10,
 					"type": "text"
 				},
 				{
-					"buffer": 9,
-					"file": "gpupy/plot/test/integration/plotter2d_basic.py",
+					"buffer": 12,
+					"file": "gpupy/gl/test/test_vector.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1211,
+						"buffer_size": 1993,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								726,
-								726
+								1535,
+								1535
 							]
 						],
 						"settings":
 						{
-							"auto_name": "plotter2d_basic.py",
 							"syntax": "Packages/Python 3/Python3.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 282.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 13,
 					"file": "gpupy/gl/common.py",
 					"semi_transient": false,
 					"settings":
@@ -1545,8 +1694,8 @@
 						"selection":
 						[
 							[
-								6936,
-								6936
+								6754,
+								6765
 							]
 						],
 						"settings":
@@ -1556,14 +1705,104 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 3702.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 11,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 11,
+					"buffer": 14,
+					"file": "gpupy/gl/driver/glfw.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13055,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								12218,
+								12218
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 6116.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "gpupy/gl/camera.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13053,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3095,
+								3095
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1511.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 16,
+					"file": "gpupy/gl/shader.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 32981,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								28063,
+								28071
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 11637.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 17,
 					"file": "gpupy/gl/layout/boxes.py",
 					"semi_transient": false,
 					"settings":
@@ -1586,10 +1825,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1608.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 10,
+					"stack_index": 17,
 					"type": "text"
 				}
 			]

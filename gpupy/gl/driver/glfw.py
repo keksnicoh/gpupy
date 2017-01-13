@@ -384,9 +384,9 @@ class GLFW_Window():
 
     # some simple wrappers
     def get_size(self): return glfwGetWindowSize(self._glfw_window)
-    def set_size(self, size):glfwSetWindowSize(self._glfw_window, *ensure_vec2(int, size))
+    def set_size(self, size):glfwSetWindowSize(self._glfw_window, int(size[0]), int(size[1]))
     def get_window_position(self): return glfwGetWindowPos(self._glfw_window)
-    def set_position(self, position): glfwSetWindowPos(self._glfw_window, *ensure_vec2(int, position))
+    def set_position(self, position): glfwSetWindowPos(self._glfw_window, int(position[0]), int(position[1]))
 
     def __del__(self):
         """ destroys the window. """

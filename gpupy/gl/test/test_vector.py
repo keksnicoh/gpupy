@@ -9,50 +9,68 @@ from unittest_data_provider import data_provider
 
 class TestVectors(unittest.TestCase):
 
-    def test_listenable_vector(self):
-        vec = ListenableVector(Vec2(100, 100))
-        
-        self.assertEqual(100, vec.x)        
-        self.assertEqual(100, vec.y)
+    def test_vector_basics(self):
+        vec = vec3((1,2,3))
 
-        vec.x = 123
-        self.assertEqual(123, vec.x)        
-        self.assertEqual(100, vec.y)
+        self.assertListEqual([1,2,3], list(vec.xyz))
+        self.assertListEqual([1,2,3], list(vec.values))
+        self.assertEqual((1,2,3), vec) # test __eq__ impl
+        self.assertNotEqual((2,2,3), vec) # test __neq__ impl
 
-        vec.y = 124
-        self.assertEqual(123, vec.x)        
-        self.assertEqual(124, vec.y)
+        self.assertEqual(1, vec.x)
+        self.assertEqual(2, vec.y)
+        self.assertEqual(3, vec.z)
 
-        event_res = {'old': None, 'new': None, 'counter': 0}
-        def event_handler(old, new):
-            event_res['old'] = old 
-            event_res['new'] = new
-            event_res['counter'] += 1
+        vec.x = 12
+        vec.z = 14
+        self.assertEqual((12,2,14), vec)
+    
+    def test_vec4(self):
+        c = (1,2,3,4)
+        vec = vec4(c)
+        self.assertEqual(c, vec)
+        self.assertListEqual(list(c), list(vec.xyzw))
+        self.assertEqual(c[0], vec.x)
+        self.assertEqual(c[1], vec.y)
+        self.assertEqual(c[2], vec.z)
+        self.assertEqual(c[3], vec.w)
 
-        vec.on_change.append(event_handler)
+    def test_vec3(self):
+        c = (1,2,3)
+        vec = vec3(c)
+        self.assertEqual(c, vec)
+        self.assertListEqual(list(c), list(vec.xyz))
+        self.assertEqual(c[0], vec.x)
+        self.assertEqual(c[1], vec.y)
+        self.assertEqual(c[2], vec.z)
 
-        vec.x = 33
-        self.assertEqual(event_res['old'], (123, 124))
-        self.assertEqual(event_res['new'], (33, 124))
-        self.assertEqual(event_res['counter'], 1)
+    def test_vec2(self):
+        c = (1,2)
+        vec = vec2(c)
+        self.assertEqual(c, vec)
+        self.assertListEqual(list(c), list(vec.xy))
+        self.assertEqual(c[0], vec.x)
+        self.assertEqual(c[1], vec.y)
 
-        vec.xy = (123, 14)
-        self.assertEqual(event_res['old'], (33, 124))
-        self.assertEqual(event_res['new'], (123, 14))
-        self.assertEqual(event_res['counter'], 2)
+    def test_transformation(self):
+        # non linear self depending transformation
+        t = lambda v: (2*v[0], 3*v[1]*v[0], 4*v[2]*v[0])
+        vec = vec3((0, 0, 0))
+        vec.transformation = t
 
-        self.assertEqual(tuple(vec), (123, 14))
+        vec.xyz = (1, 2, 3)
+        self.assertEqual((2,6,12), vec)
 
-        # test vec3 
-        vec3 = ListenableVector(Vec3(100, 100, 100))
-        self.assertEqual((100, 100, 100), vec3.xyz)
+        vec.x = 4
+        self.assertEqual((8, 3*6*4, 4*4*12), vec)
 
-        event_res = {'old': None, 'new': None, 'counter': 0}
+        vec.y = 4
+        self.assertEqual((2*8, 4*3*8, 4*8*4*4*12), vec)
 
-        vec3.on_change.append(event_handler)
-        vec3.xyz = (1,2,3)
+        vec.z = 2
+        self.assertEqual((2*2*8, 3*2*8*4*3*8, 4*2*2*8), vec)
 
-        self.assertEqual(event_res['old'], (100, 100, 100))
-        self.assertEqual(event_res['new'], (1, 2, 3))
-        self.assertEqual(event_res['counter'], 1)
+    def test_on_change(self):
+        pass
+
 

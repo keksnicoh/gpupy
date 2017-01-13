@@ -17,12 +17,39 @@ DEFAULT_STYLE = {
     'plot-background-color': '#aaaaaaff',
     'min-size': '100 100',
 }
+"""
+
+plot graph[] {
+    color: xyz
+    bla: foo bar
+} 
+
+"""
+
+class LayerWidget():
+    # BASIC LAYER WIDGET CLASS
+
+    """
+    CONCECPT:
+
+    SIZE - POSITION - PADDING - MARGIN - BORDER
+    """
+    pass
+
+class FrameLayerWidget(LayerWidget):
+    pass
+
+class ViewportLayerWidget(LayerWidget):
+    pass
 
 class Plotter2d():
+    FLAG_SIZE = 1
+    FLAG_BORDER = 2
 
     configuration_space = Vec4Field((0, 0, 0, 0))
     size = Vec2Field()
     position = Vec2Field((0, 0))
+    content_size = Vec2Field(listen_to=size)
 
     def flag(self, name):
         self._flagged.add(name)
@@ -41,10 +68,10 @@ class Plotter2d():
         self._flagged = set()
 
         self.style = Style({
-            'border': parse_4f1_1c4,
+            'border': (parse_4f1_1c4, self.flag(self.FLAG_BORDER)),
             'background-color': parse_1c4,
             'plot-background-color': parse_1c4,
-            'min-size': parse_2f1,
+            'min-size': (parse_2f1, self.flag(self.FLAG_SIZE)),
         }, style)
 
         # event hooks
@@ -56,7 +83,7 @@ class Plotter2d():
         # configure layout - connect the layout 
         # size and position directly to the plot size
         # and plot position.
-        self._layout = BoxLayout(self.size, self.position)
+        self._layout = BoxLayout(self.content_size, self.position)
 
         bw, bc = self.style['border']
 
@@ -71,13 +98,14 @@ class Plotter2d():
             'border_color': vec4(bc),
         }
 
-        self._layout.scope['border'].on_change.append(self.flag('border'))
-        self._layout.scope['border_color'].on_change.append(self.flag('border'))
+        self._layout.scope['border'].on_change.append(self.flag(self.FLAG_BORDER))
+        self._layout.scope['border_color'].on_change.append(self.flag(self.FLAG_BORDER))
 
         self.init()
 
         self.borders(*self._layout.scope['border'], color=self._layout.scope['border_color'])
 
+        self._test_grid = TestGrid()
     def init(self):
         self._init_plot_camera()
         self._init_plot_frame()
@@ -92,42 +120,39 @@ class Plotter2d():
         self._layout.scope['border'].xyzw = (top, right, bottom, left)
         self._layout.scope['border_color'].xyzw = color
 
-        if 'border' in self._flagged:
-            self.size = self.size # XXX make this nicer ...
-            self._layout.calculate()
-
+        if self.FLAG_BORDER in self._flagged:
             # create buffer
             b = self._layout.scope['border'].xyzw
             vertex_count = sum(6*(int(l > 0) + int(l > 0 and b[(i + 1) % 4] > 0)) for i, l in enumerate(b))
             self._border_vertex = np.zeros(vertex_count, self.border_mesh.buffer.dtype)
-
-            # update mesh
+            
+            self.content_size = self.size
+            self._layout.calculate()
             self._update_border_mesh()
 
-            self._flagged.remove('border')
+            self._flagged.remove(self.FLAG_BORDER)
 
-    @size.rule
-    def plotframe_size(self, plot_size):
+    @content_size.transformation
+    def content_size_minimum(self, plot_size):
         """
         calculates the size of the plotframe from 
         given *plot_size*
         """
         m = self._layout.scope['margin']
         b = self._layout.scope['border']
+
         return (max(plot_size[0], m[1] + b[1] + m[3] + b[3] + self.style['min-size'][0]), 
                 max(plot_size[1], m[0] + b[0] + m[2] + b[2] + self.style['min-size'][0]))
 
     # -- event handlers
 
-    @size.on_change
+    @content_size.on_change
     def size_changed(self, *e):
         self._layout.calculate()
         self._update_border_mesh()
 
     def _update_border_mesh(self):
 
-        # XXX
-        # - Border texture support
         b, c = self._layout.scope['border'], self._layout.scope['border_color']
         p, s = self._layout.boxes['plot'].position, self._layout.boxes['plot'].size 
         # coordinates of plot frame corners
@@ -216,6 +241,9 @@ class Plotter2d():
 
         self.border_mesh.buffer.set(v)
 
+        if 'border' in self._flagged:
+            self._flagged.remove(self.FLAG_BORDER)
+
     def _init_borders(self):
         self.border_program = BorderProgram()
         self.border_mesh = StridedVertexMesh(np.empty(0, dtype=np.dtype([
@@ -229,7 +257,7 @@ class Plotter2d():
         the configuration space
         """
         cam_position = self.configuration_space.observe_as_vec3(
-            lambda v: (v[0], v[1], 0))
+            lambda v: (v[0]+np.abs(v[1]-v[0])*0.5, v[2]+np.abs(v[3]-v[2])*0.5, 0))
         cam_screensize = self.configuration_space.observe_as_vec2(
             lambda v: (np.abs(v[1]-v[0]), np.abs(v[3]-v[2])))
 
@@ -253,12 +281,7 @@ class Plotter2d():
 
         self._plotframe = Frame(size=self._layout.boxes['plot'].size,
                                 position=self._layout.boxes['plot'].position,
-                                capture_size=cap_size,
-                                camera=self._plot_camera)
-
-    def scene(self):
-        self.tick()
-        self.draw()
+                                capture_size=cap_size)
 
     def tick(self, redraw=True):
         pre_plot_event = PrePlotEvent(redraw=redraw)
@@ -266,8 +289,12 @@ class Plotter2d():
 
         if pre_plot_event.redraw:
             self._plotframe.use()
+            self._plot_camera.enable()
+
             glClearColor(*self.style['plot-background-color'])
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+            self._test_grid.draw()
             self._plotframe.unuse()
 
         self.on_post_plot()
@@ -283,6 +310,95 @@ class Plotter2d():
 class PrePlotEvent():
     def __init__(self, redraw=False):
         self.redraw = redraw 
+
+class TestGrid():
+    def __init__(self):
+        self._program = Program()
+        self._program.shaders.append(Shader(GL_VERTEX_SHADER, """
+            {% version %}
+            {% uniform_block camera %}
+
+            in vec2 vertex;
+
+            void main() {
+                gl_Position = camera.mat_projection * camera.mat_view * vec4(vertex, 0, 1);
+            }
+        """))
+        self._program.shaders.append(Shader(GL_FRAGMENT_SHADER, """
+            {% version %}
+
+            out vec4 color;
+            void main() {
+                color = vec4(0, 0, 0, 1);
+            }
+        """))
+        self._program.declare_uniform('camera', Camera2D.DTYPE, variable='camera')
+        self._program.link()
+        self._program.uniform_block_binding('camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+
+
+        self._mesh = StridedVertexMesh(np.array([
+            ((0.25, 0),),
+            ((0.25, 1),),
+            ((0.5, 0),),
+            ((0.5, 1),),
+            ((0.75, 0),),
+            ((0.75, 1),),
+
+            ((0, 0.25),),
+            ((1, 0.25),),
+            ((0, 0.5),),
+            ((1, 0.5),),
+            ((0, 0.75),),
+            ((1, 0.75),),       
+        ], dtype=np.dtype([('vertex', np.float32, 2)])), GL_LINES, attribute_locations=self._program.attributes) 
+
+
+    def draw(self):
+        self._program.use()
+        self._mesh.draw()
+        self._program.unuse()
+
+
+class AbstractDomain():
+    def set_attribute_locations(self):
+        pass
+    def get_domain_attributes(self):
+
+        return (
+            'x', dtype_of_x,
+            'xyz', dtype_of_xyz,
+        )
+
+        pass 
+
+    def get_vao(self):
+        pass
+
+class TestGraph():
+    def __init__(self, domain):
+        self.domain = domain
+
+    def prepare(self):
+        self.domain.prepare()
+        attributes = self.domain.get_domain_attributes()
+
+        glsl = attributes_to_glsl(attributes)
+        self.program.subsitute('domain_attributes', glsl)
+
+        self.program.link()
+        self.domain.set_attribute_locations(self.program.attributes)
+
+        self.gl_vao_id = self.domain.create_vao()
+
+    def draw(self):
+        vao = self.domain.gl_vao_id
+        glBindVertexArrays(vao)
+        self.program.use()
+        glDrawArrays(GL_LINES, len(self.domain))
+        self.program.unuse()  
+        glBindVertexArrays(0)
+
 
 class BorderProgram(Program):
     def __init__(self, *args, **kwargs):

@@ -13,8 +13,11 @@ from gpupy.gl.vector import *
 from gpupy.gl import *
 from OpenGL.GL import *
 import numpy as np 
+from functools import partial 
 
 class Frame():
+
+
     """
     Frame component uses framebuffer to render a scene on 
     a plane. 
@@ -53,86 +56,73 @@ class Frame():
          +----------------------------------------+
 
     """
-    def __init__(self, size, capture_size=None, position=(0,0,0), outer_camera=None, camera=None):
-        self._size = vec2(size)
-        self._size.on_change.append(self._size_changed)
-        self._position = vec3(position)
-        self._capture_size = vec2(capture_size) if capture_size is not None else self._size
-        self._capture_size.on_change.append(self._capture_size_changed)
-        self._position.on_change.append(self._position_changed)
 
-        self.viewport = ViewPort((0, 0), self.capture_size)
-        self.texture = None
-        self.camera = camera
-        self.outer_camera = outer_camera
+
+    size         = Vec2Field()
+    position     = Vec3Field()
+    capture_size = Vec2Field()
+    plane_size   = Vec2Field(listen_to=size)
+
+    def __init__(self, size, capture_size=None, position=(0,0,0), multisampling=None, post_effects=None, blit=None):
+        """
+        creates a framebuffer of *size* and *capture_size* 
+        at *position*.
+
+        if *capture_size* is None, the capture_size is linked
+        to *size*.
+        """
+        # XXX
+        # - multisampling 
+        # - post effects
+        # - blit/record mode
+
+        self.size         = size
+        self.position     = position
+        self.capture_size = capture_size if capture_size is not None else self.size
+        self.viewport     = ViewPort((0, 0), self.capture_size)
+        self.texture      = None
         
         self._init_capturing()
         self._init_plane()
-        pass
 
-    # -- controlled properties --
-
-    @property
-    def size(self):
-        return self._size 
-
-    @size.setter
-    def size(self, value):
-        self.size.xy = value
-
-    @property
-    def position(self):
-        return self._position 
-
-    @position.setter
-    def position(self, value):
-        self.position.xyz = value
-
-    @property
-    def capture_size(self):
-        return self._capture_size 
-
-    @capture_size.setter
-    def capture_size(self, value):
-        self.capture_size.xy = value
-
-    ## -- event handlers --
-
-    def _size_changed(self, size, old_size):
-        self.program.uniform('size', size)
-
-    def _capture_size_changed(self, size, old_size):
-        self.texture.resize(size)
-
-    def _position_changed(self, position, old_position):
-        self.program.uniform('position', position.xyz)
- 
     # -- initialization --
 
     def _init_capturing(self):
         self.texture = Texture2D.empty((*self.capture_size.xy, 4), np.float32)
         self.texture.interpolation_linear()
-
         self.framebuffer = Framebuffer()
         self.framebuffer.color_attachment(self.texture)
+        self.capture_size.on_change.append(partial(self.texture.resize))
 
     def _init_plane(self):
-
         self.program = FrameProgram()
         self.texture.activate()
 
         self.program.uniform('frame_texture', self.texture)
-        if self.outer_camera is not None:
-            self.program.uniform_block_binding('outer_camera', outer_camera)
-        else:
-            self.program.uniform_block_binding('outer_camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+        self.program.uniform_block_binding('outer_camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
 
-        self.program.uniform('size', self.size.xy)
+        self.program.uniform('size', self.plane_size.xy)
         self.program.uniform('mat_model', np.identity(4, dtype=np.float32))
-        self.program.uniform('position', self._position.xyz)
+        self.program.uniform('position', self.position.xyz)
         self.mesh = StridedVertexMesh(mesh3d_rectangle(), 
                                       GL_TRIANGLES, 
                                       attribute_locations=self.program.attributes)
+
+    @plane_size.transformation
+    @capture_size.transformation
+    def normalize(self, v):
+        """ to avoid pixel errors """
+        # XXX 
+        # - is this the best solution?
+        return np.ceil(v)
+
+    @plane_size.on_change
+    def _size_changed(self, size, *e):
+        self.program.uniform('size', size)
+
+    @position.on_change
+    def position_changed(self, position, *e):
+        self.program.uniform('position', position.xyz)
 
     def draw(self, shader=None):
         shader = shader or self.program
@@ -154,10 +144,8 @@ class Frame():
     def use(self): 
         self.framebuffer.use()
         self.viewport.use()
-        self.camera.enable()
 
     def unuse(self): 
-        self.camera.disable()
         self.viewport.unuse(restore=True)
         self.framebuffer.unuse()
 

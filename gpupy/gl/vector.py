@@ -32,10 +32,18 @@ class VectorMeta(type):
                 return self._values[i]
 
             def fset(self, value): 
-                old_values = tuple(self._values)
-                modified = self._values[i] != value
-                self._values[i] = value
-                modified and self._modified(old_values)
+                # XXX REmove old values arg
+                if self.transformation is not None:
+                    values = self.transformation((*self._values[0:i], 
+                                                 value, 
+                                                 *self._values[i+1:dim]))
+                    modified = not np.allclose(self._values[0:dim], values)
+                    self._values[0:dim] = values
+                else:
+                    modified = np.isclose(self._values[i], value)
+                    self._values[i] = value
+
+                modified and self.on_change(self)
             return fget, fset
 
         # define vec.x, vec.x, etc. 
@@ -49,10 +57,11 @@ class VectorMeta(type):
         def fset(self, values):
             if len(values) != len(fields):
                 raise ValueError('values must be a iteratable of length {}'.format(len(fields)))
-            old_values = tuple(self._values)
-            modified = np.any(self._values[0:dim] != values)
+            if self.transformation is not None:
+                values = self.transformation(values)
+            modified = not np.allclose(self._values[0:dim], values)
             self._values[0:dim] = values
-            modified and self._modified(old_values)
+            modified and self.on_change(self)
 
         setattr(cls, 'values', property(fget, fset))
 
@@ -70,10 +79,11 @@ class Vector(metaclass=VectorMeta):
     """
     base vector class
     """
-
+    __p_cls__ = None
+    __base_cls__ = None
     def __init__(self):
         self.on_change = Event()
-        self.rules = []
+        self.transformation = None
 
     def observe(self, transformation=lambda x: x):
         """
@@ -91,13 +101,15 @@ class Vector(metaclass=VectorMeta):
         """
         vector = self.__base_cls__(*transformation(self._values))
 
-        def _listener(subject, old):
+        def _listener(subject, *e):
             vector.values = transformation(subject._values)
             
         self.on_change.append(_listener)
 
         return vector
 
+    def _transform(self, values):
+        return values 
 
     def observe_as_vec2(self, transformation):
         """
@@ -106,7 +118,7 @@ class Vector(metaclass=VectorMeta):
         """
         vector = vec2(transformation(self._values))
         
-        def _listener(subject, old):
+        def _listener(subject, *e):
             vector.values = transformation(subject._values)
             
         self.on_change.append(_listener)
@@ -121,7 +133,7 @@ class Vector(metaclass=VectorMeta):
         """
         vector = vec3(transformation(self._values))
         
-        def _listener(subject, old):
+        def _listener(subject, *e):
             vector.values = transformation(subject._values)
             
         self.on_change.append(_listener)
@@ -135,7 +147,7 @@ class Vector(metaclass=VectorMeta):
         """
         return self.__p_cls__(self.values.copy())
 
-    def __str__(self):
+    def __repr__(self):
         """
         string representation
 
@@ -193,18 +205,24 @@ class Vector(metaclass=VectorMeta):
         if len(v) != len(self):
             raise ValueError('value ({}) must be some vector type of length {}'.format(v, len(self)))
 
-    def _modified(self, old_values):
-        self.on_change(self, old_values)
+    def transform(self):
+        if self.transformation is None:
+            return 
 
+        old_values = self._values
+        values = self.transformation(old_values)
+        modified = np.any(self._values[:] != values)
+        if modified:
+            self._values[:] = values
+            self.on_change(self)
+            return True
+        return False
 
 class Vec2(Vector):
     """
     vector of two components
     """
     __fields__ = ('x', 'y') 
-    __p_cls__ = None
-    __base_cls__ = None
-
     def __init__(self, x=0, y=0):
         self._values = np.array((x, y), dtype=np.float64)
         super().__init__()
@@ -214,9 +232,6 @@ class Vec3(Vector):
     vector of three components
     """
     __fields__ = ('x', 'y', 'z') 
-    __p_cls__ = None
-    __base_cls__ = None
-
     def __init__(self, x=0, y=0, z=0):
         self._values = np.array((x, y, z), dtype=np.float64)
         super().__init__()
@@ -226,9 +241,6 @@ class Vec4(Vector):
     vector of four components
     """
     __fields__ = ('x', 'y', 'z', 'w') 
-    __p_cls__ = None
-    __base_cls__ = None
-
     def __init__(self, x=0, y=0, z=0, w=0):
         self._values = np.array((x, y, z, w), dtype=np.float64)
         super().__init__()
@@ -259,12 +271,12 @@ Vec3.__base_cls__ = Vec3
 Vec4.__base_cls__ = Vec4
 
 # -- helper methods
-def _vecd(veccls, d, obj=None):
+def _vecd(veccls, d, obj=None, use_instance=True):
     if obj is None:
         return veccls()
 
     vector = None
-    if isinstance(obj, Vector):
+    if use_instance and isinstance(obj, Vector):
         return obj
 
     if hasattr(obj, '__iter__') and hasattr(obj, '__len__'):
@@ -323,11 +335,18 @@ class _VecField():
     """
     vector field descriptor 
     """
-    def __init__(self, default=None):
+    def __init__(self, default=None, listen_to=None):
+        if default is not None and listen_to is not None:
+            raise ValueError('default must be None if listen_to is not None')
         self._val = WeakKeyDictionary()
         self._default = default 
         self._on_change = None
-        self._rules = []
+        self._listen_to = listen_to
+        self._transformations = []
+        self._listen_to_me = set()
+
+        if listen_to is not None:
+            listen_to._listen_to_me.add(self)
 
     def __get__(self, instance_obj, objtype):
         """
@@ -336,11 +355,9 @@ class _VecField():
         to instantiate the vector. 
         """
         if not instance_obj in self._val:
-            if self._default is None:
+            if self._default is None and self._listen_to is None:
                 raise RuntimeError('vector values undefined')
             default = self._default
-            for rule in self._rules:
-                default = rule(instance_obj, default)
             return self._create(instance_obj, default)
         return self._val[instance_obj] 
 
@@ -352,11 +369,6 @@ class _VecField():
         if not instance_obj in self._val:
             return self._create(instance_obj, components)
         else:
-            # we only apply rules when the vector is allready
-            # created. 
-            for rule in self._rules:
-                components = rule(instance_obj, components)
-
             self._val[instance_obj].values = components
 
     def __delete__(self, instance_obj):
@@ -366,17 +378,36 @@ class _VecField():
         self._on_change = f
         return f
 
-    def rule(self, rule):
+    def transformation(self, transformation):
         """
-        applies a *rule* to the given vector components
+        applies a *transformation* to the given vector components
         when they are changed. 
         """
-        self._rules.append(rule)
+        self._transformations.append(transformation)
+        return transformation
 
     def _create(self, instance_obj, components):
-        self._val[instance_obj] = self.__vec__(components)
+        self._val[instance_obj] = self.__vec__(components, use_instance=self._listen_to is None)
+
+        if self._listen_to is not None:
+            def _e(v, *e):
+                self._val[instance_obj].values = v.values
+            self._val[instance_obj].values = self._listen_to._val[instance_obj].values
+            self._listen_to._val[instance_obj].on_change.append(_e)
+
         if self._on_change is not None:
             self._val[instance_obj].on_change.append(partial(self._on_change, instance_obj))
+
+        if len(self._transformations):
+            self._val[instance_obj].transformation = partial(self._transformations[0], instance_obj)
+
+        # if some vector is listen to this vector, we get the value
+        # of the vector of the instance_obj once to ensure the 
+        # listening vector is properly created.
+        if len(self._listen_to_me):
+            for v in self._listen_to_me:
+                v.__get__(instance_obj, type(instance_obj))
+
         return self._val[instance_obj]
 
 class Vec2Field(_VecField): __vec__ = vec2

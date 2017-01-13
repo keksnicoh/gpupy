@@ -645,15 +645,18 @@ class Program():
 
 
     def uniform(self, name, value, flush=False):
+        """
+        set uniform *name* value to *value*. if *flush* then
+        the change will be flushed to gpu directly. Otherwise
+        the uniform changes will be send to gpu when the
+        shader is in use.
+        """
         if not name in self.uniforms:
             raise ProgramError('unkown uniform "{}"'.format(name))
-
         if flush or self.gl_shader_id == Program.__LAST_USE_GL_ID:
             self._uniform(name, value)
         else:
             self._uniform_changes[name] = deepcopy(value)
-        #
-        #self.flush_uniforms()
 
     def declare_uniform(self, name, declr, variable=None, length=None):
         found_at_least_one = False
@@ -695,42 +698,49 @@ class Program():
                 self._uniform(name, value)
         self._uniform_changes = {}
 
+    _DTYPE_TEXTURE_UNIT = {'sampler1D', 'sampler2D', 'sampler3D', 'sampler2DMS', 'sampler2DArray'}
+
     def _uniform(self, name, value):
-        type = self.uniforms[name][1]
+        dtype = self.uniforms[name][1]
         location = self.uniforms[name][0]
 
         # XXX
         # - remove deprecated mat*() calls
-        if type == 'mat4':
-            glUniformMatrix4fv(location, 1, GL_FALSE, mat4(value))
-        elif type == 'mat3':
-            glUniformMatrix3fv(location, 1, GL_FALSE, mat3(value))
-        elif type == 'mat2':
-            glUniformMatrix2fv(location, 1, GL_FALSE, mat2(value))
-        elif type == 'float':
-            glUniform1f(location, glfloat(value))
-        elif type == 'int':
-            glUniform1i(location, glint(value))
-        elif type == 'vec2':
-            glUniform2f(location, *glvec2(glfloat, value))
-        elif type == 'vec3':
-            glUniform3f(location, *glvec3(glfloat, value))
-        elif type == 'vec4':
-            glUniform4f(location, *glvec4(glfloat, value))
-        elif type == 'sampler2D':
+
+        if dtype == 'float':
+            glUniform1f(location, *np.array(value, dtype=np.float32))
+        elif dtype == 'vec2':
+            glUniform2f(location, *np.array(value, dtype=np.float32))
+        elif dtype == 'vec3':
+            glUniform3f(location, *np.array(value, dtype=np.float32))
+        elif dtype == 'vec4':
+            glUniform4f(location, *np.array(value, dtype=np.float32))
+
+        elif dtype == 'int':
+            glUniform1i(location, *np.array(value, dtype=np.int32))
+        elif dtype == 'ivec2':
+            glUniform2i(location, *np.array(value, dtype=np.int32))
+        elif dtype == 'ivec3':
+            glUniform3i(location, *np.array(value, dtype=np.int32))
+        elif dtype == 'ivec4':
+            glUniform4i(location, *np.array(value, dtype=np.int32))
+
+        elif dtype == 'mat4':
+            glUniformMatrix4fv(location, 1, GL_FALSE, *np.array(value, dtype=np.float32))
+        elif dtype == 'mat3':
+            glUniformMatrix3fv(location, 1, GL_FALSE, *np.array(value, dtype=np.float32))
+        elif dtype == 'mat2':
+            glUniformMatrix2fv(location, 1, GL_FALSE, *np.array(value, dtype=np.float32))
+
+        elif dtype in self._DTYPE_TEXTURE_UNIT:
             glUniform1i(location, gl_texture_unit(value))
-        elif type == 'sampler3D':
-            glUniform1i(location, gl_texture_unit(value))
-        elif type == 'sampler1D':
-            glUniform1i(location, gl_texture_unit(value))
-        elif type == 'sampler2DMS':
-            glUniform1i(location, gl_texture_unit(value))
-        elif type == 'sampler2DArray':
-            glUniform1i(location, gl_texture_unit(value))
-        elif type == 'bool':
+
+        elif dtype == 'bool':
+            #XXX
+            raise NotImplementedError('not sure how to handle boolean at the moment...')
             glUniform1i(location, glbool(glbool))
         else:
-            raise NotImplementedError('oops! type "{}" not implemented by shader library.'.format(type))
+            raise NotImplementedError('oops! dtype "{}" not implemented by shader library.'.format(dtype))
         self._uniform_values[name] = value
 
     def get_vertex_shader(self):

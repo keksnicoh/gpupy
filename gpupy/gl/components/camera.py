@@ -125,15 +125,15 @@ class Camera2D(Camera):
 
     # -- camera control events --
 
-    def roll_changed(self, roll, old_value):
+    def roll_changed(self, roll, *e):
         self._create_view_matrix()
         self.commit()
 
-    def position_changed(self, position, old_value):
+    def position_changed(self, position, *e):
         self._create_view_matrix()
         self.commit()
 
-    def screensize_changed(self, screensize, old_value):
+    def screensize_changed(self, screensize, *e):
         self._create_projection_matrix()
         self.commit()
 

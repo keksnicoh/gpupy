@@ -54,7 +54,9 @@ class Event(list):
     def __call__(self, *args, **kwargs):
         """
         invokes all listeners with given arguments
-        """
-        for l in self:
-            l(*args, **kwargs)
-
+        """#
+        try:
+            for l in self:
+                l(*args, **kwargs)
+        except TypeError:
+            raise TypeError(l)

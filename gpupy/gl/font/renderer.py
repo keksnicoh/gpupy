@@ -16,7 +16,7 @@ XXX
 
 @author Nicolas 'keksnicoh' Heimann <nicolas.heimann@gmail.com>
 """
-from gpupy.gl import GlConfig
+from gpupy.gl import *
 from gpupy.gl.shader import Shader, Program
 from gpupy.gl.camera import Camera
 from gpupy.common.helper import load_lib_file, resource_path
