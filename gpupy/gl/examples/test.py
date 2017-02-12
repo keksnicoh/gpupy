@@ -1,5 +1,5 @@
 
-from gpupy.gl.util import Event
+from gpupy.gl.common import Event
 
 import numpy as np 
 from functools import partial

@@ -7,7 +7,7 @@ viewport
 from OpenGL.GL import *
 from gpupy.gl.vector import * 
 
-class ViewPort():
+class Viewport():
     #size = Vec2Property()
     #position = Vec2Property()
 

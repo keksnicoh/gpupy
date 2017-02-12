@@ -708,7 +708,7 @@ class Program():
         # - remove deprecated mat*() calls
 
         if dtype == 'float':
-            glUniform1f(location, *np.array(value, dtype=np.float32))
+            glUniform1f(location, np.float32(value))
         elif dtype == 'vec2':
             glUniform2f(location, *np.array(value, dtype=np.float32))
         elif dtype == 'vec3':

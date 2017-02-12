@@ -11,7 +11,7 @@ from gpupy.gl.texture import Texture2D, Texture1D, Texture3D
 from gpupy.gl.shader import Shader, Program 
 from gpupy.gl.camera import Camera 
 from gpupy.gl.framebuffer import Framebuffer 
-from gpupy.gl.viewport import ViewPort
+from gpupy.gl.viewport import Viewport
 
 __all__ = ['GlConfig', 'BufferObject', 'Texture2D', 'Texture1D', 
-           'Texture3D', 'Shader', 'Program', 'Camera', 'Framebuffer', 'ViewPort']
+           'Texture3D', 'Shader', 'Program', 'Camera', 'Framebuffer', 'Viewport']

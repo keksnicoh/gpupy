@@ -12,7 +12,7 @@ class ObservableOrderedDict(OrderedDict):
         super().__setitem__(key, value)
         self.on_change(self, key)
 
-class BoxLayout():
+class AbstractLayout():
     """
     
 
@@ -84,7 +84,6 @@ class BoxLayout():
                 self.calculate()
                 self.calculate_box(self.boxes[name])
 
-
         self.scope.on_change.append(scope_watcher)
 
         return self.boxes[name]
@@ -136,6 +135,11 @@ class BoxLayout():
                 # all-data event
                 if np.array_equal(self._data[i], old_values): 
                     box.data.on_change(self._data, old_values)
+
+class ContainerLayout(AbstractLayout):
+
+    pass
+
 
 class Box():
     def __init__(self, data, transformations, scope=()):

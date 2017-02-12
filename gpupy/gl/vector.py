@@ -3,7 +3,7 @@ experimental!
 
 let's see if this is a good idea or not ..
 """
-from gpupy.gl.util import Event
+from gpupy.gl.common import Event
 
 import numpy as np 
 from functools import partial
@@ -11,7 +11,7 @@ from weakref import WeakKeyDictionary
 
 __all__ = ['vec2', 'vec3', 'vec4', 'vecn', 
            'vec2p', 'vec3p', 'vec4p', 
-           'Vec2Field', 'Vec3Field', 'Vec4Field']
+           'Vector', 'Vec2Field', 'Vec3Field', 'Vec4Field']
 
 class VectorMeta(type): 
     """
@@ -56,6 +56,7 @@ class VectorMeta(type):
 
         def fset(self, values):
             if len(values) != len(fields):
+                print(fields, self)
                 raise ValueError('values must be a iteratable of length {}'.format(len(fields)))
             if self.transformation is not None:
                 values = self.transformation(values)
@@ -189,6 +190,8 @@ class Vector(metaclass=VectorMeta):
         return self._values[i]
 
     def __setitem__(self, i, value):
+        if isinstance(i, slice):
+            raise NotImplementedError('slices are not supported yet.')
         return setattr(self, self.__fields__[i], value)
 
     # order relations
@@ -247,17 +250,20 @@ class Vec4(Vector):
 
 # -- VecNp allows to assign numpy ndarray directly via constructor.
 
-class Vec2p(Vec2):
+class Vec2p(Vector):
+    __fields__ = ('x', 'y') 
     def __init__(self, ndarray):
         self._values = ndarray
         Vector.__init__(self)
 
-class Vec3p(Vec3):
+class Vec3p(Vector):
+    __fields__ = ('x', 'y', 'z') 
     def __init__(self, ndarray):
         self._values = ndarray
         Vector.__init__(self)
 
-class Vec4p(Vec4):
+class Vec4p(Vector):
+    __fields__ = ('x', 'y', 'z', 'w') 
     def __init__(self, ndarray):
         self._values = ndarray
         Vector.__init__(self)
@@ -269,6 +275,14 @@ Vec4.__p_cls__ = Vec4p
 Vec2.__base_cls__ = Vec2
 Vec3.__base_cls__ = Vec3
 Vec4.__base_cls__ = Vec4
+
+Vec2p.__p_cls__ = Vec2p
+Vec3p.__p_cls__ = Vec3p
+Vec4p.__p_cls__ = Vec4p
+Vec2p.__base_cls__ = Vec2
+Vec3p.__base_cls__ = Vec3
+Vec4p.__base_cls__ = Vec4
+
 
 # -- helper methods
 def _vecd(veccls, d, obj=None, use_instance=True):
@@ -291,7 +305,7 @@ def _vecd(veccls, d, obj=None, use_instance=True):
 # -- shotcurts
 
         
-def vecn(obj):
+def vecn(obj, use_instance=True):
     """
     transforms any object into a corresponding 
     n-dimensional vector if possible. 
@@ -300,7 +314,7 @@ def vecn(obj):
       -  ValueError
     """
     vector = None
-    if isinstance(obj, Vector):
+    if use_instance and isinstance(obj, Vector):
         return obj
 
     if hasattr(obj, '__iter__') and hasattr(obj, '__len__'):
@@ -368,6 +382,10 @@ class _VecField():
         """
         if not instance_obj in self._val:
             return self._create(instance_obj, components)
+
+
+       # elif isinstance(components, Vector):
+       #     self._val[instance_obj] = self._create(instance_obj, components)
         else:
             self._val[instance_obj].values = components
 
@@ -387,7 +405,16 @@ class _VecField():
         return transformation
 
     def _create(self, instance_obj, components):
-        self._val[instance_obj] = self.__vec__(components, use_instance=self._listen_to is None)
+        if isinstance(components, tuple) and isinstance(components[1], Event):
+            vec, on_change = components
+            self._val[instance_obj] = self.__vec__(vec, use_instance=self._listen_to is None)
+            def _update(v):
+                self._val[instance_obj].values = v
+
+            on_change.append(_update)
+
+        else:
+            self._val[instance_obj] = self.__vec__(components, use_instance=self._listen_to is None)
 
         if self._listen_to is not None:
             def _e(v, *e):

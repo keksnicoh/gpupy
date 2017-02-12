@@ -1,7 +1,6 @@
 """
 @author Nicolas 'keksnicoh' Heimann <nicolas.heimann@gmail.com>
 """
-from gpupy.gl.util import CommandQueue, Event
 from gpupy.gl import GlConfig
 from gpupy.gl.common import *
 
@@ -406,5 +405,6 @@ class GLFW_WindowFunction:
         app.windows.append(window)
         app.init()
         self.f(window, *args, **kwargs)
+
         app.run()
 
