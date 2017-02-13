@@ -11,7 +11,7 @@ from weakref import WeakKeyDictionary
 
 __all__ = ['vec2', 'vec3', 'vec4', 'vecn', 
            'vec2p', 'vec3p', 'vec4p', 
-           'Vector', 'Vec2Field', 'Vec3Field', 'Vec4Field']
+           'Vector']
 
 class VectorMeta(type): 
     """
@@ -342,102 +342,3 @@ def vec3p(data):
 
 def vec4p(data):
     return Vec4p(data)
-
-# -- descriptors
-
-class _VecField():
-    """
-    vector field descriptor 
-    """
-    def __init__(self, default=None, listen_to=None):
-        if default is not None and listen_to is not None:
-            raise ValueError('default must be None if listen_to is not None')
-        self._val = WeakKeyDictionary()
-        self._default = default 
-        self._on_change = None
-        self._listen_to = listen_to
-        self._transformations = []
-        self._listen_to_me = set()
-
-        if listen_to is not None:
-            listen_to._listen_to_me.add(self)
-
-    def __get__(self, instance_obj, objtype):
-        """
-        returns the vector for *instance_obj*.
-        if no value set the default value is used
-        to instantiate the vector. 
-        """
-        if not instance_obj in self._val:
-            if self._default is None and self._listen_to is None:
-                raise RuntimeError('vector values undefined')
-            default = self._default
-            return self._create(instance_obj, default)
-        return self._val[instance_obj] 
-
-    def __set__(self, instance_obj, components):
-        """
-        sets vector *components* for *instance_obj* 
-        field. 
-        """
-        if not instance_obj in self._val:
-            return self._create(instance_obj, components)
-
-
-       # elif isinstance(components, Vector):
-       #     self._val[instance_obj] = self._create(instance_obj, components)
-        else:
-            self._val[instance_obj].values = components
-
-    def __delete__(self, instance_obj):
-        del self._val[instance_obj]
-
-    def on_change(self, f):
-        self._on_change = f
-        return f
-
-    def transformation(self, transformation):
-        """
-        applies a *transformation* to the given vector components
-        when they are changed. 
-        """
-        self._transformations.append(transformation)
-        return transformation
-
-    def _create(self, instance_obj, components):
-        if isinstance(components, tuple) and isinstance(components[1], Event):
-            vec, on_change = components
-            self._val[instance_obj] = self.__vec__(vec, use_instance=self._listen_to is None)
-            def _update(v):
-                self._val[instance_obj].values = v
-
-            on_change.append(_update)
-
-        else:
-            self._val[instance_obj] = self.__vec__(components, use_instance=self._listen_to is None)
-
-        if self._listen_to is not None:
-            def _e(v, *e):
-                self._val[instance_obj].values = v.values
-            self._val[instance_obj].values = self._listen_to._val[instance_obj].values
-            self._listen_to._val[instance_obj].on_change.append(_e)
-
-        if self._on_change is not None:
-            self._val[instance_obj].on_change.append(partial(self._on_change, instance_obj))
-
-        if len(self._transformations):
-            self._val[instance_obj].transformation = partial(self._transformations[0], instance_obj)
-
-        # if some vector is listen to this vector, we get the value
-        # of the vector of the instance_obj once to ensure the 
-        # listening vector is properly created.
-        if len(self._listen_to_me):
-            for v in self._listen_to_me:
-                v.__get__(instance_obj, type(instance_obj))
-
-        return self._val[instance_obj]
-
-class Vec2Field(_VecField): __vec__ = vec2
-class Vec3Field(_VecField): __vec__ = vec3
-class Vec4Field(_VecField): __vec__ = vec4
-

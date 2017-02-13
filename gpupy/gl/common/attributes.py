@@ -175,9 +175,10 @@ class VectorAttribute(Attribute):
         attr_value.val.values = val
 
 class ComputedAttribute(Attribute):
-    def __init__(self, *fields, descriptor=None):
+    def __init__(self, *fields, descriptor=None, some_test=None):
         self._attr = fields 
         self._descriptor = descriptor or Attribute()
+        self.some_test = some_test
         super().__init__()
 
     def on_change(self, f):
@@ -207,8 +208,8 @@ class ComputedAttribute(Attribute):
 
         event = observable_event(observable) 
         event += [partial(f, instance_obj) for f in self._on_change]
-
         self._val[instance_obj] = True
+  
 
 class ObservablesAccessor():
     def __init__(self, host):

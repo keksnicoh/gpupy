@@ -11,7 +11,6 @@ from gpupy.gl.common import Event
 
 class Container(Widget):
 
-    size             = Vec2Field()
     size = attributes.VectorAttribute(2)
 
     position         = attributes.VectorAttribute(4)
@@ -19,7 +18,7 @@ class Container(Widget):
     margin           = attributes.VectorAttribute(4)
     border           = attributes.VectorAttribute(4)
     border_color     = attributes.VectorAttribute(4)
-    content_position = attributes.ComputedAttribute(position, border, margin, padding, descriptor=attributes.VectorAttribute(4))
+    content_position = attributes.ComputedAttribute(position, border, margin, padding, descriptor=attributes.VectorAttribute(4), some_test='TOO')
     content_size     = attributes.ComputedAttribute(size, border, margin, padding,     descriptor=attributes.VectorAttribute(2))
     border_size      = attributes.ComputedAttribute(size, border, margin,              descriptor=attributes.VectorAttribute(2))
 
@@ -62,7 +61,7 @@ class Container(Widget):
     @content_position.transformation
     def swtwef(self, position, border, margin, padding):
         x = position.x + border.w + padding.w + margin.w
-        y = position.x + border.x + padding.x + margin.x
+        y = position.y + border.x + padding.x + margin.x
         return (x, y, position.z, position.w)
 
 
