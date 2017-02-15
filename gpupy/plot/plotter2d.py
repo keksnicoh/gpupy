@@ -32,6 +32,7 @@ DEFAULT_STYLE = {
     'plot-padding':          '0 0 0 0',
     'min-size':              '100 100',
     'grid-color': '#4D5D66ff',
+    'grid-sub-color': '#3c4c55ff',
 }
 def axes_unit_pixels(size, configuration_space, axes_unit, rs):
     lx = np.abs(configuration_space.y - configuration_space.x)
@@ -73,6 +74,7 @@ class Plotter2d(Widget):
             'border':                parse_4f1_1c4,
             'background-color':      parse_1c4,
             'grid-color':      parse_1c4,
+            'grid-sub-color':      parse_1c4,
             'plot-background-color': parse_1c4,
             'plot-padding':          parse_4f1,
             'min-size':              parse_2f1,
@@ -114,6 +116,7 @@ class Plotter2d(Widget):
                              self.axes_unit,
                              self._.plot_resolution_factor)),
             line_color=self._style['grid-color'],
+            sub_line_color=self._style['grid-sub-color'],
             background_color=self.plot_background_color,
             resolution=self._plot_container.widget.capture_size)
 
@@ -206,6 +209,7 @@ class TestGraph(Widget):
         self.program.uniform('mat_domain', self.mat_domain_vertex)
 
     def draw(self):
+        glEnable(GL_PROGRAM_POINT_SIZE)
         self.program.use()
         self.mesh.draw()
         self.program.unuse()
@@ -224,6 +228,7 @@ class TestGraphProgram(Program):
                 if (camera.mat_view[0][0] == 1){}
                 gl_Position = camera.mat_projection * camera.mat_view * mat_domain * vec4(vertex, 0, 1);
                 frg_color = color;
+                gl_PointSize = 1;
             }
         """))
         self.shaders.append(Shader(GL_FRAGMENT_SHADER, """

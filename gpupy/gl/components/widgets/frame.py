@@ -114,7 +114,10 @@ class FrameWidget():
         self.program.uniform('size', self.plane_size.xy)
         self.program.uniform('mat_model', np.identity(4, dtype=np.float32))
         self.program.uniform('position', self.position.xyzw)
-        
+
+        self.position.on_change.append(partial(self.program.uniform, 'position'))
+        self.size.on_change.append(partial(self.program.uniform, 'size'))
+
         self.mesh = StridedVertexMesh(mesh3d_rectangle(), 
                                       GL_TRIANGLES, 
                                       attribute_locations=self.program.attributes)
@@ -127,14 +130,6 @@ class FrameWidget():
         # - is this the best solution?
         v = np.ceil(v)
         return (max(1, v[0]), max(1, v[1]))
-
-    @plane_size.on_change
-    def _size_changed(self, size, *e):
-        self.program.uniform('size', self.plane_size)
-
-    @position.on_change
-    def position_changed(self, position, *e):
-        self.program.uniform('position', position.xyzw)
 
     def tick(self):
         if self._require_resize:

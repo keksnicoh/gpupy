@@ -43,13 +43,31 @@ class Plotter2dBasic():
         if unf != self._resizing:
             sf = 0.5
             self.plotter.plot_resolution_factor = 1 if not unf else sf
+            self.plotter2.plot_resolution_factor = 1 if not unf else sf
+            self.plotter3.plot_resolution_factor = 1 if not unf else sf
+            self.plotter32.plot_resolution_factor = 1 if not unf else sf
+            self.plotter33.plot_resolution_factor = 1 if not unf else sf
+            self.plotter34.plot_resolution_factor = 1 if not unf else sf
+            self.plotter4.plot_resolution_factor = 1 if not unf else sf
             self._resizing = unf
 
     def resize(self):
         s = self.window.get_size()
         self.flag(True)
 
-        self.plotter.size = (s[0], s[1])
+        self.plotter.size = (s[0], s[1]/4)
+        self.plotter2.size = (s[0], s[1]/4)
+        self.plotter2.position = (0, s[1]/4, 0, 1)
+        self.plotter3.size = (s[0]/4, s[1]/4)
+        self.plotter3.position = (0, 2*s[1]/4, 0, 1)
+        self.plotter32.size = (s[0]/4, s[1]/4)
+        self.plotter32.position = (s[0]/4, 2*s[1]/4, 0, 1)
+        self.plotter33.size = (s[0]/4, s[1]/4)
+        self.plotter33.position = (2*s[0]/4, 2*s[1]/4, 0, 1)
+        self.plotter34.size = (s[0]/4, s[1]/4)
+        self.plotter34.position = (3*s[0]/4, 2*s[1]/4, 0, 1)
+        self.plotter4.size = (s[0], s[1]/4)
+        self.plotter4.position = (0, 3*s[1]/4, 0, 1)
 
         self.camera.screensize = self.window.get_size()
         self.draw()
@@ -58,8 +76,25 @@ class Plotter2dBasic():
         size = vec2(self.window.get_size())
         self.camera = Camera2D(screensize=size, position=size.observe_as_vec3(lambda v: (v[0]/2, v[1]/2, 0)))
         s = self.window.get_size()
-        self.plotter = Plotter2d((s[0], s[1]), configuration_space=(0, 1, 0, 1))
-
+        self.plotter = Plotter2d((s[0], s[1]/4), configuration_space=(0, 1, 0, 1))
+        self.plotter.plot_padding = (10,10,10,10)
+        self.plotter2 = Plotter2d((s[0], s[1]/4), (0, s[1]/4, 0, 1), configuration_space=(0, 2, 0, 2))
+        self.plotter3 = Plotter2d((s[0]/4, s[1]/4), (0, 2*s[1]/4, 0, 1), configuration_space=(0, 2, 0, 1))
+        self.plotter32 = Plotter2d((s[0]/4, s[1]/4), (s[0]/4, 2*s[1]/4, 0, 1), configuration_space=(0, 1, 0, 3))
+        self.plotter32._plot_container.border = (5,5,5,5)
+        self.plotter32._plot_container.margin = (15,15,15,15)
+        self.plotter32._plot_container.border_color = (1,0,1,0.5)
+        self.plotter33 = Plotter2d((s[0]/4, s[1]/4), (2*s[0]/4, 2*s[1]/4, 0, 1), configuration_space=(0.5, 1, 0, 1))
+        self.plotter33._plot_container.border = (1,1,1,1)
+        self.plotter33._plot_container.margin = (15,15,15,15)
+        self.plotter33.plot_padding = (15,15,15,15)
+        self.plotter33._plot_container.border_color = (1,0,1,0.5)
+        self.plotter34 = Plotter2d((s[0]/4, s[1]/4), (3*s[0]/4, 2*s[1]/4, 0, 1), configuration_space=(-1, 1, -1, 1))
+        self.plotter4 = Plotter2d((s[0], s[1]/4), (0, 3*s[1]/4, 0, 1), configuration_space=(0, .05, 0, .3), axes_unit=(0.025, 0.025))
+        self.plotter4.plot_padding = (1,2,9,18)
+        self.plotter4._plot_container.border = (0,23,0,3)
+        self.plotter4._plot_container.margin = (12,0,0,9)
+        self.plotter4._plot_container.border_color = (0,1,0,0.5)
 
         self.border = 3 
 
@@ -100,12 +135,22 @@ class Plotter2dBasic():
 
         dt = time() - self.t
         self.plotter.tick()
-
+        self.plotter2.tick()
+        self.plotter3.tick()
+        self.plotter32.tick()
+        self.plotter33.tick()
+        self.plotter34.tick()
+        self.plotter4.tick()
         glClearColor(*self.plotter.background_color.values)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         self.camera.enable()
         self.plotter.draw()
-
+        self.plotter2.draw()
+        self.plotter3.draw()
+        self.plotter32.draw()
+        self.plotter33.draw()
+        self.plotter34.draw()
+        self.plotter4.draw()
   
 @GLFW_WindowFunction
 def main(window):

@@ -5,12 +5,38 @@ from gpupy.gl import *
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.common import attributes
 from gpupy.gl.mesh import * 
-import numpy as np 
-from OpenGL.GL import *
 from gpupy.gl.common import Event 
 
-class Container(Widget):
+import numpy as np 
+from OpenGL.GL import *
 
+
+class Container(Widget):
+    """
+    like a div container the Container widget has a position, size, margin, border and padding. 
+
+     position
+       \        size x
+        +---------------------------- ... +
+        |     margin
+      s | 
+      i |     +---------   
+      z |     |    border
+      e |     |   +----------
+        |     |   |    padding
+      y |     |   |   +-----------
+        |     |   |   |    content box
+        |
+        ...  
+        +---------------------------- ... +
+
+    ```python
+    container = Container((100, 100), margin=(10, 10), padding=(10, 10), border=(10, 10, 10, 10), border_color=(1, 0, 0, 1))
+    container.widget = SomeWidget(size=container.content_size, position=container_position)
+    container.tick()
+    container.render()
+    ```
+    """
     size = attributes.VectorAttribute(2)
 
     position         = attributes.VectorAttribute(4)
@@ -18,6 +44,8 @@ class Container(Widget):
     margin           = attributes.VectorAttribute(4)
     border           = attributes.VectorAttribute(4)
     border_color     = attributes.VectorAttribute(4)
+
+    # transformed properties
     content_position = attributes.ComputedAttribute(position, border, margin, padding, descriptor=attributes.VectorAttribute(4), some_test='TOO')
     content_size     = attributes.ComputedAttribute(size, border, margin, padding,     descriptor=attributes.VectorAttribute(2))
     border_size      = attributes.ComputedAttribute(size, border, margin,              descriptor=attributes.VectorAttribute(2))

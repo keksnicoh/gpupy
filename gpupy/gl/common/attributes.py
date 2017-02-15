@@ -97,8 +97,7 @@ class Attribute():
                     if attr_val.host_listener in old_event:
                         old_event.remove(attr_val.host_listener)
 
-
-                # boind to new host observable if possible
+                # bind to new host observable if possible
                 if val_on_change is not None:
                     val_on_change.append(attr_val.host_listener)
                     attr_val.host_on_change = val_on_change
@@ -175,15 +174,48 @@ class VectorAttribute(Attribute):
         attr_value.val.values = val
 
 class ComputedAttribute(Attribute):
-    def __init__(self, *fields, descriptor=None, some_test=None):
+    """
+    A computed attributes depends on a list of attributes
+    and can have a descriptor which describes the attribute itself.
+
+    ```python 
+        from gpupy.gl.common import attributes
+        class A():
+            some_vector = attributes.VectorAttribute(2)
+            scaling = attributes.CastedAttribute(int, 1)
+
+            scaled_vector = attributes.ComputedAttribute(scaling, some_vector, 
+                descriptor=attributes.VectorAttribute(2))
+
+            @scaled_vector.transformation
+            def scale(self, scaling, vector):
+                return scaling * vector.xy
+    ```
+
+    Computed attribute values cannot be set explicitly. They are 
+    watching the other attributes for changes, therefore all given
+    argument descriptor must return (__get__) an observable or provide 
+    the get_observable method.
+
+    """
+
+
+    def __init__(self, *fields, descriptor=None, some_test=None, transformation=None):
         self._attr = fields 
         self._descriptor = descriptor or Attribute()
-        self.some_test = some_test
+        self._expl_transformation = transformation
         super().__init__()
 
     def on_change(self, f):
         self._on_change.append(f)
         return f
+
+    def transformation(self, f):
+        if self._expl_transformation is not None:
+            raise RuntimeError(('it is not allowed to define a transformation via.'
+                              + ' decorator since there is allready one transformation'
+                              + ' defined in the attribute configuration.'))
+        return super().transformation(f)
 
     def __get__(self, instance_obj, obj_type):
         if not instance_obj in self._val:
@@ -191,24 +223,34 @@ class ComputedAttribute(Attribute):
         return self._descriptor.__get__(instance_obj, obj_type)
 
     def __set__(self, *a):
-        raise RuntimeError('not allowed')
+        raise RuntimeError('it is not allowed to set the value of an computed attribute explicitly.')
 
     def _register(self, instance_obj, obj_type, val=None):
         if val is not None:
-            raise RuntimeError('this is not allowed {}'.format(val))
+            raise RuntimeError('a computed attribute cannot have a default value.'.format(val))
 
-        initial_value = self._transformation(instance_obj, *tuple(a.__get__(instance_obj, obj_type) for a in self._attr))
+        # set initial value - this also ensures that the argument
+        # attributes are loaded properly.
+        initial_arg_values = tuple(a.__get__(instance_obj, obj_type) for a in self._attr)
+        initial_value = self._transformation(instance_obj, *initial_arg_values)
         self._descriptor.__set__(instance_obj, initial_value)
 
+        # list of observables which the computed attribute depends on.
+        observables = tuple(o if observable_event(o) is not None else self._attr[i].get_observable() 
+                            for i, o in enumerate(initial_arg_values))
+
+        # create obersvable
         instance_transformation = partial(self._transformation, instance_obj)
         observable = transform_observables(
             instance_transformation, 
             self._descriptor.get_observable(instance_obj), 
-            tuple(a.get_observable(instance_obj) for a in self._attr))
+            observables)
 
+        # attach event listeners
         event = observable_event(observable) 
         event += [partial(f, instance_obj) for f in self._on_change]
-        self._val[instance_obj] = True
+
+        self._val[instance_obj] = observable
   
 
 class ObservablesAccessor():

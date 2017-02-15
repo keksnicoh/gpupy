@@ -706,43 +706,44 @@ class Program():
 
         # XXX
         # - remove deprecated mat*() calls
+        try:
+            if dtype == 'float':
+                glUniform1f(location, np.float32(value))
+            elif dtype == 'vec2':
+                glUniform2f(location, *np.array(value, dtype=np.float32))
+            elif dtype == 'vec3':
+                glUniform3f(location, *np.array(value, dtype=np.float32))
+            elif dtype == 'vec4':
+                glUniform4f(location, *np.array(value, dtype=np.float32))
 
-        if dtype == 'float':
-            glUniform1f(location, np.float32(value))
-        elif dtype == 'vec2':
-            glUniform2f(location, *np.array(value, dtype=np.float32))
-        elif dtype == 'vec3':
-            glUniform3f(location, *np.array(value, dtype=np.float32))
-        elif dtype == 'vec4':
-            glUniform4f(location, *np.array(value, dtype=np.float32))
+            elif dtype == 'int':
+                glUniform1i(location, *np.array(value, dtype=np.int32))
+            elif dtype == 'ivec2':
+                glUniform2i(location, *np.array(value, dtype=np.int32))
+            elif dtype == 'ivec3':
+                glUniform3i(location, *np.array(value, dtype=np.int32))
+            elif dtype == 'ivec4':
+                glUniform4i(location, *np.array(value, dtype=np.int32))
 
-        elif dtype == 'int':
-            glUniform1i(location, *np.array(value, dtype=np.int32))
-        elif dtype == 'ivec2':
-            glUniform2i(location, *np.array(value, dtype=np.int32))
-        elif dtype == 'ivec3':
-            glUniform3i(location, *np.array(value, dtype=np.int32))
-        elif dtype == 'ivec4':
-            glUniform4i(location, *np.array(value, dtype=np.int32))
+            elif dtype == 'mat4':
+                glUniformMatrix4fv(location, 1, GL_FALSE, np.array(value, dtype=np.float32))
+            elif dtype == 'mat3':
+                glUniformMatrix3fv(location, 1, GL_FALSE, *np.array(value, dtype=np.float32))
+            elif dtype == 'mat2':
+                glUniformMatrix2fv(location, 1, GL_FALSE, *np.array(value, dtype=np.float32))
 
-        elif dtype == 'mat4':
-            glUniformMatrix4fv(location, 1, GL_FALSE, np.array(value, dtype=np.float32))
-        elif dtype == 'mat3':
-            glUniformMatrix3fv(location, 1, GL_FALSE, *np.array(value, dtype=np.float32))
-        elif dtype == 'mat2':
-            glUniformMatrix2fv(location, 1, GL_FALSE, *np.array(value, dtype=np.float32))
+            elif dtype in self._DTYPE_TEXTURE_UNIT:
+                glUniform1i(location, gl_texture_unit(value))
 
-        elif dtype in self._DTYPE_TEXTURE_UNIT:
-            glUniform1i(location, gl_texture_unit(value))
-
-        elif dtype == 'bool':
-            #XXX
-            raise NotImplementedError('not sure how to handle boolean at the moment...')
-            glUniform1i(location, glbool(glbool))
-        else:
-            raise NotImplementedError('oops! dtype "{}" not implemented by shader library.'.format(dtype))
-        self._uniform_values[name] = value
-
+            elif dtype == 'bool':
+                #XXX
+                raise NotImplementedError('not sure how to handle boolean at the moment...')
+                glUniform1i(location, glbool(glbool))
+            else:
+                raise NotImplementedError('oops! dtype "{}" not implemented by shader library.'.format(dtype))
+            self._uniform_values[name] = value
+        except TypeError:
+            raise TypeError(name, value)
     def get_vertex_shader(self):
         """
         returns vertex shader if appended
@@ -825,5 +826,4 @@ class Program():
        # if shape is not None:
        #     dd()
         glUniformBlockBinding(self.gl_shader_id, self.uniform_block_index[name], index)
-
 
