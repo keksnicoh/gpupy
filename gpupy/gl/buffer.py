@@ -91,45 +91,64 @@ class BufferObject():
 
     @classmethod
     def empty(cls, shape, dtype, target=GL_ARRAY_BUFFER):
-        return cls(shape, dtype, target=target)
+        data = np.empty(shape, dtype=dtype)
+        vbo = cls(shape, dtype, target=target)
+        vbo.host = data
+        return vbo 
 
     @classmethod
     def empty_like(cls, data, target=GL_ARRAY_BUFFER):
-        return cls(data.shape, data.dtype, target=target)
+        data = np.empty_like(shape, dtype=dtype)
+        vbo = cls(data.shape, data.dtype, target=target)
+        vbo.host = data
+        return vbo 
 
     @classmethod
     def zeros(cls, shape, dtype, target=GL_ARRAY_BUFFER):
         data = np.zeros(shape, dtype=dtype)
-        return cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo.host = data
+        return vbo 
 
     @classmethod
     def zeros_like(cls, data, target=GL_ARRAY_BUFFER):
         data = np.zeros_like(data)
-        return cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo.host = data
+        return vbo 
 
     @classmethod
     def ones(cls, shape, dtype, target=GL_ARRAY_BUFFER):
         data = np.ones(shape, dtype=dtype)
-        return cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo.host = data
+        return vbo 
 
     @classmethod
     def ones_like(cls, data, target=GL_ARRAY_BUFFER):
         data = ones_like.ones(data)
-        return cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo.host = data
+        return vbo 
 
     @classmethod
     def to_device(cls, data, target=GL_ARRAY_BUFFER, usage=GL_STATIC_DRAW):
-        return cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target, usage=usage)
+        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target, usage=usage)
+        vbo.host = data
+        return vbo 
 
     def arange(cls, target=GL_ARRAY_BUFFER, *args, **kwargs):
         data = numpy.arange(*args, **kwargs)
-        return cls.to_device(data, target=target)
+        vbo = cls.to_device(data, target=target)
+        vbo.host = data
+        return vbo 
 
     def __init__(self, shape=None, dtype=None, target=GL_ARRAY_BUFFER, usage=GL_STATIC_DRAW, allocator=None):
 
         self.shape = shape if type(shape) is tuple else (shape, )
         self.dtype = np.dtype(dtype)
         self.itemsize = np.dtype(dtype).itemsize
+        self.host = None 
 
         try:
             self.nbytes = self.itemsize*reduce(mul, self.shape)
@@ -196,6 +215,7 @@ class BufferObject():
 
         self.shape = ndarray.shape
         self.nbytes = ndarray.nbytes
+        self.host = ndarray 
 
         glBindBuffer(self._target, self.gl_vbo_id)
         glBufferData(self._target, self.nbytes, ndarray, self._usage)
@@ -203,15 +223,25 @@ class BufferObject():
 
         self._has_updates = True
 
-    def get(self):
+    def sync_gpu(self):
+        if self.host is None:
+            raise RuntimeError()
+
+        glBindBuffer(self._target, self.gl_vbo_id)
+        glBufferData(self._target, self.host.nbytes, self.host, self._usage)
+        glBindBuffer(self._target, 0)
+
+    def get(self, sync_host=True):
         """
         loads data from gpu to host memory and maps
         it to numpy ndarray
         """
-        glBindBuffer(self._target, self.gl_vbo_id)
-        data = glGetBufferSubData(self._target, 0, self.nbytes)
-        glBindBuffer(self._target, 0)
-        return data.view(self.dtype).reshape(self.shape)
+        if sync_host or self.host is None:
+            glBindBuffer(self._target, self.gl_vbo_id)
+            data = glGetBufferSubData(self._target, 0, self.nbytes)
+            glBindBuffer(self._target, 0)
+            self.host = data.view(self.dtype).reshape(self.shape)
+        return self.host
 
     @assert_cl
     def get_cl_array(self, queue):

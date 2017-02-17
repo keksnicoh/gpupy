@@ -28,14 +28,14 @@ class FrameWidget():
     Properties:
 
     - size: the size of the frame
-    - capture_size: the size of the texture which captures the scene.
+    - resulution: the size of the texture which captures the scene.
                     e.g. the capture size might be higher than the size
                          of the plane to enable anti aliasing like down
                          sampling.
 
     - viewport: gpupy.gl.ViewPort
                 if not defined the viewport is set to 
-                    ViewPort((0, 0), capture_size)
+                    ViewPort((0, 0), resulution)
     - camera: camera which will be enabled when the Framebuffer 
               starts cawhichpturing
     - outer_camera: camera for rendering the screen
@@ -61,16 +61,16 @@ class FrameWidget():
 
     size         = attributes.VectorAttribute(2)
     position     = attributes.VectorAttribute(4)
-    capture_size = attributes.VectorAttribute(2)
+    resulution = attributes.VectorAttribute(2)
     plane_size   = attributes.ComputedAttribute(size, descriptor=attributes.VectorAttribute(2))
     clear_color  = attributes.VectorAttribute(4)
 
-    def __init__(self, size, capture_size=None, position=(0,0,0,1), multisampling=None, post_effects=None, blit=None, clear_color=(0, 0, 0, 1)):
+    def __init__(self, size, resulution=None, position=(0,0,0,1), multisampling=None, post_effects=None, blit=None, clear_color=(0, 0, 0, 1)):
         """
-        creates a framebuffer of *size* and *capture_size* 
+        creates a framebuffer of *size* and *resulution* 
         at *position*.
 
-        if *capture_size* is None, the capture_size is linked
+        if *resulution* is None, the resulution is linked
         to *size*.
         """
         # XXX
@@ -80,8 +80,8 @@ class FrameWidget():
 
         self.size         = size
         self.position     = position
-        self.capture_size = capture_size if capture_size is not None else self.size
-        self.viewport     = Viewport((0, 0), self.capture_size)
+        self.resulution = resulution if resulution is not None else self.size
+        self.viewport     = Viewport((0, 0), self.resulution)
         self.texture      = None
         self.clear_color  = clear_color
         
@@ -93,15 +93,15 @@ class FrameWidget():
     # -- initialization --
 
     def _init_capturing(self):
-        self.texture = Texture2D.empty((*self.capture_size.xy, 4), np.float32)
+        self.texture = Texture2D.empty((*self.resulution.xy, 4), np.float32)
         self.texture.interpolation_linear()
         self.framebuffer = Framebuffer()
         self.framebuffer.color_attachment(self.texture)
         self.texture.parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         self.texture.parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
-    @capture_size.on_change
-    def capture_size_changed(self, value):
+    @resulution.on_change
+    def resulution_changed(self, value):
         self._require_resize = True 
 
     def _init_plane(self):
@@ -123,7 +123,7 @@ class FrameWidget():
                                       attribute_locations=self.program.attributes)
 
     @plane_size.transformation
-    @capture_size.transformation
+    @resulution.transformation
     def normalize(self, v):
         """ to avoid pixel rounding errors """
         # XXX 
@@ -133,7 +133,7 @@ class FrameWidget():
 
     def tick(self):
         if self._require_resize:
-            self.texture.resize(self.capture_size) 
+            self.texture.resize(self.resulution) 
             self._require_resize = False
 
     def render(self):
@@ -141,14 +141,10 @@ class FrameWidget():
 
     def draw(self, shader=None):
         shader = shader or self.program
-
         self.texture.activate()
         shader.use()
         self.mesh.draw()
         shader.unuse()
-
-
-
 
     def use(self): 
         self.framebuffer.use()

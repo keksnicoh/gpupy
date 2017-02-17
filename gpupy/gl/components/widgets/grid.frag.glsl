@@ -1,4 +1,8 @@
 {% version %}
+/**
+ * THANKS TO http://jcgt.org/published/0003/04/01/
+ */
+
 {% uniform_block camera %}
 const float M_PI = 3.14159265358979323846;
 const float M_SQRT2 = 1.41421356237309504880;
@@ -17,6 +21,7 @@ uniform vec2 iResolution;
 uniform vec4 c_bg;
 in vec2 v_texcoord;
 out vec4 f_out;
+
 
 vec2 transform_forward(vec2 P) { 
     return P;

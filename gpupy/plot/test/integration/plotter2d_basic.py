@@ -58,9 +58,13 @@ class Plotter2dBasic():
         size = vec2(self.window.get_size())
         self.camera = Camera2D(screensize=size, position=size.observe_as_vec3(lambda v: (v[0]/2, v[1]/2, 0)))
         s = self.window.get_size()
-        self.plotter = Plotter2d((s[0], s[1]), configuration_space=(0, 1, 0, 1))
+     #   self.plotter = Plotter2d((s[0], s[1]), configuration_space=(0, np.pi/2, 0, 1))
+     #   self.plotter.axes_unit = (np.pi/2 / 4, 0.25)
 
 
+        self.plotter = Plotter2d(size, configuration_space=(0, 1, -1, 1))
+        self.plotter._plot_container.border = (2,2,2,2)
+        self.plotter._plot_container.margin = (10, 10, 10, 10)
         self.border = 3 
 
 
@@ -70,7 +74,7 @@ class Plotter2dBasic():
         #self.plotter2.plot_resolution_factor = 0.8+0.5*np.sin(dt)
 
         check_cs = False
-        speed = 0.05
+        speed = 0.005
         if 68 in self.window.keyboard.active: #d
             self.plotter.configuration_space += (speed, speed, 0, 0)
         if 65 in self.window.keyboard.active: #a
@@ -81,11 +85,11 @@ class Plotter2dBasic():
             self.plotter.configuration_space -= (0, 0, speed, speed)
         if 32 in self.window.keyboard.active and 340 in self.window.keyboard.active: #s
             check_cs = True
-            self.plotter.configuration_space *= (+1.01, 1.01, +01.01, 1.01)
+            self.plotter.configuration_space += (-0.01, 0.01, -0.01, 0.01)
         elif 32 in self.window.keyboard.active: #s
             check_cs = True
-            self.plotter.configuration_space *= (+0.99, .99, +0.99, .99)
-        if check_cs:
+            self.plotter.configuration_space *= (0.99, 0.99, 0.99, 0.99)
+        if False and check_cs:
             au = self.plotter.axes_unit
             css = self.plotter.configuration_space_size
             n = (css.x/au.x, css.y/au.y)
@@ -97,7 +101,7 @@ class Plotter2dBasic():
                 self.plotter.axes_unit.x = css.x/10
             if n[1] < 5:
                 self.plotter.axes_unit.y = css.y/10
-
+            print(self.plotter.axes_unit)
         dt = time() - self.t
         self.plotter.tick()
 

@@ -1,64 +1,90 @@
+"""
+grid rendering widgets and shaders based on the paper 
+"Antialiased 2D Grid, Marker, and Arrow Shaders" by
+Nicolas P. Rougier published November 2014 in the
+Journal of Computer Graphics Techniques (JCGT):
+    http://jcgt.org/published/0003/04/01/
+
+A grid can be drawn on any surface where the texture
+coordinate is within [-0.5, 0.5]. The fragment shader
+renders lines which have a fixed size compared to the
+vieport resolution. 
+"""
+
+from gpupy.gl.components.widgets import Widget
+from gpupy.gl.common import attributes
+from gpupy.gl.common.observables import transform_observables
+
 from gpupy.gl import * 
-from OpenGL.GL import * 
-from gpupy.gl.components.camera import Camera2D
-from gpupy.gl.mesh import *
-import numpy as np 
-from gpupy.gl.buffer import create_vao_from_program_buffer_object
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
 from gpupy.gl.vector import *
 
-from gpupy.gl import *
 from OpenGL.GL import *
+
 import numpy as np 
-from functools import partial 
-from gpupy.gl.components.widgets import Widget
-from gpupy.gl.common import attributes
+
 import os 
-class CartesianGrid(Widget):
+from functools import partial 
+
+class AbstractGrid(Widget):
+    """
+
+    """
     # widget configuration
     size                 = attributes.VectorAttribute(2)
     resolution           = attributes.VectorAttribute(2)
     position             = attributes.VectorAttribute(4)
+    configuration_space = attributes.VectorAttribute(4)
 
     # grid configuration
-    grid                = attributes.VectorAttribute(2, (.5, .5))
-    grid_width          = attributes.VectorAttribute(2, (2, 2))
-    configuration_space = attributes.VectorAttribute(4)
+    major_grid                = attributes.VectorAttribute(2, (.5, .5))
+    major_grid_width      = attributes.CastedAttribute(float,  1.5)
+    major_grid_color        = attributes.VectorAttribute(4, (0, 0, 0, 1))
+
+    minor_grid_width      = attributes.CastedAttribute(float,  1)
+    minor_grid_color    = attributes.VectorAttribute(4, (0, 0, 0, 1))
+    minor_grid_n = attributes.VectorAttribute(2, (5, 5))
 
     # style
     background_color  = attributes.VectorAttribute(4, (1, 1, 1, 1))
-    line_color        = attributes.VectorAttribute(4, (0, 0, 0, 1))
-    sub_line_color    = attributes.VectorAttribute(4, (0, 0, 0, 1))
-
 
     def __init__(self, size, 
                        position                 = (0, 0, 0, 1), 
                        configuration_space      = (0,0), 
-                       grid                     = (1,1), 
+                       major_grid                     = (1,1), 
                        background_color         = (1, 1, 1, 1), 
-                       line_color               = (0, 0, 0, 1),
+                       major_grid_color               = (0, 0, 0, 1),
                        resolution               = None,
-                       sub_line_color           = (0,0,0,1)):
+                       minor_grid_color           = (0,0,0,1),
+                       minor_grid_n = (5, 5)):
+
         super().__init__()
         self.position = position
         self.size = size
         self.configuration_space = configuration_space
-        self.grid = grid
 
-
-        self.line_color = line_color 
-        self.sub_line_color = sub_line_color 
+        self.major_grid = major_grid
+        self.major_grid_color = major_grid_color 
+        self.minor_grid_color = minor_grid_color 
+        self.minor_grid_n = minor_grid_n
         self.background_color = background_color
+
+        self._req_uniforms = True
         self.resolution = resolution or self.size
         self._init_plane()
 
     @size.on_change
     @configuration_space.on_change
-    @grid.on_change
-    @grid_width.on_change
+    @major_grid.on_change
+    @minor_grid_n.on_change
+    @minor_grid_width.on_change
+    @major_grid_width.on_change
     @resolution.on_change
     @position.on_change
-    def upload_uniforms(self, *e):
+    def req_uniforms(self, *e):
+        self._req_uniforms = True
+
+    def upload_uniforms(self):
         self.program.uniform('mat_model', np.array([
             self.resolution.x, 0, 0, 0,
             0, self.resolution.y, 0, 0,
@@ -75,19 +101,23 @@ class CartesianGrid(Widget):
       #  self.program.uniform('u_minor_grid_step', [0.25,np.pi/60.0])
 
       # cartesian
-        self.program.uniform('u_limits1', [0, 1.0001, 0, 1.0001])
-        self.program.uniform('u_limits2',  [0, 1, 0, 1])
-        self.program.uniform('u_major_grid_step', [0.20,0.2])
-        self.program.uniform('u_minor_grid_step', [0.1, 0.1])
-        self.program.uniform('u_major_grid_width', 1.5)
-        self.program.uniform('u_minor_grid_width', 1)
-        self.program.uniform('u_major_grid_color', self.line_color)
-        self.program.uniform('u_minor_grid_color', self.sub_line_color)
-        self.program.uniform('iResolution', self.resolution)
-        self.program.uniform('u_antialias', 1)
-        self.program.uniform('c_bg', self.background_color)
+        l1 = self.configuration_space.values * 1.0001
 
-    def _init_plane(self):
+        self.program.uniform('u_limits1',            l1)
+        self.program.uniform('u_limits2',            self.configuration_space)
+        self.program.uniform('u_major_grid_step',    self.major_grid)
+        self.program.uniform('u_minor_grid_step',    self.major_grid.values/self.minor_grid_n)
+        self.program.uniform('u_major_grid_width',   self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0]))
+        self.program.uniform('u_minor_grid_width',   self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0]))
+        self.program.uniform('u_major_grid_color',   self.major_grid_color)
+        self.program.uniform('u_minor_grid_color',   self.minor_grid_color)
+        self.program.uniform('iResolution',          self.resolution)
+        self.program.uniform('u_antialias',          2)
+        self.program.uniform('c_bg',                 self.background_color)
+
+        self._req_uniforms = False
+
+    def _init_plane(self): 
         self.program = GridProgram()
 
         self.program.uniform_block_binding('camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
@@ -97,12 +127,19 @@ class CartesianGrid(Widget):
                                       GL_TRIANGLES, 
                                       attribute_locations=self.program.attributes)
 
+    def _tick(self):
+        if self._req_uniforms:
+            self.upload_uniforms()
+
+
     def draw(self):
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         self.program.use()
         self.mesh.draw()
         self.program.unuse()
+
+class CartesianGrid(AbstractGrid): pass 
 
 class GridProgram(Program):
     def __init__(self, *args, **kwargs):
@@ -129,4 +166,5 @@ class GridProgram(Program):
 
         self.declare_uniform('camera', Camera.DTYPE, variable='camera')
         self.link()
+
 

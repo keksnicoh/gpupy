@@ -40,7 +40,7 @@ class VectorMeta(type):
                     modified = not np.allclose(self._values[0:dim], values)
                     self._values[0:dim] = values
                 else:
-                    modified = np.isclose(self._values[i], value)
+                    modified = not np.isclose(self._values[i], value)
                     self._values[i] = value
 
                 modified and self.on_change(self)

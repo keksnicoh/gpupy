@@ -77,6 +77,7 @@ class Plotter2dBasic():
         self.camera = Camera2D(screensize=size, position=size.observe_as_vec3(lambda v: (v[0]/2, v[1]/2, 0)))
         s = self.window.get_size()
         self.plotter = Plotter2d((s[0], s[1]/4), configuration_space=(0, 1, 0, 1))
+        self.plotter.axes_unit = (np.pi/4, 0.25)
         self.plotter.plot_padding = (10,10,10,10)
         self.plotter2 = Plotter2d((s[0], s[1]/4), (0, s[1]/4, 0, 1), configuration_space=(0, 2, 0, 2))
         self.plotter3 = Plotter2d((s[0]/4, s[1]/4), (0, 2*s[1]/4, 0, 1), configuration_space=(0, 2, 0, 1))
@@ -99,13 +100,14 @@ class Plotter2dBasic():
         self.border = 3 
 
 
+
     def draw(self):
         # very basic plot controlling
         dt = time()-self.t
         #self.plotter2.plot_resolution_factor = 0.8+0.5*np.sin(dt)
 
         check_cs = False
-        speed = 0.05
+        speed = 0.005
         if 68 in self.window.keyboard.active: #d
             self.plotter.configuration_space += (speed, speed, 0, 0)
         if 65 in self.window.keyboard.active: #a
@@ -132,7 +134,6 @@ class Plotter2dBasic():
                 self.plotter.axes_unit.x = css.x/10
             if n[1] < 5:
                 self.plotter.axes_unit.y = css.y/10
-
         dt = time() - self.t
         self.plotter.tick()
         self.plotter2.tick()

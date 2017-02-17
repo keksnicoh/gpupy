@@ -132,7 +132,7 @@ class Attribute():
         self._val[instance_obj] = attr_val
 
 
-class CastedAttrbiute(Attribute):
+class CastedAttribute(Attribute):
     """
     a casted attribute has an **cast** callable
     which ensures that the values assigned to the 
@@ -229,22 +229,23 @@ class ComputedAttribute(Attribute):
         if val is not None:
             raise RuntimeError('a computed attribute cannot have a default value.'.format(val))
 
+        if self._expl_transformation is not None:
+            tr = self._expl_transformation  
+        else:
+            tr = partial(self._transformation, instance_obj)
+
         # set initial value - this also ensures that the argument
         # attributes are loaded properly.
-        initial_arg_values = tuple(a.__get__(instance_obj, obj_type) for a in self._attr)
-        initial_value = self._transformation(instance_obj, *initial_arg_values)
-        self._descriptor.__set__(instance_obj, initial_value)
+        argv_init = tuple(a.__get__(instance_obj, obj_type) for a in self._attr)
+        self._descriptor.__set__(instance_obj, tr(*argv_init))
 
         # list of observables which the computed attribute depends on.
-        observables = tuple(o if observable_event(o) is not None else self._attr[i].get_observable() 
-                            for i, o in enumerate(initial_arg_values))
+        attr_obs = tuple(o if observable_event(o) is not None else self._attr[i].get_observable() 
+                         for i, o in enumerate(argv_init))
 
         # create obersvable
-        instance_transformation = partial(self._transformation, instance_obj)
-        observable = transform_observables(
-            instance_transformation, 
-            self._descriptor.get_observable(instance_obj), 
-            observables)
+        obs = self._descriptor.get_observable(instance_obj)
+        observable = transform_observables(tr, obs, attr_obs)
 
         # attach event listeners
         event = observable_event(observable) 
