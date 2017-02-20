@@ -46,9 +46,12 @@ class Container(Widget):
     border_color     = attributes.VectorAttribute(4)
 
     # transformed properties
-    content_position = attributes.ComputedAttribute(position, border, margin, padding, descriptor=attributes.VectorAttribute(4), some_test='TOO')
-    content_size     = attributes.ComputedAttribute(size, border, margin, padding,     descriptor=attributes.VectorAttribute(2))
-    border_size      = attributes.ComputedAttribute(size, border, margin,              descriptor=attributes.VectorAttribute(2))
+    content_position = attributes.ComputedAttribute(position, border, margin, padding, 
+        descriptor=attributes.VectorAttribute(4), some_test='TOO')
+    content_size     = attributes.ComputedAttribute(size, border, margin, padding,     
+        descriptor=attributes.VectorAttribute(2))
+    border_size      = attributes.ComputedAttribute(size, border, margin,              
+        descriptor=attributes.VectorAttribute(2))
 
     def __init__(self, widget=None, 
                        size=(0, 0), 
@@ -213,6 +216,6 @@ class BorderProgram(Program):
         """))
         self.declare_uniform('camera', Camera2D.DTYPE, variable='camera')
         self.link()
-        self.uniform_block_binding('camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+        self.uniform_block_binding('camera', GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
 
 

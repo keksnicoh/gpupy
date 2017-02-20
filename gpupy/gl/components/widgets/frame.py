@@ -109,7 +109,7 @@ class FrameWidget():
         self.texture.activate()
 
         self.program.uniform('frame_texture', self.texture)
-        self.program.uniform_block_binding('outer_camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+        self.program.uniform_block_binding('outer_camera', GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
 
         self.program.uniform('size', self.plane_size.xy)
         self.program.uniform('mat_model', np.identity(4, dtype=np.float32))
@@ -148,7 +148,7 @@ class FrameWidget():
 
     def use(self): 
         self.framebuffer.use()
-        self.viewport.use()
+        self.viewport.use((0, 0), self.resulution.xy_gl_int)
         glClearColor(*self.clear_color)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 

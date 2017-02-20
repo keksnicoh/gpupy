@@ -101,7 +101,7 @@ class Plotter2dBasic():
 
 
 
-    def draw(self):
+    def draw(self, window):
         # very basic plot controlling
         dt = time()-self.t
         #self.plotter2.plot_resolution_factor = 0.8+0.5*np.sin(dt)

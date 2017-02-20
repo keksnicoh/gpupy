@@ -32,7 +32,7 @@ from functools import partial
 class Plotter2dBasic():
     def __init__(self, window):
         self.window = window
-        window.on_init.append(self.init)
+        window.on_ready.append(self.init)
         window.on_cycle.append(self.draw)
         window.on_resize.append(self.resize)
         window.on_cycle.append(partial(self.flag,False))
@@ -45,19 +45,19 @@ class Plotter2dBasic():
             self.plotter.plot_resolution_factor = 1 if not unf else sf
             self._resizing = unf
 
-    def resize(self):
-        s = self.window.get_size()
+    def resize(self, window):
+        s = self.window.size
         self.flag(True)
 
         self.plotter.size = (s[0], s[1])
 
-        self.camera.screensize = self.window.get_size()
-        self.draw()
+        self.camera.screensize = self.window.size
+        self.draw(window)
 
-    def init(self):
-        size = vec2(self.window.get_size())
+    def init(self, window):
+        size = window.size
         self.camera = Camera2D(screensize=size, position=size.observe_as_vec3(lambda v: (v[0]/2, v[1]/2, 0)))
-        s = self.window.get_size()
+        s = self.window.size
      #   self.plotter = Plotter2d((s[0], s[1]), configuration_space=(0, np.pi/2, 0, 1))
      #   self.plotter.axes_unit = (np.pi/2 / 4, 0.25)
 
@@ -68,25 +68,25 @@ class Plotter2dBasic():
         self.border = 3 
 
 
-    def draw(self):
+    def draw(self, window):
         # very basic plot controlling
         dt = time()-self.t
         #self.plotter2.plot_resolution_factor = 0.8+0.5*np.sin(dt)
 
         check_cs = False
         speed = 0.005
-        if 68 in self.window.keyboard.active: #d
+        if 68 in self.window.active_keys: #d
             self.plotter.configuration_space += (speed, speed, 0, 0)
-        if 65 in self.window.keyboard.active: #a
+        if 65 in self.window.active_keys: #a
             self.plotter.configuration_space -= (speed, speed, 0, 0)
-        if 87 in self.window.keyboard.active: #w
+        if 87 in self.window.active_keys: #w
             self.plotter.configuration_space += (0, 0, speed, speed)
-        if 83 in self.window.keyboard.active: #s
+        if 83 in self.window.active_keys: #s
             self.plotter.configuration_space -= (0, 0, speed, speed)
-        if 32 in self.window.keyboard.active and 340 in self.window.keyboard.active: #s
+        if 32 in self.window.active_keys and 340 in self.window.active_keys: #s
             check_cs = True
             self.plotter.configuration_space += (-0.01, 0.01, -0.01, 0.01)
-        elif 32 in self.window.keyboard.active: #s
+        elif 32 in self.window.active_keys: #s
             check_cs = True
             self.plotter.configuration_space *= (0.99, 0.99, 0.99, 0.99)
         if False and check_cs:

@@ -4,9 +4,9 @@ texture utilities
 
 :author: Nicolas 'keksnicoh' Heimann
 """
-import numpy as np
+from gpupy.gl import GPUPY_GL
 from OpenGL.GL import *
-from gpupy.gl.common import gpupy_gl_debug, gpupy_debug_wrap
+import numpy as np
 
 # it is important to define at least those
 # texture parameters. otherwise the texture
@@ -221,7 +221,7 @@ class AbstractTexture():
         size, channels = self.__get_size_and_channels_from_shape__(np_shape)
         gl_type, gl_format, gl_internal_format = self._find_texture_type_and_format(dtype, channels)
 
-        gpupy_gl_debug('Texture._numpy_to_gl_parameters() determined texture configuration gl_type={}, gl_format={}, gl_internal_format={} from {} shape ({})'.format(
+        GPUPY_GL.debug('Texture._numpy_to_gl_parameters() determined texture configuration gl_type={}, gl_format={}, gl_internal_format={} from {} shape ({})'.format(
             gl_type,
             gl_format,
             gl_internal_format,
@@ -295,7 +295,7 @@ class Texture1D(AbstractTexture):
         """
         wrapper for glTexImage2D
         """
-        gpupy_debug_wrap(glTexImage1D, self.gl_target,
+        GPUPY_GL.debug_wrap(glTexImage1D, self.gl_target,
                                        0,
                                        gl_internal_format,
                                        np.int32(size),
@@ -357,7 +357,7 @@ class Texture2D(AbstractTexture):
         wrapper for glTexImage* functions
         """
         if self.array:
-            gpupy_debug_wrap(glTexImage3D, self.gl_target,
+            GPUPY_GL.debug_wrap(glTexImage3D, self.gl_target,
                                            0,
                                            gl_internal_format,
                                            np.int32(size[1]),
@@ -368,7 +368,7 @@ class Texture2D(AbstractTexture):
                                            gl_type,
                                            data)
         else:
-            gpupy_debug_wrap(glTexImage2D, self.gl_target,
+            GPUPY_GL.debug_wrap(glTexImage2D, self.gl_target,
                                            0,
                                            gl_internal_format,
                                            np.int32(size[0]),
@@ -454,7 +454,7 @@ class Texture3D(AbstractTexture):
         """
         wrapper for glTexImage* functions
         """
-        gpupy_debug_wrap(glTexImage3D, self.gl_target,
+        GPUPY_GL.debug_wrap(glTexImage3D, self.gl_target,
                                        0,
                                        gl_internal_format,
                                        np.int32(size[2]),

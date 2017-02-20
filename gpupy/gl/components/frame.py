@@ -14,7 +14,7 @@ from gpupy.gl import *
 from OpenGL.GL import *
 import numpy as np 
 from functools import partial 
-
+dd()
 class Frame():
 
 
@@ -156,7 +156,8 @@ class Frame():
 
     def use(self): 
         self.framebuffer.use()
-        self.viewport.use()
+        dd()
+        self.viewport.use(self.position.xy_gl_int, self.capture_size.xy_gl_int)
 
     def unuse(self): 
         self.viewport.unuse(restore=True)

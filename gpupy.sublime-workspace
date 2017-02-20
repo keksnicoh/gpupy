@@ -4,6 +4,42 @@
 		"selected_items":
 		[
 			[
+				"configi",
+				"configuration_space_size"
+			],
+			[
+				"unfi",
+				"uniform_block_binding"
+			],
+			[
+				"_plot",
+				"_plotter_ubo"
+			],
+			[
+				"unit",
+				"unit_density_factor"
+			],
+			[
+				"config",
+				"configuration_space"
+			],
+			[
+				"axes",
+				"axes_unit"
+			],
+			[
+				"trans",
+				"transform_observables"
+			],
+			[
+				"minor",
+				"minor_grid_n"
+			],
+			[
+				"init",
+				"initial_arg_values\tstatement"
+			],
+			[
 				"plot",
 				"plot_resolution_factor"
 			],
@@ -18,10 +54,6 @@
 			[
 				"tra",
 				"transform_observables"
-			],
-			[
-				"_plot",
-				"_plot_container"
 			],
 			[
 				"host_",
@@ -126,10 +158,6 @@
 			[
 				"size",
 				"size_changed"
-			],
-			[
-				"trans",
-				"transformation\tstatement"
 			],
 			[
 				"int",
@@ -486,34 +514,6 @@
 			[
 				"buf",
 				"buf_size_expr\tstatement"
-			],
-			[
-				"dyn_",
-				"dyn_data_frq\tstatement"
-			],
-			[
-				"dy",
-				"dyn_data_frq\tstatement"
-			],
-			[
-				"PLOT",
-				"PLOT_VERT_X"
-			],
-			[
-				"PLT_",
-				"PLOT_VERT_X"
-			],
-			[
-				"matr_",
-				"matrix_buffers\tstatement"
-			],
-			[
-				"matr",
-				"matrix_buffers\tstatement"
-			],
-			[
-				"ar",
-				"argv"
 			]
 		]
 	},
@@ -523,25 +523,27 @@
 			"file": "gpupy/plot/plotter2d.py",
 			"settings":
 			{
-				"buffer_size": 9216,
+				"buffer_size": 15776,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "README.md",
+			"contents": "#-*- coding: utf-8 -*-\n\"\"\"\ncamera utils\n\nXXX\n - optimize projection view matrix creation (i.e.: only create new matrix is neccessary.)\n - look_at method is still broken\n - orthigraphic projection: cannot move in z direction.\n:author: Nicolas 'keksnicoh' Heimann\n\"\"\"\nfrom gpupy.gl import GlConfig\nfrom gpupy.gl.common import *\nfrom gpupy.gl.buffer import BufferObject\nfrom gpupy.gl.matrix import *\nimport numpy as np\n\nfrom OpenGL.GL import *\n\n# some default values\nDEFAULT_FOV  = 0.5 * 65.0 * np.pi / 180.0\nDEFAULT_FAR  = 10000\nDEFAULT_NEAR = 0.1\n\nclass Camera(object):\n    \"\"\"\n    camera classification.\n    A camera represents two matricies (project, view) to transform\n    verticies from world to screen space.\n\n    The data is uploaded into an uniform buffer object\n    which is binded to the default binding index reserved \n    at GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camery'].\n\n    .. code ::\n\n       camera = Camera()\n       camera.enable()\n\n    The camera object classifies as an object which is bound to\n    a opengl buffer base by using the Camera.gl_buffer_base attribute.\n    It is therefore possible to pass the camera into a uniform\n    block declaration of a shader\n\n    .. code ::\n\n       shader.declare_uniform('camera', camera)\n\n    Note that within the shader one can then use\n\n    .. code ::\n\n       {% uniform_block camera %}\n\n    This will generate the corresponding interface block of the camera.\n\n    Technical details:\n    ------------------\n    Angles (yaw, pitch, roll):\n    - yaw: angle to y-axis\n    - pitch: angle to z-axis\n    - roll: angle to x-axis\n\n    Position: p\n\n    The view matrix is given by\n\n         R_roll * R_pitch * R_yaw * T_p\n\n    where R is a rotation matrix and T a translation matrix.\n    \"\"\"\n    DTYPE = np.dtype([\n        ('mat_view',         np.float32, (4, 4)),\n        ('mat_projection',   np.float32, (4, 4)),\n        ('position',         np.float32, 3),\n        ('yaw',              np.float32),\n\n        ('direction',        np.float32, 3),\n        ('pitch',            np.float32),\n\n        ('direction_right',  np.float32, 3),\n        ('roll',             np.float32),\n\n        ('direction_top',    np.float32, 3),\n    ])\n\n    PROJECTION_ORTHOGRAPHIC = 0\n    PROJECTION_PERSPECTIVE = 1\n\n    def __init__(\n        self,\n        screensize=(2.0, 2.0),\n        projection=PROJECTION_ORTHOGRAPHIC,\n        dtype=DTYPE,\n        fov=DEFAULT_FOV,\n        far=DEFAULT_FAR,\n        near=DEFAULT_NEAR,\n        buffer_base=None):\n\n        \"\"\"\n        :param screensize: the scaling of the screensize (XXX: better name?)\n        :param projection: which kind of projection should be used.\n           available:\n           - PROJECTION_ORTHOGRAPHIC\n           - PROJECTION_PERSPECTIVE\n\n        :param dtype: the dtype of the camera buffer\n        :param fov: field of view\n        :param far: farest point\n        :param near: nearest point\n        :param buffer_base: the buffer base index which \n                            should be used by the uniform buffer.\n        \"\"\"\n\n        self.screensize         = screensize#\n        ensure_vec2(int, screensize)\n        self.initial_screensize = screensize#ensure_vec2(int, screensize)\n        self.projection         = projection\n        self.dtype              = dtype\n        self.buffer_base = buffer_base\n        self._position = (0, 0, 0)\n        self._rotation = (0, 0, 0)\n\n        self.gl_buffer_base = None\n\n        self.fov = fov\n        self.near = near\n        self.far = far\n        self._update_symmetric_projection_screensize()\n\n        (self.mat_projection, self.mat_view) = self.create_matricies()\n        self._camera = None\n        self.init_ubo()\n\n        self._last_ubo = None \n    def _update_symmetric_projection_screensize(self):\n        if self.projection == Camera.PROJECTION_ORTHOGRAPHIC:\n            self.right = self.screensize[0] / 2.0\n            self.left = - self.right\n\n            self.top = self.screensize[1] / 2.0\n            self.bottom = - self.top\n\n        elif self.projection == Camera.PROJECTION_PERSPECTIVE:\n            ratio   = float(self.screensize[0]) / self.screensize[1]\n            tangent = np.tan(self.fov)\n            height  = self.near * tangent\n            width   = height * ratio\n\n            self.right  = width\n            self.left   = -width\n\n            self.top    = height\n            self.bottom = -height\n\n\n    def init_ubo(self):\n        \"\"\" initializes camera ubo \"\"\"\n        camera = np.zeros(1, self.dtype)\n\n        self._ubo = BufferObject.to_device(camera, target=GL_UNIFORM_BUFFER)\n        self._ubo.bind_buffer_base(self.buffer_base if self.buffer_base is not None else GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])\n\n        self.gl_buffer_base = self._ubo.gl_buffer_base\n        self._camera = camera\n\n        self._update_camera()\n\n    @property\n    def direction(self):\n        \"\"\" returns camera view direction vector \"\"\"\n        yaw = self._rotation[1]\n        pitch = self._rotation[0]\n        return (-np.cos(pitch)*np.sin(yaw), np.sin(pitch), np.cos(pitch)*np.cos(yaw))\n\n\n    @property\n    def direction_right(self):\n        \"\"\" returns right normal vector from camera space \"\"\"\n        yaw = self._rotation[1]-np.pi/2\n        return (-np.sin(yaw), 0, np.cos(yaw))\n\n\n    @property\n    def direction_top(self):\n        \"\"\" returns top normal vector from camera space \"\"\"\n        yaw = self._rotation[1]\n        pitch = self._rotation[0]-np.pi/2\n        return (-np.cos(pitch)*np.sin(yaw), np.sin(pitch), np.cos(pitch)*np.cos(yaw))\n\n    def enable(self):\n        \"\"\" enables the camera by binding the\n            buffer target \"\"\"\n        self._last_ubo = glGetIntegerv(GL_UNIFORM_BUFFER_BINDING)\n        self._ubo.bind_buffer_base(self.buffer_base)\n\n    def disable(self):\n        \"\"\" disables the camera by unbinding the\n            buffer target \"\"\"\n        self._ubo.bind_buffer_base(0)\n       # glBindBuffer(GL_UNIFORM_BUFFER, self._last_ubo)\n       # glBindBufferBase(GL_UNIFORM_BUFFER, self._last_ubo)\n    def create_matricies(self):\n        \"\"\" creates projection and view matrix.\n\n            view matrix:\n               R_roll * R_pitch * R_yaw * T \"\"\"\n        reflection_xy   = mat4_reflection_xy()\n        position_matrix = mat4_translation(*self._position)\n        rot_roll        = mat4_rot_z(self._rotation[2])\n        rot_yaw         = mat4_rot_y(self._rotation[1])\n        rot_pitch       = mat4_rot_x(self._rotation[0])\n\n        projection_matrix = self.create_projection_matrix()\n\n        return (projection_matrix, rot_roll.dot(rot_pitch.dot(rot_yaw.dot(position_matrix.dot(reflection_xy)))).T)\n\n    def set_screensize(self, framebuffer_size):\n        pass\n\n    def create_projection_matrix(self):\n        \"\"\" creates projection matricies. Thanks\n            to http://www.songho.ca/opengl/gl_projectionmatrix.html \"\"\"\n        if self.projection == Camera.PROJECTION_ORTHOGRAPHIC:\n            return np.array([\n                2.0 / (self.right - self.left), 0,                                                    0,  - (self.right + self.left) / (self.right - self.left),\n                0,                       -2.0 / (self.top - self.bottom),                              0,  - (self.top + self.bottom) / (self.top - self.bottom),\n                0,                       0,                              -2.0  / (self.far - self.near),  - (self.far + self.near) / (self.far - self.near),\n                0,                       0,                                                           0,                        1,\n            ], dtype=np.float32).reshape((4, 4)).T\n\n        elif self.projection == Camera.PROJECTION_PERSPECTIVE:\n            return np.array([\n                2.0 * self.near / (self.right - self.left), 0,                                          (self.right + self.left) / (self.right - self.left), 0,\n                0,                                          2.0 * self.near / (self.top - self.bottom), (self.top + self.bottom) / (self.top - self.bottom), 0,\n                0,                                          0,                                          - (self.far + self.near) / (self.far - self.near),   -2.0 * self.far * self.near / (self.far - self.near),\n                0,                                          0,                                          -1,                                                  0\n            ], dtype=np.float32).reshape((4, 4)).T\n\n        else:\n            raise ValueError('invalid camera projection. Available camera projections: Camera.PROJECTION_ORTHOGRAPHIC, Camera.PROJECTION_PERSPECTIVE')\n\n\n    def send(self, create_matricies=True):\n        \"\"\" send current camera data to uniform buffer. \"\"\"\n        if create_matricies:\n            (self.mat_projection, self.mat_view) = self.create_matricies()\n\n        self._update_camera()\n        self._ubo.set(self._camera)\n\n    def _update_camera(self):\n        \"\"\" update camera data \"\"\"\n        self._camera['mat_view']        = self.mat_view\n        self._camera['mat_projection']  = self.mat_projection\n        self._camera['yaw']             = self._rotation[1]\n        self._camera['pitch']           = self._rotation[0]\n        self._camera['roll']            = self._rotation[2]\n        self._camera['position']        = self._position\n        self._camera['direction']       = self.direction\n        self._camera['direction_right'] = self.direction_right\n        self._camera['direction_top']   = self.direction_top\n\n    def set_screensize(self, screensize, send=True):\n        \"\"\" will set a new screensize to the camera.\n            note that this function will override the projection\n            configuration r, l, t, b by assuming a symmetric\n            viewport. \"\"\"\n        self.screensize = ensure_vec2(float, screensize)\n        self._update_symmetric_projection_screensize()\n        send and self.send()\n\n\n    def set_position(self, position, send=True):\n        \"\"\" translates the camera to a given position \"\"\"\n        self._position = ensure_vec3(float, position)\n        send and self.send()\n\n\n    def translate(self, x=0, y=0, z=0, send=True):\n        \"\"\" translates the camera by a given translation \"\"\"\n        self._position = (\n            self._position[0] + float(x),\n            self._position[1] + float(y),\n            self._position[2] + float(z))\n\n        send and self.send()\n\n\n    def look_at(self, point):\n        \"\"\" calculates camera rotation to look at a certain point\n            at the current camera position \"\"\"\n        # XXX broken at the moment\n        x = self._position\n        v = np.subtract(point, x)\n        l = np.linalg.norm(v)\n        phi1 = np.arccos(v[2] / l)\n        phi2 = np.arctan(np.sqrt(v[0] ** 2 + v[1] ** 2) / v[2])\n\n        self._rotation = (\n            -phi1,\n            phi2,\n            self._rotation[2])\n        print(np.sqrt(v[0] ** 2 + v[1] ** 2) / v[2], v[1] / v[0], phi1, phi2)\n\n\n    def rotate(self, pitch=0, yaw=0, roll=0, send=True):\n        \"\"\" rotates the camera principal axes by given amount \"\"\"\n        self._rotation = (\n            self._rotation[0] + float(pitch),\n            self._rotation[1] + float(yaw),\n            self._rotation[2] + float(roll))\n\n        send and self.send()\n\n\n    def set_rotation(self, rotation, send=True):\n        \"\"\" sets camera principal axes \"\"\"\n        self._rotation = ensure_vec3(float, rotation)\n        send and self.send()\n\ndef keyboard_flyaround(move_yaw=(83, 87), move_pitch=(65, 68), move_roll=32):\n    def _handler(camera, keyboard):\n        did_something = False\n        if move_yaw[0] in keyboard:\n            camera.translate(5*camera.direction_top[0], -5*camera.direction_top[1], 5*camera.direction_top[2])\n            did_something = True\n        if move_yaw[1] in keyboard:\n            camera.translate(-5*camera.direction_top[0], 5*camera.direction_top[1], -5*camera.direction_top[2])\n            did_something = True\n        if move_pitch[0] in keyboard:\n            camera.translate(-5*camera.direction_right[0], 5*camera.direction_right[1], -5*camera.direction_right[2])\n            did_something = True\n        if move_pitch[1] in keyboard:\n            camera.translate(5*camera.direction_right[0], -5*camera.direction_right[1], 5*camera.direction_right[2])\n            did_something = True\n        if move_roll in keyboard and 340 in keyboard:\n            camera.translate(-5*camera.direction[0], -5*camera.direction[1], -5*camera.direction[2])\n            did_something = True\n        elif move_roll in keyboard:\n            camera.translate(x=5*camera.direction[0], y=5*camera.direction[1], z=5*camera.direction[2])\n            did_something = True\n        if 262 in keyboard:\n            camera.rotate(yaw=-0.01)\n            did_something = True\n        if 263 in keyboard:\n            camera.rotate(yaw=+0.01)\n            did_something = True\n        if 265 in keyboard:\n            camera.rotate(pitch=+0.01)\n            did_something = True\n        if 264 in keyboard:\n            camera.rotate(pitch=-0.01)\n            did_something = True\n        return did_something\n    return _handler\n",
+			"file": "gpupy/gl/camera.py",
+			"file_size": 13075,
+			"file_write_time": 131319038160000000,
 			"settings":
 			{
-				"buffer_size": 634,
-				"encoding": "UTF-8",
+				"buffer_size": 13084,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "gpupy/gl/shader.py",
+			"file": "gpupy/gl/buffer.py",
 			"settings":
 			{
-				"buffer_size": 32962,
+				"buffer_size": 11335,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -550,7 +552,7 @@
 			"file": "gpupy/gl/components/widgets/frame.py",
 			"settings":
 			{
-				"buffer_size": 6421,
+				"buffer_size": 6385,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -559,25 +561,36 @@
 			"file": "gpupy/plot/test/integration/plotter2d_basic.py",
 			"settings":
 			{
-				"buffer_size": 6163,
+				"buffer_size": 3671,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "gpupy/gl/common/attributes.py",
+			"file": "gpupy/gl/components/widgets/grid.frag.glsl",
 			"settings":
 			{
-				"buffer_size": 8108,
+				"buffer_size": 5789,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "// Line antialias area (usually 1 pixel)"
+			}
+		},
+		{
+			"file": "gpupy/gl/components/widgets/grid.py",
+			"settings":
+			{
+				"buffer_size": 6160,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "gpupy/gl/common/observables.py",
+			"file": "gpupy/plot/test/integration/plotter2d_layout.py",
 			"settings":
 			{
-				"buffer_size": 6517,
+				"buffer_size": 6213,
+				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
@@ -591,19 +604,38 @@
 			}
 		},
 		{
-			"file": "gpupy/gl/components/widgets/grid.py",
+			"file": "gpupy/gl/util.py",
 			"settings":
 			{
-				"buffer_size": 7668,
+				"buffer_size": 132,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "gpupy/gl/util.py",
+			"file": "gpupy/gl/common/__init__.py",
 			"settings":
 			{
-				"buffer_size": 132,
+				"buffer_size": 8189,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/context.py",
+			"settings":
+			{
+				"buffer_size": 706,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "context.py"
+			}
+		},
+		{
+			"file": "gpupy/gl/vector.py",
+			"settings":
+			{
+				"buffer_size": 9750,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -834,7 +866,6 @@
 		"/Users/keksnicoh/gpupy/gpupy/gl",
 		"/Users/keksnicoh/gpupy/gpupy/gl/common",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets",
 		"/Users/keksnicoh/gpupy/gpupy/gl/driver",
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples",
 		"/Users/keksnicoh/gpupy/gpupy/plot",
@@ -843,6 +874,11 @@
 	],
 	"file_history":
 	[
+		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/OLD.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/common/attributes.py",
+		"/Users/keksnicoh/gpupy/README.md",
+		"/Users/keksnicoh/gpupy/gpupy/gl/shader.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/plotter_2d_layout.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/texture.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/driver/glfw.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/plotter2d.py",
@@ -861,13 +897,11 @@
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples/volumetric_raycasting.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/layout/boxes.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/common/observables.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common/attributes.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/layout.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/style.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples/test.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/scale.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/shader.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/common.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/attributes.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/frame.py",
@@ -967,10 +1001,7 @@
 		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/views/strengthsWizard.py",
 		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/cockpit/templates/feedBackCounter.html",
 		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/urls.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/urls.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/compass/forms.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/libs/ePatrolLib/static/js/ePatrolLib.js",
-		"/private/var/folders/66/zvyw8rz567j_npv1350f31540000gn/T/fz3temp-2/extension.ts"
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/urls.py"
 	],
 	"find":
 	{
@@ -1030,6 +1061,94 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"PLOTTER_UBO_DTYPE",
+			"UBO_DTYPE",
+			"GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.plot.plotter2d']",
+			"frag_pos.y",
+			"frag_pos.x",
+			"10000",
+			"tv.x",
+			"outer_camera",
+			"size",
+			"configuration_space",
+			"plane_resolution",
+			"plane_size",
+			"min",
+			"plane_size",
+			"capture_size",
+			"_plotter_ubo_buffer",
+			"return",
+			"self.plane_resolution",
+			"mat_cs_vertex",
+			"mat_domain",
+			"grid_dens",
+			"grid",
+			"cs",
+			"length",
+			"unit_density_factor",
+			"last_diff",
+			"cs",
+			"dens",
+			"last_diff",
+			"0",
+			"size",
+			"density",
+			"1.",
+			"1",
+			"observable",
+			"observables",
+			"val_init",
+			"initial_value",
+			"initial_arg_values",
+			"instance_transformation",
+			"self._transformation",
+			"configuration_space",
+			"configuration_space_size",
+			"axes_unit_pixels",
+			"line_color",
+			"sub_line_color",
+			"sub_grid_n",
+			"grid",
+			"minor_grid_width",
+			"CastedAttrbiute",
+			"CastedAttribute",
+			"grid_width",
+			"StridedVertexMesh",
+			"mesh3d_rectangle",
+			"Camera",
+			"Camera2D",
+			"create_vao_from_program_buffer_object",
+			"/cl[0]",
+			"grid_width",
+			"min",
+			"get_tick",
+			"200",
+			"color_out",
+			"discard",
+			"M_PI",
+			"line_color",
+			"200",
+			"gl_FragColor",
+			"PVM",
+			"projection*view*model",
+			"out_color",
+			"gl_FragColor",
+			"200",
+			"transform_inverse",
+			"iResolution/2.0",
+			"= 2",
+			"2",
+			"5",
+			"445",
+			"5",
+			"camera.mat_projection *camera.mat_view*mat_model*",
+			"view",
+			"model",
+			"projection",
+			"0.1",
+			"size",
+			"frg_tex",
+			"some_test",
 			"self.program.uniform_manager",
 			"border_size",
 			"Camera2D",
@@ -1069,95 +1188,7 @@
 			"capture_size",
 			"configuration_space",
 			"VectorAttribte",
-			"GlState",
-			"GlConfig",
-			"gpupy_debug_wrap",
-			"ensure_vec2",
-			"event_queue",
-			"CommandQueue",
-			"from gpupy.gl.util import Event",
-			"event",
-			"Vec4Field()",
-			"origin",
-			"_test_grid",
-			"configuration_space",
-			"val",
-			"__create__",
-			"ts",
-			"derp",
-			"pn",
-			"1.5",
-			"int",
-			"grid",
-			"gl_FragColor",
-			"100",
-			"grid",
-			"100",
-			"fffff",
-			"plane_size",
-			"gl_FragCoord",
-			"coord",
-			"frag_vertex",
-			"_program",
-			"outer_camera",
-			"FrameProgram",
-			"frag_pos",
-			"lX",
-			"800",
-			"gl_FragCoord",
-			"scaleFactor",
-			"offset",
-			"gl_FragColor",
-			"Attribute",
-			"partial",
-			"Event",
-			"CastedAttrbiute",
-			"transform_observables",
-			"observable",
-			"print",
-			"val",
-			"transform_observables",
-			"_transformation",
-			"Vec4Field()",
-			"vecn",
-			"self._val[instance_obj]",
-			"_register",
-			"_fields",
-			"Observable",
-			"get_observable_value",
-			"get_observable_event",
-			"self._on_change",
-			"_on_change",
-			"__AttributeValue",
-			"on_change",
-			"val_on_change",
-			"Observable",
-			"watch",
-			"_watch_observables",
-			"watch_observables",
-			"subject",
-			"_watching_observable",
-			"plot_container",
-			"_scaling",
-			"ctx1",
-			"self",
-			"self._.scaling",
-			"observable",
-			"subjects",
-			"args",
-			"watching_observable",
-			"watch_observables",
-			"transformation",
-			"mutate",
-			"value",
-			"mutator",
-			"_mutator",
-			"__mutator",
-			"_setter",
-			"__setter",
-			"initial",
-			"listen_to",
-			"_create_callback"
+			"GlState"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1219,7 +1250,7 @@
 	"groups":
 	[
 		{
-			"selected": 5,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -1228,15 +1259,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9216,
+						"buffer_size": 15776,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8743,
-								8743
+								1479,
+								1479
 							]
 						],
 						"settings":
@@ -1246,55 +1277,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 149.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "README.md",
+					"file": "gpupy/gl/camera.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 634,
+						"buffer_size": 13084,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								296,
-								12
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Markdown/Markdown.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 8,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "gpupy/gl/shader.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 32962,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								18241,
-								18241
+								3086,
+								3086
 							]
 						],
 						"settings":
@@ -1304,10 +1307,40 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3829.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "gpupy/gl/buffer.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 11335,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9753,
+								9767
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3638.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
 					"type": "text"
 				},
 				{
@@ -1316,28 +1349,28 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6421,
+						"buffer_size": 6385,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3951,
-								4025
+								3032,
+								2997
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/Python 3/Python3.tmLanguage",
-							"tab_size": 2,
+							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1448.0,
+						"translation.y": 1982.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 10,
 					"type": "text"
 				},
 				{
@@ -1346,75 +1379,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6163,
+						"buffer_size": 3671,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								782,
-								782
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1547.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "gpupy/gl/common/attributes.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 8108,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3391,
-								3391
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1152.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "gpupy/gl/common/observables.py",
-					"semi_transient": true,
-					"settings":
-					{
-						"buffer_size": 6517,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1110,
-								1120
+								28,
+								0
 							]
 						],
 						"settings":
@@ -1427,11 +1400,100 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "gpupy/gl/components/widgets/grid.frag.glsl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5789,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								68,
+								68
+							]
+						],
+						"settings":
+						{
+							"auto_name": "// Line antialias area (usually 1 pixel)",
+							"syntax": "Packages/C++/C.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 311.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "gpupy/gl/components/widgets/grid.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								250,
+								213
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
 					"buffer": 7,
+					"file": "gpupy/plot/test/integration/plotter2d_layout.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6213,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2983,
+								2998
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 724.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
 					"file": "gpupy/gl/components/widgets/container.py",
 					"semi_transient": false,
 					"settings":
@@ -1454,37 +1516,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1280.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "gpupy/gl/components/widgets/grid.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 7668,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2799,
-								2799
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 18.0,
-						"translation.y": 548.0,
+						"translation.y": 2312.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 6,
@@ -1517,7 +1549,96 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "gpupy/gl/common/__init__.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8189,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2914,
+								2914
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1559.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "gpupy/gl/context.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 706,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								43,
+								43
+							]
+						],
+						"settings":
+						{
+							"auto_name": "context.py",
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "gpupy/gl/vector.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9750,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1335,
+								1335
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 387.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
 					"type": "text"
 				}
 			]
@@ -1796,7 +1917,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 195.0,
+	"side_bar_width": 234.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

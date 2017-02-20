@@ -4,14 +4,11 @@ viewport
 
 :author: Nicolas 'keksnicoh' Heimann
 """
+
 from OpenGL.GL import *
 from gpupy.gl.vector import * 
 
 class Viewport():
-    #size = Vec2Property()
-    #position = Vec2Property()
-
-
 
     def __init__(self, position, size, restore=True):
         self._position = vec2(position)
@@ -36,14 +33,10 @@ class Viewport():
     def position(self):
         return self._position 
 
-    def use(self):
+    def use(self, position, resolution):
         self._old_viewport = glGetIntegerv(GL_VIEWPORT)
-        glViewport(*self._position.xy_gl_int, *self._size.xy_gl_int)
+        glViewport(*position, *resolution)
 
     def unuse(self, restore=None):
-       # if restore is None and self.restore or restore is not None and restore:
-       #     oerk()
-       #     return
-
         if self._old_viewport is not None:
             glViewport(*self._old_viewport)

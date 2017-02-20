@@ -1,13 +1,13 @@
 """
 @author Nicolas 'keksnicoh' Heimann <nicolas.heimann@gmail.com>
 """
-from gpupy.gl import GlConfig
+from gpupy.gl import GPUPY_GL
 from gpupy.gl.common import *
-
+from gpupy.gl.context import * 
 from OpenGL.GL import *
 from gpupy.gl.vendor.glfw import *
 from termcolor import colored
-
+from gpupy.gl.glfw import GLFW_Context
 default_driver = GlDriver('4.1', core_profile=True, forward_compat=True)
 
 KEYBOARD_MAP = {
@@ -188,7 +188,7 @@ class GLFW_Application():
        # pos_y = 150
         for window in self.windows:
             GLFW_Application._dbg('initialize glfw window', '...')
-            window.init_glfw()
+            window.__gl_init_context__()
           #  window.set_position(pos_x, pos_y)
            # pos_x += window.width + 10
 
@@ -209,15 +209,16 @@ class GLFW_Application():
             self.init()
 
         for window in self.windows:
-            window.init()
+            window.__gl_context_enable__()
+            window.on_ready(window)
 
         # main cycle
         while self.active():
             glfwPollEvents()
             for window in self.windows:
-                if window.active():
-                    window.cycle()
-                else:
+                try:
+                    window.__gl_cycle__()
+                except CloseContextException as e:
                     GLFW_Application._dbg('close window', '...')
                     self.windows.remove(window)
                     del window
@@ -235,8 +236,7 @@ class GLFW_Application():
             return False
         if not len(self.windows):
             return False
-        if not self.windows[0].active():
-            return False
+
         return True
 
     def terminate(self):
@@ -252,7 +252,7 @@ class GLFW_Application():
             if state == '...':  state = colored(state, 'yellow')
 
             text = '[{}] {}'.format(state, text)
-        gpupy_gl_debug(text)
+        GPUPY_GL.debug(text)
 
 class Keyboard():
     def __init__(self):
@@ -355,7 +355,6 @@ class GLFW_Window():
                 GlConfig.STATE = self.gl_state
 
             self.on_resize()
-
             if not self._in_cycle:
                 glfwSwapBuffers(self._glfw_window)
 
@@ -364,7 +363,6 @@ class GLFW_Window():
         """ performs a window cycle. A window cycle is allowed to
             dispatch business logic and to render to the OpenGL buffers """
         self._in_cycle = True
-
         glfwMakeContextCurrent(self._glfw_window)
         GlConfig.STATE = self.gl_state
 
@@ -401,7 +399,7 @@ class GLFW_WindowFunction:
 
     def __call__(self, width=400, height=400, title="OpenGL GLFW Window", *args, **kwargs):
         app = GLFW_Application()
-        window = GLFW_Window(width, height, title=title)
+        window = GLFW_Context(size=(width, height), title=title)
         app.windows.append(window)
         app.init()
         self.f(window, *args, **kwargs)

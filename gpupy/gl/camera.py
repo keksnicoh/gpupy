@@ -8,7 +8,6 @@ XXX
  - orthigraphic projection: cannot move in z direction.
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl import GlConfig
 from gpupy.gl.common import *
 from gpupy.gl.buffer import BufferObject
 from gpupy.gl.matrix import *
@@ -111,8 +110,9 @@ class Camera(object):
                             should be used by the uniform buffer.
         """
 
-        self.screensize         = ensure_vec2(int, screensize)
-        self.initial_screensize = ensure_vec2(int, screensize)
+        self.screensize         = screensize#
+        ensure_vec2(int, screensize)
+        self.initial_screensize = screensize#ensure_vec2(int, screensize)
         self.projection         = projection
         self.dtype              = dtype
         self.buffer_base = buffer_base

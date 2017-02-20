@@ -57,6 +57,7 @@ class PrototypeBaseController():
 class Controller(PrototypeBaseController):
 
     def init(self):
+        
         self.fps = Fps(size=100)
 
         # 200px height, scales with window size

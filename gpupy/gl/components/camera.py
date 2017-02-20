@@ -2,7 +2,7 @@
 """
 EXPERIMENTAL - CAMERAS WILL LISTEN TO VECTOR EVENTS
 """
-from gpupy.gl import GlConfig
+from gpupy.gl import GPUPY_GL
 from gpupy.gl.common import *
 from gpupy.gl.buffer import BufferObject
 from gpupy.gl.matrix import *
@@ -63,7 +63,7 @@ class Camera2D(Camera):
     ])
 
     def __init__(self, screensize, position=(0, 0, 0), roll=0, matrix_dimension=4, buffer_base=None):
-        super().__init__(Camera2D.DTYPE, buffer_base or GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+        super().__init__(Camera2D.DTYPE, buffer_base or GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
         self._camera = np.zeros(1, dtype=Camera2D.DTYPE)
         self._mat_projection = None 
         self._mat_view = None

@@ -1,3 +1,10 @@
+#-*- coding: utf-8 -*-
+"""
+descriptor library.
+
+:author: keksnicoh
+"""
+
 from gpupy.gl.common.observables import *
 from gpupy.gl.vector import vecn
 from gpupy.gl.common import Event 
@@ -192,11 +199,10 @@ class ComputedAttribute(Attribute):
                 return scaling * vector.xy
     ```
 
-    Computed attribute values cannot be set explicitly. They are 
+    Computed attribute does not allow to assign values explicitly. They are 
     watching the other attributes for changes, therefore all given
-    argument descriptor must return (__get__) an observable or provide 
+    argument descriptor must return (via. __get__) an observable or provide 
     the get_observable method.
-
     """
 
 
@@ -205,10 +211,6 @@ class ComputedAttribute(Attribute):
         self._descriptor = descriptor or Attribute()
         self._expl_transformation = transformation
         super().__init__()
-
-    def on_change(self, f):
-        self._on_change.append(f)
-        return f
 
     def transformation(self, f):
         if self._expl_transformation is not None:

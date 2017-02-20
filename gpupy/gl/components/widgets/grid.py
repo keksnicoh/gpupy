@@ -34,16 +34,16 @@ class AbstractGrid(Widget):
     size                 = attributes.VectorAttribute(2)
     resolution           = attributes.VectorAttribute(2)
     position             = attributes.VectorAttribute(4)
-    configuration_space = attributes.VectorAttribute(4)
+    configuration_space  = attributes.VectorAttribute(4)
 
     # grid configuration
-    major_grid                = attributes.VectorAttribute(2, (.5, .5))
-    major_grid_width      = attributes.CastedAttribute(float,  1.5)
-    major_grid_color        = attributes.VectorAttribute(4, (0, 0, 0, 1))
+    major_grid         = attributes.VectorAttribute(2, (.5, .5))
+    major_grid_width   = attributes.CastedAttribute(float,  1.5)
+    major_grid_color   = attributes.VectorAttribute(4, (0, 0, 0, 1))
 
-    minor_grid_width      = attributes.CastedAttribute(float,  1)
-    minor_grid_color    = attributes.VectorAttribute(4, (0, 0, 0, 1))
-    minor_grid_n = attributes.VectorAttribute(2, (5, 5))
+    minor_grid_width   = attributes.CastedAttribute(float,  1)
+    minor_grid_color   = attributes.VectorAttribute(4, (0, 0, 0, 1))
+    minor_grid_n       = attributes.VectorAttribute(2, (5, 5))
 
     # style
     background_color  = attributes.VectorAttribute(4, (1, 1, 1, 1))
@@ -120,7 +120,7 @@ class AbstractGrid(Widget):
     def _init_plane(self): 
         self.program = GridProgram()
 
-        self.program.uniform_block_binding('camera', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+        self.program.uniform_block_binding('camera', GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
         self.upload_uniforms()
 
         self.mesh = StridedVertexMesh(mesh3d_rectangle(), 

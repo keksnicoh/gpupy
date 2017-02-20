@@ -25,10 +25,10 @@ XXX
 """
 
 from gpupy.gl.errors import GlError
-from gpupy.gl.gltype import *
 from gpupy.gl.common import *
 from gpupy.gl.glsl import * 
 from gpupy.gl.vector import * 
+from gpupy.gl import GPUPY_GL
 
 from gpupy.gl.texture import gl_texture_unit
 
@@ -177,14 +177,14 @@ class Shader():
         # register
         if name in self.structs_dtype and dtype != self.structs_dtype[name]:
             if not name in self.structs_declarations:
-                gpupy_gl_warning((
+                GPUPY_GL.warn((
                     'struct declaration for "{}" differs '
                     'from glsl declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
-                gpupy_gl_hint((
+                GPUPY_GL.hint((
                     'you may use {% struct <name> %} tag to generate '
                     'struct declaration from numpy dtype within glsl code.'))
             else:
-                gpupy_gl_warning((
+                GPUPY_GL.warn((
                     'struct declaration for "{}" differs '
                     'from previous declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
 
@@ -230,29 +230,29 @@ class Shader():
                             # cannot proceed. If we would proceed we might allow sick
                             # naming bugs to develop.
                             if found_struct is not None:
-                                gpupy_gl_hint('if there are two identical struct declarations with different names and one ')
-                                gpupy_gl_hint('is used as a type of a field of a uniform block, then declare the other struct ')
-                                gpupy_gl_hint('after the declaration of the uniform_block to allow identification of the uniform block field type:')
-                                gpupy_gl_hint('')
-                                gpupy_gl_hint('shader.declare_struct("A", dtype);')
-                                gpupy_gl_hint('shader.declare_uniform(...);')
-                                gpupy_gl_hint('shader.declare_struct("B", dtype);')
+                                GPUPY_GL.hint('if there are two identical struct declarations with different names and one ')
+                                GPUPY_GL.hint('is used as a type of a field of a uniform block, then declare the other struct ')
+                                GPUPY_GL.hint('after the declaration of the uniform_block to allow identification of the uniform block field type:')
+                                GPUPY_GL.hint('')
+                                GPUPY_GL.hint('shader.declare_struct("A", dtype);')
+                                GPUPY_GL.hint('shader.declare_uniform(...);')
+                                GPUPY_GL.hint('shader.declare_struct("B", dtype);')
                                 self._serr(('uniform block field "{}" type is a structure which is identical to '
                                                          'different defined structures ("{}" and "{}").'.format(field, def_struct, found_struct)))
 
-                            gpupy_gl_info('declaration of uniform "{}" contains a struct for field "{}"'.format(name, field))
-                            gpupy_gl_info('found matching struct definition "{}"'.format(def_struct))
+                            GPUPY_GL.info('declaration of uniform "{}" contains a struct for field "{}"'.format(name, field))
+                            GPUPY_GL.info('found matching struct definition "{}"'.format(def_struct))
                             found_struct = def_struct
 
                             if found_struct == field:
-                                gpupy_gl_warning('there exists a struct with the same name as field "{}" which might lead to syntax errors'.format(found_struct))
+                                GPUPY_GL.warn('there exists a struct with the same name as field "{}" which might lead to syntax errors'.format(found_struct))
                     
                     if found_struct is None:
-                        gpupy_gl_warning('declaration of uniform "{}" contains a struct ("{}") for field "{}"'.format(name, a[0], field))
-                        gpupy_gl_warning('no such structure was declared within the shader.'.format(name, a[0]))
-                        gpupy_gl_hint('please use {% struct <name> %} tag with Shader.declare_struct() or')
-                        gpupy_gl_hint('declare the struct explicitly within the shader.')
-                        gpupy_gl_info('auto declare struct "{}" as "t_{}".'.format(a[0], a[0]))
+                        GPUPY_GL.warn('declaration of uniform "{}" contains a struct ("{}") for field "{}"'.format(name, a[0], field))
+                        GPUPY_GL.warn('no such structure was declared within the shader.'.format(name, a[0]))
+                        GPUPY_GL.hint('please use {% struct <name> %} tag with Shader.declare_struct() or')
+                        GPUPY_GL.hint('declare the struct explicitly within the shader.')
+                        GPUPY_GL.info('auto declare struct "{}" as "t_{}".'.format(a[0], a[0]))
 
                         struct_name = 't_{}'.format(a[0])
                         placeholder = '/*--###GPUPY-PRECOMPILE-STRUCT-INJECTION-TARGET-{}###--*/'
@@ -286,14 +286,14 @@ class Shader():
         # register
         if name in self.uniform_dtype and dtype != self.uniform_dtype[name]:
             if not name in self.uniforms_declarations:
-                gpupy_gl_warning((
+                GPUPY_GL.warn((
                     'uniform block declaration for "{}" differs '
                     'from glsl declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
-                gpupy_gl_hint((
+                GPUPY_GL.hint((
                     'you may use {% uniform_block <name> %} tag to generate '
                     'uniform block declaration from numpy dtype within glsl code.'))
             else:
-                gpupy_gl_warning((
+                GPUPY_GL.warn((
                     'uniform block declaration for "{}" differs '
                     'from previous declaration. ({})').format(name, STRING_SHADER_NAMES[self.type]))
 
@@ -510,11 +510,11 @@ class Shader():
 
     def _check_auto_declared_ubo_structs(self, name):
         if name in self._auto_declare_struct_ubo:
-            gpupy_gl_warning((
+            GPUPY_GL.warn((
                              'declaration of struct "{}" was allready done implicitly '
                              'by the uniform_block declaration of "{}".'
                              ).format(name, self._auto_declare_struct_ubo[name]))
-            gpupy_gl_hint((
+            GPUPY_GL.hint((
                           'always declare structs before declaring uniform '
                           'blocks to avoid leak of information!'))
 
@@ -631,17 +631,17 @@ class Program():
                 if len(descr) == 3  and descr[2] == (3, ):
                     base_alignment = (field_offset/4) % 4
                     if base_alignment != 0:
-                        gpupy_gl_warning('uniform block missalignment - Please checkout https://www.opengl.org/registry/doc/glspec45.core.pdf sec 7.6.2.2.')
-                        gpupy_gl_warning('block identifier: {}'.format(name))
-                        gpupy_gl_warning('field "{}" must start at alignment 0 but actually starts at {}:'.format(field, base_alignment))
+                        GPUPY_GL.warn('uniform block missalignment - Please checkout https://www.opengl.org/registry/doc/glspec45.core.pdf sec 7.6.2.2.')
+                        GPUPY_GL.warn('block identifier: {}'.format(name))
+                        GPUPY_GL.warn('field "{}" must start at alignment 0 but actually starts at {}:'.format(field, base_alignment))
                         for line in render_uniform_block_from_dtype(name, dtype, 'std140').split("\n"):
-                            gpupy_gl_warning("\t\t{}".format(line))
-                        gpupy_gl_hint('try to avoid vec3 since the opengl alignment does not matchup with C/C++ or python alignment.')
-                        gpupy_gl_hint('in OpenGL a vec3 has an alignment of 4. One can add a padding before vec3 to provide a compatible alignment.')
-                        gpupy_gl_hint('Example: ')
-                        gpupy_gl_hint('   numpy: dtype = np.dtype([("a", np.float32, 3), ("padding", np.float32, 1), ("b", np.float32, 3)]')
-                        gpupy_gl_hint('   shader: uniform A { vec3 a; float padding; vec3 b; }; ')
-                        gpupy_gl_hint('good explanation: http://stackoverflow.com/a/38172697/2072459')
+                            GPUPY_GL.warn("\t\t{}".format(line))
+                        GPUPY_GL.hint('try to avoid vec3 since the opengl alignment does not matchup with C/C++ or python alignment.')
+                        GPUPY_GL.hint('in OpenGL a vec3 has an alignment of 4. One can add a padding before vec3 to provide a compatible alignment.')
+                        GPUPY_GL.hint('Example: ')
+                        GPUPY_GL.hint('   numpy: dtype = np.dtype([("a", np.float32, 3), ("padding", np.float32, 1), ("b", np.float32, 3)]')
+                        GPUPY_GL.hint('   shader: uniform A { vec3 a; float padding; vec3 b; }; ')
+                        GPUPY_GL.hint('good explanation: http://stackoverflow.com/a/38172697/2072459')
 
 
     def uniform(self, name, value, flush=False):
@@ -793,9 +793,9 @@ class Program():
 
                 location = glGetUniformLocation(self.gl_shader_id, k)
                 if location == -1:
-                    gpupy_gl_warning(('could not receive uniform location "{}". '
+                    GPUPY_GL.warn(('could not receive uniform location "{}". '
                                       'Maybe it was never used within main() function?').format(k))
-                    gpupy_gl_hint(('uniforms must be used at least once within the main() function of the shader. '
+                    GPUPY_GL.hint(('uniforms must be used at least once within the main() function of the shader. '
                                    'Otherwise, one cannot recieve block index by glGetUniformLocation() function.'))
                 self.uniforms[k] = (location, u[0], u[1])
                 self._uniform_values[k] = None
@@ -805,9 +805,9 @@ class Program():
             for block_name in shader.uniform_blocks:
                 block_index = glGetUniformBlockIndex(self.gl_shader_id, block_name)
                 if block_index == GL_INVALID_INDEX:
-                    gpupy_gl_warning(('could not receive uniform_block location "{}". '
+                    GPUPY_GL.warn(('could not receive uniform_block location "{}". '
                                       'Maybe it was never used within main() function?').format(block_name))
-                    gpupy_gl_hint(('uniform blocks must be used at least once within the main() function of the shader. '
+                    GPUPY_GL.hint(('uniform blocks must be used at least once within the main() function of the shader. '
                                    'Otherwise, one cannot recieve block index by glGetUniformBlockIndex() function.'))
                     continue
 

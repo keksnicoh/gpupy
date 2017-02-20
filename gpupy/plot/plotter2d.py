@@ -156,9 +156,7 @@ class Plotter2d(Widget):
 
         self.init()
 
-    def init(self):
-        GlConfig.STATE.reserve_buffer_base('gpupy.plot.plotter2d')
-        
+    def init(self):        
         self._init_plot_container()
         self._init_plot_camera()
         self._init_grid()
@@ -178,7 +176,7 @@ class Plotter2d(Widget):
         self.ubo = BufferObject.to_device(
             np.zeros(1, dtype=Plotter2d.UBO_DTYPE), 
             target=GL_UNIFORM_BUFFER)
-        buffer_base = GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.plot.plotter2d']
+        buffer_base = GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d')
         self.ubo.bind_buffer_base(buffer_base)
         self._plot_container.widget.resulution.on_change.append(self.update_ubo)
 
@@ -249,7 +247,7 @@ class Plotter2d(Widget):
             self.grid.tick()
             self.grid.draw()
 
-            self.ubo.bind_buffer_base(GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.plot.plotter2d'])
+            self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
             self._tt.draw()
             self._tt2.draw()
 
@@ -352,7 +350,7 @@ class TestGraphProgram(Program):
         self.declare_uniform('camera', Camera2D.DTYPE, variable='camera')
         self.declare_uniform('plot', Plotter2d.UBO_DTYPE, variable='plot')
         self.link()
-        self.uniform_block_binding('plot', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.plot.plotter2d'])
+        self.uniform_block_binding('plot', GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
 
 
 
@@ -443,7 +441,7 @@ class TestGraph2Program(Program):
         self.declare_uniform('camera', Camera2D.DTYPE, variable='camera')
         self.declare_uniform('plot', Plotter2d.UBO_DTYPE, variable='plot')
         self.link()
-        self.uniform_block_binding('plot', GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.plot.plotter2d'])
+        self.uniform_block_binding('plot', GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
 
 
 
