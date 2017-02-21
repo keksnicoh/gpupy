@@ -10,13 +10,13 @@ from gpupy.gl.buffer import create_vao_from_program_buffer_object
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
 from gpupy.gl.vector import *
 from gpupy.gl.common import attributes
-
+from gpupy.gl.components.widgets import Widget
 from gpupy.gl import *
 from OpenGL.GL import *
 import numpy as np 
 from functools import partial 
 
-class FrameWidget():
+class FrameWidget(Widget):
 
 
     """
@@ -77,7 +77,7 @@ class FrameWidget():
         # - multisampling 
         # - post effects
         # - blit/record mode
-
+        super().__init__()
         self.size         = size
         self.position     = position
         self.resulution = resulution if resulution is not None else self.size

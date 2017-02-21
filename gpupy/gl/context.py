@@ -1,11 +1,13 @@
 """
 basic context api for integrating different context managers
 like QT, GLFW, SDL, ...
+
 :author: keksnicoh
 """
 
 from gpupy.gl.common import attributes, Event
 from gpupy.gl import GPUPY_GL
+from OpenGL.GL import * 
 
 class ContextException(Exception): pass 
 class CloseContextException(ContextException): pass
@@ -13,12 +15,6 @@ class CloseContextException(ContextException): pass
 class Context():
     """
     context API:
-
-    __gl_init_context__         initialized the OpenGL context
-    __gl_context_enable__       enables the OpenGL context
-    __gl_cycle__                one full cycle (tick, draw, ...)
-    __del__                     must be implemented to provide
-                                destruction of the context
 
     events:
     -------
@@ -45,8 +41,10 @@ class Context():
         self.on_ready  = Event()
         self.on_cycle  = Event()
         self.on_resize = Event()
+        self.on_close = Event()
 
         self.active_keys = set()
+
 
     def buffer_base(self, name, index=None):
         """ reserves a buffer base with a **name** at **index**.
@@ -63,32 +61,47 @@ class Context():
             ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('some_name'))
             ```
             """
+        i_max = glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS)
         if not name in self.gl_buffer_base_register:
             if index is not None and index in self.gl_buffer_base_register:
-                raise RuntimeError('allready registred')
+                raise RuntimeError('allready registred.')
+
+            index = index or self._next_free_gl_buffer_base_index
+            if index > i_max:
+                raise OverflowError()
             self.gl_buffer_base_register[name] = index or self._next_free_gl_buffer_base_index
-            self._next_free_gl_buffer_base_index += 1
+
+            # find lowest free index
+            ui = sorted(self.gl_buffer_base_register.values())
+            for i in range(0, len(ui) - 1):
+                if ui[i+1] - ui[i] != 1:
+                    self._next_free_gl_buffer_base_index = ui[i] + 1
+                    return
+            self._next_free_gl_buffer_base_index = len(ui)
+            
         return self.gl_buffer_base_register[name]
 
-    def __gl_init_context__(self):
-        """ initializes OpenGL context """
-        raise NotImplementedError('abstract method')
 
     def __gl_context_enable__(self):
         """ activates OpenGL context """
         GPUPY_GL.CONTEXT = self
 
-    def __gl_cycle__(self):
-        """
-        during a cycle all calculations and renderings of a 
-        frame are done. A cycle should be stopped by raising a 
-        CloseContextException.
-        """
-        pass
+class GlVersion():
+    """ 
+    represents OpenGL driver profile
+    """
+    def __init__(self, version, core_profile=True, forward_compat=True):
+        if type(version) is str:
+            prt = version.split('.')
+            if len(prt) > 2:
+                raise ValueError('Argument version must by either tuple or a string. version examples: "4", "4.0", "3.1"')
 
-    def __del__(self):
-        """ remove the OpenGL context """
-        raise NotImplementedError('abstract method')
+            version = (int(prt[0]), 0) if len(prt) == 1 else (int(prt[0]), int(prt[1]))
+
+        self.version = version
+        self.core_profile = bool(core_profile)
+        self.forward_compat = bool(forward_compat)
+    
 
 # keyboard shortcuts
 KEY_SPACE            = 32

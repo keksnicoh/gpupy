@@ -254,7 +254,71 @@ class ComputedAttribute(Attribute):
         event += [partial(f, instance_obj) for f in self._on_change]
 
         self._val[instance_obj] = observable
-  
+
+class ComponentAttribute(Attribute):
+    """
+    a component attribute is a attribute which contains another
+    component. the on_change decorator allows to watch for the 
+    attributes of the assigned component. 
+
+    ```python
+    class Derp(Component):
+        ork = attributes.ComponentAttribute()
+
+        # watch for ork.cool_attribute changes.
+        ork.on_change('cool_attribute'):
+        def derp(*e):
+            print('i was called...')
+    ```
+
+    It is not allowed to apply transformations on component attributes.
+    """
+    def __init__(self):
+        self._watch_attr = {}
+        super().__init__(self)
+
+    def transformation(self, f):
+        raise RuntimeError('not allowed')
+
+    def __set__(self, instance_obj, val):
+        if not hasattr(val, '_'):
+            raise ValueError('not a component {}'.format(val))
+
+        if instance_obj in self._val:
+            # nothing to do here.
+            if self._val[instance_obj] is val:
+                return
+
+            # detach old event listeners 
+            for attr, handlers in self._watch_attr.items():
+                event = getattr(self._val[instance_obj]._, attr).on_change
+                for handler in handlers:
+                    event.remove(partial(handler, instance_obj))
+            self._val[instance_obj] = None 
+
+        self._val[instance_obj] = val
+
+        # attach new event handlers
+        for attr, handlers in self._watch_attr.items():
+            if not hasattr(val, attr):
+                raise RuntimeError('invalid component attribute ' + attr)
+            event = getattr(self._val[instance_obj]._, attr).on_change
+            for handler in handlers:
+                event.append(partial(handler, instance_obj))
+
+    def __get__(self, instance_obj, obj_type):
+        if not instance_obj in self._val:
+            raise ValueError('ComponentAttribute was not initialized with a value.')
+        return self._val[instance_obj]
+
+    def on_change(self, attr):
+        def _wrap(f):
+            if attr not in self._watch_attr:
+                self._watch_attr[attr] = []
+            self._watch_attr[attr].append(f)
+            return f
+        return _wrap
+
 
 class ObservablesAccessor():
     def __init__(self, host):

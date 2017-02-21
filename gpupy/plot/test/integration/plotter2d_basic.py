@@ -6,14 +6,6 @@ from glsl_plotter import plotter
 plotter(window_size=(400, 400)).plot('x**x', 'sin(x)')
 
 
-
-
-
-
-
-
-
-
 :author: Nicolas 'keksnicoh' Heimann
 """
 
@@ -22,7 +14,7 @@ from OpenGL.GL import *
 from gpupy.gl.vector import *
 import numpy as np
 from gpupy.gl.components.camera import Camera2D
-from gpupy.gl.driver.glfw import GLFW_WindowFunction
+from gpupy.gl.glfw import GLFW_window
 from time import time
 
 from gpupy.gl.components.fps import Fps
@@ -41,26 +33,18 @@ class Plotter2dBasic():
         self.t = time()
     def flag(self,unf, *e):
         if unf != self._resizing:
-            sf = 0.5
+            sf = 0.75
             self.plotter.plot_resolution_factor = 1 if not unf else sf
             self._resizing = unf
 
     def resize(self, window):
-        s = self.window.size
         self.flag(True)
-
-        self.plotter.size = (s[0], s[1])
-
-        self.camera.screensize = self.window.size
         self.draw(window)
 
     def init(self, window):
         size = window.size
         self.camera = Camera2D(screensize=size, position=size.observe_as_vec3(lambda v: (v[0]/2, v[1]/2, 0)))
         s = self.window.size
-     #   self.plotter = Plotter2d((s[0], s[1]), configuration_space=(0, np.pi/2, 0, 1))
-     #   self.plotter.axes_unit = (np.pi/2 / 4, 0.25)
-
 
         self.plotter = Plotter2d(size, configuration_space=(0, 1, -1, 1))
         self.plotter._plot_container.border = (2,2,2,2)
@@ -111,14 +95,9 @@ class Plotter2dBasic():
         self.plotter.draw()
 
   
-@GLFW_WindowFunction
+@GLFW_window
 def main(window):
     texture_controller = Plotter2dBasic(window)
-
-
-
-
-
 
 
 if __name__ == '__main__':

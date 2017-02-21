@@ -7,7 +7,7 @@ open a single glfw window without any controller
 from gpupy.gl.components.frame import Frame 
 from gpupy.gl.components.fps import Fps
 
-from gpupy.gl.driver.glfw import GLFW_WindowFunction
+from gpupy.gl.glfw import GLFW_WindowFunction
 from gpupy.gl import *
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.matrix import *

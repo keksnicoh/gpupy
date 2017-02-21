@@ -8,9 +8,9 @@ from functools import partial
 from gpupy.gl.context import *
 from gpupy.gl.vendor.glfw import * 
 from gpupy.gl.common import attributes, Event
+from gpupy.gl.common import *
 
-class GLFW_Driver():
-    pass
+def_version = GlVersion('4.1', core_profile=True, forward_compat=True)
 
 class GLFW_Context(Context):
     KEYBOARD_MAP = {
@@ -66,7 +66,7 @@ class GLFW_Context(Context):
     def set_size(self, size):
         glfwSetWindowSize(self._handle, int(size[0]), int(size[1]))
 
-    def __gl_init_context__(self):
+    def bootstrap(self):
         if self._glfw_initialized:
             raise RuntimeError('allready initialized.')
 
@@ -87,7 +87,7 @@ class GLFW_Context(Context):
 
         self._glfw_initialized = True
 
-    def __gl_context_enable__(self):
+    def context(self):
         if glfwWindowShouldClose(self._handle):
             self.on_close(self)
 
@@ -119,7 +119,7 @@ class GLFW_Context(Context):
         elif action == GLFW_RELEASE:
             self.active_keys.remove(GLFW_Context.KEYBOARD_MAP[keycode])
 
-    def __gl_cycle__(self):
+    def cycle(self):
         if glfwWindowShouldClose(self._handle):
             raise CloseContextException()
 
@@ -132,4 +132,58 @@ class GLFW_Context(Context):
 
     def __del__(self):
         glfwDestroyWindow(self._handle)
+
+def GLFW_run(*windows, version=def_version):
+    """ 
+    executes a list of GLFW *windows* with a specific
+    OpenGL **version** profile. 
+
+    This is a generator which yields the window
+    which cycle will be executed next.
+    """
+    if not glfwInit():
+        raise RuntimeError('glfw.Init() error')
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.version[0]);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.version[1]);
+    if version.forward_compat != True:
+        raise RuntimeError('version.forward_compat=False not supported in GLFW_Application at the moment')
+    if version.core_profile != True:
+        raise RuntimeError('version.core_profile=False not supported in GLFW_Application at the moment')
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, glbool(True));
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    for window in windows:
+        window.bootstrap()
+        window.context()
+        window.on_ready(window)
+
+    while len(windows):
+        glfwPollEvents()
+        for window in windows:
+            try:
+                yield window
+                window.cycle()
+            except CloseContextException as e:
+                windows.remove(window)
+                del window
+            except Exception as e:
+                del windows[:]
+                glfwTerminate()
+                raise e
+    glfwTerminate()
+
+
+class GLFW_window:
+    """ decorator which creates a single window OpenGL GLFW
+        application. Decorated function recieves the window instance
+        as well as *args, **kwargs."""
+    def __init__(self, f):
+        self.f = f
+
+    def __call__(self, width=400, height=400, title="OpenGL GLFW Window"):
+        window = GLFW_Context(size=(width, height), title=title)
+        window.on_ready.append(self.f)
+        for window in GLFW_run(window):
+            pass
 

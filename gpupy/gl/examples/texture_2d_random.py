@@ -6,7 +6,7 @@ is regenerated each rendering cycle.
 :author: Nicolas 'keksnicoh' Heimann
 """
 
-from gpupy.gl.driver.glfw import GLFW_WindowFunction
+from gpupy.gl.glfw import GLFW_WindowFunction
 from gpupy.gl.texture import Texture2D
 from gpupy.gl.buffer import BufferObject, create_vao_from_program_buffer_object
 from gpupy.gl.shader import Program, Shader

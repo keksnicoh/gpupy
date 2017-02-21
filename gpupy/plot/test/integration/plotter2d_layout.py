@@ -22,7 +22,7 @@ from OpenGL.GL import *
 from gpupy.gl.vector import *
 import numpy as np
 from gpupy.gl.components.camera import Camera2D
-from gpupy.gl.driver.glfw import GLFW_WindowFunction
+from gpupy.gl.glfw import GLFW_WindowFunction
 from time import time
 
 from gpupy.gl.components.fps import Fps

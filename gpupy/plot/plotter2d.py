@@ -73,7 +73,7 @@ def mat_cs(cs, res):
     return np.array([res.x/cl[0], 0, 0, 0,
                      0, -res.y/cl[1], 0, 0, 
                      0, 0, 1, 0,
-                     -res.x/cl[0]*(cs[0]), res.y*(1+cs[2]/cl[1]), 0, 1,],np.float32).reshape((4,4))
+                     -res.x/cl[0]*(cs[0]), res.y*(1+cs[2]/cl[1]), 0, 1,], np.float32).reshape((4,4))
 
 class Plotter2d(Widget):
     UBO_DTYPE = np.dtype([
@@ -103,9 +103,6 @@ class Plotter2d(Widget):
     background_color       = attributes.VectorAttribute(4, (0, 0, 0, 1))
     plot_background_color  = attributes.VectorAttribute(4, (0, 0, 0, 1))
     plot_padding           = attributes.VectorAttribute(4, (0, 0, 0, 0))
-
-
-
 
     # common precomputed properties
     configuration_space_size = attributes.ComputedAttribute(configuration_space, 
@@ -164,12 +161,8 @@ class Plotter2d(Widget):
 
         self._tt = TestGraph(
             configuration_space=self.configuration_space, 
-            plot_size=self._plot_container.widget.size, 
-            plot_resolution=self._plot_container.widget.resulution)
-        self._tt2 = TestGraph2(
-            configuration_space=self.configuration_space, 
-            plot_size=self._plot_container.widget.size, 
-            plot_resolution=self._plot_container.widget.resulution)
+            frame=self._plot_container.widget)
+        self._tt2 = TestGraph2(configuration_space=self.configuration_space, frame=self._plot_container.widget)
 
     def _init_ubo(self):
         """ initializes plotting ubo """
@@ -263,53 +256,32 @@ f = lambda x: np.sin(4*x)**2
 td = np.array([((0.0005*x, f(0.001*x)), (1, 0)) for x in range(2000)], dtype=np.dtype([('vertex', np.float32, 2), ('color', np.float32, 2)]))
 
 #random walk
-l = 10000
-s = 100
+l, s, v = 10000, 10, 0
 tdd = np.zeros(l, np.float32)
-randoms = np.random.rand(l*s)
-l = 0
-for i, r in enumerate(randoms):
-    if r >= 0.5: l+=0.01
-    else: l-=0.01
-    if not i % s:
-        tdd[i/s] = l
+for i, r in enumerate(np.random.rand(l*s)):
+    v += 0.01 * np.sign(r - 0.497)
+    if not i % s: tdd[int(i/s)] = v
 tdd /= np.max(np.abs(tdd))
 
-td2 = np.array([
-    ((0, 0), (1,0)),
-    ((0, .25), (1,0)),
-    ((0, .5), (1,0)),
-    ((0, .75), (1,0)),
-    ((0, 1), (1,0)),
-    ((np.pi/4, 0), (1,0)),
-    ((np.pi/4, .25), (1,0)),
-    ((np.pi/4, .5), (1,0)),
-    ((np.pi/4, .75), (1,0)),
-    ((np.pi/4, 1), (1,0)),
-
-    ], dtype=np.dtype([('vertex', np.float32, 2), ('color', np.float32, 2)]))
 
 
 
 
 class TestGraph(Widget):
     configuration_space = attributes.VectorAttribute(4)
-    plot_size = attributes.VectorAttribute(2)
-    plot_resolution = attributes.VectorAttribute(2)
-
-    def __init__(self, configuration_space, plot_size, plot_resolution, point_size=4):
+    frame = attributes.ComponentAttribute()
+    def __init__(self, configuration_space, frame, point_size=4):
+        self.frame = frame
         self.configuration_space = configuration_space
-        self.plot_size = plot_size 
-        self.plot_resolution = plot_resolution
         self.program = TestGraphProgram()
         self.point_size = point_size
         self.mesh = StridedVertexMesh(td, GL_POINTS, self.program.attributes)
         self.upload_point_size()
 
-    @plot_resolution.on_change
-    @plot_size.on_change
+    @frame.on_change('resulution')
+    @frame.on_change('size')
     def upload_point_size(self, *e):
-        self.program.uniform('point_size', self.point_size * max(1.0, self.plot_resolution[0]/self.plot_size[0]))
+        self.program.uniform('point_size', self.point_size * max(1.0, self.frame.resulution[0]/self.frame.size[0]))
 
 
     def draw(self):
@@ -358,18 +330,16 @@ class TestGraphProgram(Program):
 
 class TestGraph2(Widget):
     configuration_space = attributes.VectorAttribute(4)
-    plot_size = attributes.VectorAttribute(2)
-    plot_resolution = attributes.VectorAttribute(2)
+    frame = attributes.ComponentAttribute()
 
-    def __init__(self, configuration_space, plot_size, plot_resolution):
+    def __init__(self, configuration_space, frame):
+        self.frame = frame
         self.configuration_space = configuration_space
-        self.plot_size = plot_size 
-        self.plot_resolution = plot_resolution
         self.program = TestGraph2Program()
         self.mesh = StridedVertexMesh(mesh3d_rectangle(), 
                                       GL_TRIANGLES, 
                                       attribute_locations=self.program.attributes)
-        self.x_space = [-.5, 1]
+        self.x_space = [0, 1]
         d = td['vertex'][:,1]
         d = tdd
 
@@ -409,21 +379,43 @@ class TestGraph2Program(Program):
 
         self.shaders.append(Shader(GL_FRAGMENT_SHADER, """
             {% version %}
-            uniform sampler1D tex;
-            {% uniform_block plot %}
+
             in vec2 frag_pos;
             out vec4 frag_color;
+
+            {% uniform_block plot %}
+            uniform sampler1D tex;
             uniform vec2 u_x_space;
 
+            vec4 color(vec2 fc,      // fragment coords (in plane: [0,1]x[0,1])
+                       float sd,     // signed distance
+                       float xsd) {  // signed distance relative to x-axis
+                if (xsd > 0) { 
+                    discard; 
+                }
+                return vec4(fc.y+0.5, 0, 1-fc.y-.5, exp(-2*abs(xsd))); 
+            }
+
+            float domain(float x) {
+                float y= texture(tex, x).r;
+                y = 5*sin(x)*cos(3*x)+3*cos(x)*sin(10*x);
+                return y;
+            }
+
             void main() {
-                
+                // frg x coord
                 float x = -u_x_space.x + (frag_pos.x * plot.cs_size.x + plot.cs.x);
 
-                // if the signal is not periodic
-                // if (x > 1 || x < 0) discard
+                if (x > 1 || x < 0) {
+                    // signal is not periodic
+                //    discard;
+                }
 
+                // frg y coord
                 float y = frag_pos.y * plot.cs_size.y + plot.cs.z;
-                float ty  = texture(tex, x).r;
+
+                // function value at x
+                float ty = domain(x);
  
                 // signed distance from the graph y-value to x-axis.
                 // positive if outside otherwise negative.
@@ -431,12 +423,14 @@ class TestGraph2Program(Program):
                 
                 // relative signed distance. 
                 // from x-axis to y-value: [-1,0]
-                float rsd = sd / ty * sign(ty);
+                float xsd = sd / ty * sign(ty);
 
                 // color kernel here
-                if (rsd > 0) { discard; }
-                frag_color = vec4(y+0.5, 0, 1-y-.5, exp(-2*abs(rsd)));
+                frag_color = color(vec2(x, y), sd, xsd);
+               //frag_color = vec4(1, 0,0,1);
             }
+
+
         """))
         self.declare_uniform('camera', Camera2D.DTYPE, variable='camera')
         self.declare_uniform('plot', Plotter2d.UBO_DTYPE, variable='plot')
