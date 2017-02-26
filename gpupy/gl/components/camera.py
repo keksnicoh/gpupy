@@ -6,7 +6,7 @@ from gpupy.gl import GPUPY_GL
 from gpupy.gl.common import *
 from gpupy.gl.buffer import BufferObject
 from gpupy.gl.matrix import *
-from gpupy.gl.vector import * 
+from gpupy.gl.common.vector import * 
 import numpy as np
 
 from OpenGL.GL import *

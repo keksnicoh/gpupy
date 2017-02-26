@@ -17,7 +17,7 @@ from gpupy.gl.common.observables import transform_observables
 
 from gpupy.gl import * 
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
-from gpupy.gl.vector import *
+from gpupy.gl.common.vector import *
 
 from OpenGL.GL import *
 

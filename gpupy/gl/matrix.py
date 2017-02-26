@@ -4,7 +4,7 @@ matrix utilities..
 
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl.vector import *
+from gpupy.gl.common.vector import *
 import numpy as np
 
 def mat4_rot_x(angle):

@@ -26,6 +26,18 @@ NEAREST_FILTERS = {
     GL_TEXTURE_MIN_FILTER: GL_NEAREST
 }
 
+# 1d
+# (n,) (n, d)
+
+# 2d
+# (nx, ny, d)
+
+# 3d
+# (nx, ny, nz, d)
+
+
+
+
 def gl_texture_id(texture_id):
     """
     returns a valid texture_id from a given object
@@ -68,6 +80,15 @@ class AbstractTexture():
         self._gl_type = None
         self._data = None
 
+    @property
+    def channels(self):
+        channelmap = {GL_RED: 1, GL_RG: 2, GL_RGB: 3, GL_RGBA: 4}
+        return channelmap[self._gl_format]
+
+    @property
+    def dimension(self):
+        return self.__class__.DIMENSION
+    
     def __del__(self):
         pass
         
@@ -100,6 +121,10 @@ class AbstractTexture():
         texture = cls(*args, **kwargs)
         texture.load(ndarray)
         return texture
+
+    @classmethod
+    def to_device(cls, ndarray, *args, **kwargs):
+        return cls.from_numpy(ndarray, *args, **kwargs)
 
     @classmethod
     def empty_like(cls, ndarray, *args, **kwargs):
@@ -146,6 +171,9 @@ class AbstractTexture():
         format texture by given numpy dtype and numpy shape
         """
         self._push(None, *self._numpy_to_gl_parameters(np_type, np_shape))
+
+    def set(self, data):
+        self.load(data)
 
     def _push(self, ndarray, size, gl_type, gl_format, gl_internal_format):
         """
@@ -259,6 +287,8 @@ class AbstractTexture():
         return gl_type, gl_format, gl_internal_format
 
 class Texture1D(AbstractTexture):
+    DIMENSION = 1
+
     def __init__(self,
         gl_texture_id=None,
         gl_texture_parameters=DEFAULT_TEXRURE_PARAMETERS,
@@ -319,6 +349,8 @@ class Texture2D(AbstractTexture):
         # ...
         texture = Texture2D(gl_texture_id=my_texture_id)
     """
+    DIMENSION = 2
+
     def __init__(self,
         gl_texture_id=None,
         gl_texture_parameters=DEFAULT_TEXRURE_PARAMETERS,
@@ -422,6 +454,8 @@ class Texture3D(AbstractTexture):
         # ...
         texture = Texture2D(gl_texture_id=my_texture_id)
     """
+    DIMENSION = 3
+
     def __init__(self,
         gl_texture_id=None,
         gl_texture_parameters=DEFAULT_TEXRURE_PARAMETERS,

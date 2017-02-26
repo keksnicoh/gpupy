@@ -72,6 +72,7 @@ class VectorMeta(type):
   
         # opengl type conversions.  
         setattr(cls, all_attr + '_gl_float', property(lambda s: s._values.astype(np.float32)))
+        setattr(cls, all_attr + '_gl_double', property(lambda s: s._values.astype(np.float64)))
         setattr(cls, all_attr + '_gl_int', property(lambda s: s._values.astype(np.int32)))
         setattr(cls, all_attr + '_gl_uint', property(lambda s: s._values.astype(np.uint32)))
 

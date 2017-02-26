@@ -1,5 +1,5 @@
 # RUBBISH 
-from gpupy.gl.vector import *
+from gpupy.gl.common.vector import *
 from collections import OrderedDict
 from gpupy.gl.components.widgets import Widget
 from gpupy.gl.common import Event

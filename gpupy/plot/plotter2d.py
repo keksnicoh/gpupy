@@ -11,11 +11,14 @@ from gpupy.gl.common.attributes import CastedAttribute
 from gpupy.gl.common import attributes
 from gpupy.gl.common.observables import transform_observables
 
-from gpupy.gl.vector import *
+from gpupy.gl.common.vector import *
 from gpupy.gl.common import Event
 from gpupy.gl.mesh import StridedVertexMesh, mesh3d_rectangle
 from gpupy.gl import *
+from gpupy.plot.domain import TextureDomain, FragmentTransformationDomain, DependencyError
 
+from gpupy.gl.components import Component
+from collections import OrderedDict
 
 from OpenGL.GL import * 
 import numpy as np 
@@ -150,8 +153,22 @@ class Plotter2d(Widget):
         self._plot_margin = vec4((0, 0, 0, 0))
         self.grid = None 
         self._plot_container = None 
+        self.domains = OrderedDict()
 
-        self.init()
+        self._initialized = False
+        
+
+
+    def __setitem__(self, key, value):
+        self.domains[key] = value
+
+    def add(self, value):
+        self.domains[id(value)] = value 
+        return self 
+        
+    def __iadd__(self, value):
+        self.add(value)
+        return self
 
     def init(self):        
         self._init_plot_container()
@@ -159,10 +176,12 @@ class Plotter2d(Widget):
         self._init_grid()
         self._init_ubo()
 
-        self._tt = TestGraph(
-            configuration_space=self.configuration_space, 
-            frame=self._plot_container.widget)
-        self._tt2 = TestGraph2(configuration_space=self.configuration_space, frame=self._plot_container.widget)
+        for d in self.domains.values():
+            d.configuration_space = self.configuration_space
+            d.frame               = self._plot_container.widget
+            d.init()
+
+        self._initialized = True
 
     def _init_ubo(self):
         """ initializes plotting ubo """
@@ -231,6 +250,9 @@ class Plotter2d(Widget):
 
 
     def tick(self, redraw=True):
+        if not self._initialized:
+            self.init()
+
         pre_plot_event = PrePlotEvent(redraw=redraw)
         self.on_pre_plot(pre_plot_event)
         self._plot_container.tick()
@@ -241,9 +263,8 @@ class Plotter2d(Widget):
             self.grid.draw()
 
             self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
-            self._tt.draw()
-            self._tt2.draw()
-
+            for d in self.domains.values():
+                d.draw()
             self._plot_container.widget.unuse()
         self.on_post_plot()
         
@@ -259,7 +280,7 @@ td = np.array([((0.0005*x, f(0.001*x)), (1, 0)) for x in range(2000)], dtype=np.
 l, s, v = 10000, 10, 0
 tdd = np.zeros(l, np.float32)
 for i, r in enumerate(np.random.rand(l*s)):
-    v += 0.01 * np.sign(r - 0.497)
+    v += 0.01 * np.sign(r - .5)
     if not i % s: tdd[int(i/s)] = v
 tdd /= np.max(np.abs(tdd))
 
@@ -324,118 +345,6 @@ class TestGraphProgram(Program):
         self.link()
         self.uniform_block_binding('plot', GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
 
-
-
-
-
-class TestGraph2(Widget):
-    configuration_space = attributes.VectorAttribute(4)
-    frame = attributes.ComponentAttribute()
-
-    def __init__(self, configuration_space, frame):
-        self.frame = frame
-        self.configuration_space = configuration_space
-        self.program = TestGraph2Program()
-        self.mesh = StridedVertexMesh(mesh3d_rectangle(), 
-                                      GL_TRIANGLES, 
-                                      attribute_locations=self.program.attributes)
-        self.x_space = [0, 1]
-        d = td['vertex'][:,1]
-        d = tdd
-
-        self.texture = Texture1D.from_numpy(d)
-        self.texture.activate()
-        self.texture.interpolation_linear()
-        self.program.uniform('tex', self.texture)
-        self.program.uniform('u_x_space', self.x_space)
-
-    def draw(self):
-        glEnable(GL_PROGRAM_POINT_SIZE)
-        self.texture.activate()
-        self.program.use()
-        self.mesh.draw()
-        self.program.unuse()
-
-
-class TestGraph2Program(Program):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.shaders.append(Shader(GL_VERTEX_SHADER, """
-            {% version %}
-            {% uniform_block camera %}
-            {% uniform_block plot %}
-            in vec4 vertex;
-            in vec2 tex;
-            out vec2 frag_pos;
-            void main() {
-                gl_Position = camera.mat_projection * camera.mat_view * plot.mat_cs * vec4(
-                    plot.cs.x + plot.cs_size.x * vertex.x, 
-                    plot.cs.z + plot.cs_size.y * vertex.y, 
-                    0, 1);
-                frag_pos = vec2(tex.x, 1-tex.y);
-            }
-        """))
-
-        self.shaders.append(Shader(GL_FRAGMENT_SHADER, """
-            {% version %}
-
-            in vec2 frag_pos;
-            out vec4 frag_color;
-
-            {% uniform_block plot %}
-            uniform sampler1D tex;
-            uniform vec2 u_x_space;
-
-            vec4 color(vec2 fc,      // fragment coords (in plane: [0,1]x[0,1])
-                       float sd,     // signed distance
-                       float xsd) {  // signed distance relative to x-axis
-                if (xsd > 0) { 
-                    discard; 
-                }
-                return vec4(fc.y+0.5, 0, 1-fc.y-.5, exp(-2*abs(xsd))); 
-            }
-
-            float domain(float x) {
-                float y= texture(tex, x).r;
-                y = 5*sin(x)*cos(3*x)+3*cos(x)*sin(10*x);
-                return y;
-            }
-
-            void main() {
-                // frg x coord
-                float x = -u_x_space.x + (frag_pos.x * plot.cs_size.x + plot.cs.x);
-
-                if (x > 1 || x < 0) {
-                    // signal is not periodic
-                //    discard;
-                }
-
-                // frg y coord
-                float y = frag_pos.y * plot.cs_size.y + plot.cs.z;
-
-                // function value at x
-                float ty = domain(x);
- 
-                // signed distance from the graph y-value to x-axis.
-                // positive if outside otherwise negative.
-                float sd = abs(y) - sign(y) * ty;
-                
-                // relative signed distance. 
-                // from x-axis to y-value: [-1,0]
-                float xsd = sd / ty * sign(ty);
-
-                // color kernel here
-                frag_color = color(vec2(x, y), sd, xsd);
-               //frag_color = vec4(1, 0,0,1);
-            }
-
-
-        """))
-        self.declare_uniform('camera', Camera2D.DTYPE, variable='camera')
-        self.declare_uniform('plot', Plotter2d.UBO_DTYPE, variable='plot')
-        self.link()
-        self.uniform_block_binding('plot', GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
 
 
 

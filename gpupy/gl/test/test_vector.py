@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 
-from gpupy.gl.vector import * 
+from gpupy.gl.common.vector import * 
 
 import unittest
 from unittest_data_provider import data_provider

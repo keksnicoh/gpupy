@@ -1,5 +1,5 @@
 from gpupy.gl.common import Event 
-from gpupy.gl.vector import Vector
+from gpupy.gl.common.vector import Vector
 from functools import partial 
 __all__ = ['bind', 'transform_observables', 'observable_event', 'observable_value']
 

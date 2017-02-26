@@ -6,7 +6,7 @@ descriptor library.
 """
 
 from gpupy.gl.common.observables import *
-from gpupy.gl.vector import vecn
+from gpupy.gl.common.vector import vecn
 from gpupy.gl.common import Event 
 
 from weakref import WeakKeyDictionary
@@ -115,8 +115,8 @@ class Attribute():
         return self._val[instance_obj].val
 
     def _register(self, instance_obj, obj_type, val=None):
-        if val is None and self._default is None:
-            raise RuntimeError('attribute cannot be created without a default')
+      #  if val is None and self._default is None:
+      #      raise RuntimeError('attribute cannot be created without a default')
 
         transformation = lambda x: x
         if self._transformation is not None:
@@ -154,13 +154,13 @@ class CastedAttribute(Attribute):
         super().__init__(default)
 
     def __create__(self, val):
-        return self._cast(val), Event()
+        return (self._cast(val) if val is not None else None), Event()
 
     def __assign__(self, attr_value, val):
         trigger_on_change = False
         if attr_value.val != val:
             trigger_on_change = True
-        attr_value.val = self._cast(val)
+        attr_value.val = self._cast(val) if val is not None else None
         if trigger_on_change:
             attr_value.on_change(attr_value.val)
 
@@ -319,6 +319,45 @@ class ComponentAttribute(Attribute):
             return f
         return _wrap
 
+from gpupy.gl.texture import Texture1D, Texture2D, Texture3D, AbstractTexture
+
+class GlTexture(Attribute):
+
+    def __init__(self, to_device=None):
+        if to_device is not None and not hasattr(to_device, '__call__'):
+            raise ValueError()
+
+        self.to_device = to_device 
+        super().__init__()
+
+    def __set__(self, instance_obj, val):
+        hastex = instance_obj in self._val
+        if not hastex:
+            _t = self._register(instance_obj, None, val)
+            hastex and self.on_change(_t)
+        else:
+            _t = self._val[instance_obj]
+            _t.set(val)
+            self.on_change(_t)
+
+    def __get__(self, instance_obj, obj_type):
+        if not instance_obj in self._val:
+            self._register(instance_obj, obj_type)
+        return self._val[instance_obj]
+
+    def _register(self, instance_obj, obj_type, val=None):
+        has_to_device = self.to_device is not None
+        val_is_tex = isinstance(val, AbstractTexture)
+
+        if val_is_tex:
+            _t = val 
+        elif not val_is_tex and has_to_device:
+            _t = self.to_device(val)
+        else:
+            raise ValueError('invalid texture.')
+
+        self._val[instance_obj] = _t
+        return _t
 
 class ObservablesAccessor():
     def __init__(self, host):

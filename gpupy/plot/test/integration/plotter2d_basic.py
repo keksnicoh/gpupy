@@ -11,24 +11,24 @@ plotter(window_size=(400, 400)).plot('x**x', 'sin(x)')
 
 from gpupy.plot.plotter2d import Plotter2d
 from OpenGL.GL import *
-from gpupy.gl.vector import *
+from gpupy.gl.common.vector import *
 import numpy as np
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.glfw import GLFW_window
 from time import time
+from gpupy.plot.graph.frgfnc import Frag1DGraph
 
-from gpupy.gl.components.fps import Fps
 
 from functools import partial
 
 class Plotter2dBasic():
-    def __init__(self, window):
+    def __init__(self, window, plot):
         self.window = window
         window.on_ready.append(self.init)
         window.on_cycle.append(self.draw)
         window.on_resize.append(self.resize)
         window.on_cycle.append(partial(self.flag,False))
-
+        self._plot = plot
         self._resizing = False
         self.t = time()
     def flag(self,unf, *e):
@@ -45,12 +45,12 @@ class Plotter2dBasic():
         size = window.size
         self.camera = Camera2D(screensize=size, position=size.observe_as_vec3(lambda v: (v[0]/2, v[1]/2, 0)))
         s = self.window.size
-
         self.plotter = Plotter2d(size, configuration_space=(0, 1, -1, 1))
+        self._plot(self.plotter)
+        self.plotter.init()
         self.plotter._plot_container.border = (2,2,2,2)
         self.plotter._plot_container.margin = (10, 10, 10, 10)
         self.border = 3 
-
 
     def draw(self, window):
         # very basic plot controlling
@@ -97,7 +97,33 @@ class Plotter2dBasic():
   
 @GLFW_window
 def main(window):
-    texture_controller = Plotter2dBasic(window)
+    texture_controller = Plotter2dBasic(window, plot)
+
+
+
+
+
+
+
+
+
+def plot(plotter):
+    plotter['jau'] = Frag1DGraph.glsl_transformation('sin(x)')
+    plotter += Frag1DGraph.glsl_transformation(
+        'cos(10*x)/(1+x*x)',
+        color_kernel=('expr', "vec4(fc.y+0.5, 0, 1-fc.y-.5, exp(-2*abs(xsd)))"))
+    plotter += Frag1DGraph.glsl_transformation(
+        'sin(8*x)/(1.2+sin(x))', 
+        color_kernel=('function', "if (xsd > 0) { discard; } return vec4(0, fc.y+0.5, 1-fc.y-.2, exp(-2*abs(xsd))); "))
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

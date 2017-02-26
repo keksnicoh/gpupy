@@ -8,7 +8,7 @@ display plane.
 """
 from gpupy.gl.buffer import create_vao_from_program_buffer_object
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
-from gpupy.gl.vector import *
+from gpupy.gl.common.vector import *
 from gpupy.gl.common import attributes
 from gpupy.gl.components.widgets import Widget
 from gpupy.gl import *

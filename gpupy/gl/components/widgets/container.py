@@ -1,6 +1,6 @@
 from gpupy.gl.components.widgets import Widget 
 
-from gpupy.gl.vector import *
+from gpupy.gl.common.vector import *
 from gpupy.gl import * 
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.common import attributes

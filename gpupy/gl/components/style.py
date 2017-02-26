@@ -1,6 +1,6 @@
 """ experimental! """
 from gpupy.common.color import hex_to_rgba
-from gpupy.gl.vector import * 
+from gpupy.gl.common.vector import * 
 
 def parse_4f1_1c4(string):
     split = [s.strip() for s in string.split(' ')]

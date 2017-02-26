@@ -27,7 +27,7 @@ XXX
 from gpupy.gl.errors import GlError
 from gpupy.gl.common import *
 from gpupy.gl.glsl import * 
-from gpupy.gl.vector import * 
+from gpupy.gl.common.vector import * 
 from gpupy.gl import GPUPY_GL
 
 from gpupy.gl.texture import gl_texture_unit
@@ -73,6 +73,7 @@ class Shader():
 
         self.source = source
         self.type = type
+        self.gl_shader_type = self.type
         self.gl_shader_id = None
 
         # a list of all uniforms within the shader
@@ -96,7 +97,7 @@ class Shader():
         self.structs_declarations = {}
         self.structs_dtype = {} # contains information about struct dtypes
 
-        self._precompiled_source = None
+        self._precompiled_source = self.source
         self.parse()
 
         self._auto_declare_struct_ubo = {}
@@ -308,6 +309,7 @@ class Shader():
             glDeleteShader(self.gl_shader_id)
             self.gl_shader_id = None
 
+
     def compile(self):
         """
         compiles shader and returns gl id
@@ -318,13 +320,15 @@ class Shader():
                 self.gl_shader_id = None
                 self._serr('glCreateShader returns an invalid id.')
 
-            self._precompiled_source = self.source
-
-            self._compile_inject_gl_code()
+         #   self._precompiled_source = self._precompiled_source
+            self._compile_tags()
             self._compile_substitutions()
+            self.parse()
+            self._compile_inject_gl_code()
             self._compile_structs()
             self._compile_uniform_blocks()
-            self._compile_tags()
+
+            
 
             glShaderSource(self.gl_shader_id, self._precompiled_source)
             glCompileShader(self.gl_shader_id)
@@ -341,6 +345,8 @@ class Shader():
         # substitutions
         self._precompiled_source = re.sub(r'\{\%\s+version\s+\%\}', "#version {}".format(self.substitutions['VERSION']), self._precompiled_source, flags=re.MULTILINE)
 
+        for n, v in self.substitutions.items():
+            self._precompiled_source = self._precompiled_source.replace('${'+str(n)+'}', str(v))
 
     def _compile_structs(self):
         # uniform declarations
@@ -399,7 +405,7 @@ class Shader():
         and registers them at Shader.attributes
         """
         matches = re.findall(r'(in|out)\s+(\w+)\s+([\w]+).*?;', 
-                             self.source, 
+                             self._precompiled_source, 
                              flags=re.MULTILINE)
         self.attributes = {k: (s, t) for s, t, k in matches}  
 
@@ -425,12 +431,12 @@ class Shader():
             self.structs_require_declraration[struct_name] = '/*--###GPUPY-PRECOMPILE-STRUCT-TARGET-{}###--*/'.format(struct_name)
             return self.structs_require_declraration[struct_name]
 
-        self.source = re.sub(r'\{\%\s+struct\s+([a-zA-Z0-9_]+)\s+\%\}', 
+        self._precompiled_source = re.sub(r'\{\%\s+struct\s+([a-zA-Z0-9_]+)\s+\%\}', 
                               struct_block_replacememt, 
-                              self.source, 
+                              self._precompiled_source, 
                               flags=re.MULTILINE)
         # Read struct block
-        self.structs_dtype = self._find_struct_declarations(self.source)
+        self.structs_dtype = self._find_struct_declarations(self._precompiled_source)
 
         # check if an explicit declaration has the same name as a struct tag.
         intersection_struct_block_declr = set(self.structs) & set(self.structs_dtype.keys())
@@ -458,7 +464,7 @@ class Shader():
             # example: uniform float dorp = 2;
             #          uniform vec3 burb;
             r'uniform\s+(\w+)\s+([\w]+)\s*=?\s*(.*?)(?:\[\d+\])?;', 
-            self.source, 
+            self._precompiled_source, 
             flags=re.MULTILINE)}
 
     def _prepare_uniform_blocks(self):
@@ -483,13 +489,13 @@ class Shader():
             self.uniforms_require_declraration[uniform_name] = '/*--###GPUPY-PRECOMPILE-UNIFORM-TARGET-{}###--*/'.format(uniform_name)
             return self.uniforms_require_declraration[uniform_name]
 
-        self.source = re.sub(r'\{\%\s+uniform_block\s+([a-zA-Z0-9_]+)\s+\%\}', 
+        self._precompiled_source = re.sub(r'\{\%\s+uniform_block\s+([a-zA-Z0-9_]+)\s+\%\}', 
                              uniform_block_replacememt, 
-                             self.source, 
+                             self._precompiled_source, 
                              flags=re.MULTILINE)
 
         # read explicit uniform block declarations
-        self.uniform_dtype = find_structs_as_dtype(self.source)
+        self.uniform_dtype = find_structs_as_dtype(self._precompiled_source)
 
         # there should be no explicit uniform declaration if there is
         # a {% uniform %} tag within the shader.
@@ -546,6 +552,11 @@ class Program():
         self.uniform_block_index = {}
         self.uniform_dtype = None
 
+
+    def get_shader(self, gl_type):
+        for shader in self.shaders:
+            if shader.gl_shader_type == gl_type:
+                return shader
 
     def use(self, flush_uniforms=True):
         """
