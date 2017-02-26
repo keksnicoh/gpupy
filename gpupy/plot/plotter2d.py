@@ -15,14 +15,13 @@ from gpupy.gl.common.vector import *
 from gpupy.gl.common import Event
 from gpupy.gl.mesh import StridedVertexMesh, mesh3d_rectangle
 from gpupy.gl import *
-from gpupy.plot.domain import TextureDomain, FragmentTransformationDomain, DependencyError
+from gpupy.plot.domain import TextureDomain, TransformationDomain, DependencyError
 
 from gpupy.gl.components import Component
 from collections import OrderedDict
 
 from OpenGL.GL import * 
 import numpy as np 
-
 from functools import partial 
 
 DEFAULT_STYLE = {
@@ -38,7 +37,7 @@ DEFAULT_STYLE = {
 }
 
 
-def configuration_space_size(cs):
+def cs_size(cs):
     """ returns the size of the configuration space """
     return (np.abs(cs.y - cs.x),  np.abs(cs.w - cs.z))
 
@@ -63,7 +62,7 @@ def grid(au, cs):
         with the current configuration space """
     AT_LEAST_X = 4
     AT_LEAST_Y = 4
-    css = configuration_space_size(cs)
+    css = cs_size(cs)
     dens = (css[0]/au[0], css[1]/au[1])
     fx = unit_factor(au[0], css[0])
     fy = unit_factor(au[1], css[1])
@@ -72,7 +71,7 @@ def grid(au, cs):
 def mat_cs(cs, res):
     """ mat4 for projecting from configuration space **cs** 
         to vertex space of having resolution **res** """
-    cl = configuration_space_size(cs)
+    cl = cs_size(cs)
     return np.array([res.x/cl[0], 0, 0, 0,
                      0, -res.y/cl[1], 0, 0, 
                      0, 0, 1, 0,
@@ -90,7 +89,7 @@ class Plotter2d(Widget):
     position = attributes.VectorAttribute(4, (0, 0, 0, 1))
 
     # configuration space determines [minx, maxx, miny, maxy]
-    configuration_space  = attributes.VectorAttribute(4, (0, 1, 0, 1))
+    cs  = attributes.VectorAttribute(4, (0, 1, 0, 1))
 
     # axes configuration
     # size of one unit (sx, sy) in configuration space
@@ -108,18 +107,18 @@ class Plotter2d(Widget):
     plot_padding           = attributes.VectorAttribute(4, (0, 0, 0, 0))
 
     # common precomputed properties
-    configuration_space_size = attributes.ComputedAttribute(configuration_space, 
+    cs_size = attributes.ComputedAttribute(cs, 
         descriptor=attributes.VectorAttribute(2), 
-        transformation=configuration_space_size)
+        transformation=cs_size)
 
     def __init__(self, size, 
                        position=(0, 0, 0, 1), 
-                       configuration_space=(0, 1, 0, 1), 
+                       cs=(0, 1, 0, 1), 
                        style=DEFAULT_STYLE,
                        axes_unit=None):
         super().__init__()
         # state
-        self.configuration_space = configuration_space
+        self.cs = cs
         self.size = size 
         self.position = position
         self._flagged = set()
@@ -153,17 +152,17 @@ class Plotter2d(Widget):
         self._plot_margin = vec4((0, 0, 0, 0))
         self.grid = None 
         self._plot_container = None 
-        self.domains = OrderedDict()
+        self._graphs = OrderedDict()
 
         self._initialized = False
         
 
 
     def __setitem__(self, key, value):
-        self.domains[key] = value
+        self._graphs[key] = value
 
     def add(self, value):
-        self.domains[id(value)] = value 
+        self._graphs[id(value)] = value 
         return self 
         
     def __iadd__(self, value):
@@ -176,10 +175,14 @@ class Plotter2d(Widget):
         self._init_grid()
         self._init_ubo()
 
-        for d in self.domains.values():
-            d.configuration_space = self.configuration_space
+        for d in self._graphs.values():
+            try:
+                cs = d.cs
+            except Exception:
+                d.cs = self.cs.values
             d.frame               = self._plot_container.widget
             d.init()
+
 
         self._initialized = True
 
@@ -198,10 +201,10 @@ class Plotter2d(Widget):
         """ initializes grid component """
         major_grid = transform_observables(
             transformation=grid, 
-            observables=(self.axes_unit, self.configuration_space))
+            observables=(self.axes_unit, self.cs))
         self.grid = CartesianGrid(
             size                = self._plot_container.widget.size,
-            configuration_space = self.configuration_space,
+            cs = self.cs,
             major_grid          = major_grid,
             major_grid_color    = self._style['grid-color'],
             minor_grid_color    = self._style['grid-sub-color'],
@@ -209,11 +212,11 @@ class Plotter2d(Widget):
             resolution          = self._plot_container.widget.resulution,
             minor_grid_n        = self.minor_axes_n)
 
-    @configuration_space.on_change 
+    @cs.on_change 
     def update_ubo(self, *e):
-        self.ubo.host['mat_cs']  = mat_cs(self.configuration_space, self._plot_container.widget.resulution)
-        self.ubo.host['cs']      = self.configuration_space.values
-        self.ubo.host['cs_size'] = configuration_space_size(self.configuration_space)
+        self.ubo.host['mat_cs']  = mat_cs(self.cs, self._plot_container.widget.resulution)
+        self.ubo.host['cs']      = self.cs.values
+        self.ubo.host['cs_size'] = cs_size(self.cs)
         self.ubo.sync_gpu()
 
     def _init_plot_camera(self):
@@ -263,7 +266,7 @@ class Plotter2d(Widget):
             self.grid.draw()
 
             self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
-            for d in self.domains.values():
+            for d in self._graphs.values():
                 d.draw()
             self._plot_container.widget.unuse()
         self.on_post_plot()
@@ -272,80 +275,6 @@ class Plotter2d(Widget):
 
     def draw(self):
         self._plot_container.render() 
-
-f = lambda x: np.sin(4*x)**2
-td = np.array([((0.0005*x, f(0.001*x)), (1, 0)) for x in range(2000)], dtype=np.dtype([('vertex', np.float32, 2), ('color', np.float32, 2)]))
-
-#random walk
-l, s, v = 10000, 10, 0
-tdd = np.zeros(l, np.float32)
-for i, r in enumerate(np.random.rand(l*s)):
-    v += 0.01 * np.sign(r - .5)
-    if not i % s: tdd[int(i/s)] = v
-tdd /= np.max(np.abs(tdd))
-
-
-
-
-
-class TestGraph(Widget):
-    configuration_space = attributes.VectorAttribute(4)
-    frame = attributes.ComponentAttribute()
-    def __init__(self, configuration_space, frame, point_size=4):
-        self.frame = frame
-        self.configuration_space = configuration_space
-        self.program = TestGraphProgram()
-        self.point_size = point_size
-        self.mesh = StridedVertexMesh(td, GL_POINTS, self.program.attributes)
-        self.upload_point_size()
-
-    @frame.on_change('resulution')
-    @frame.on_change('size')
-    def upload_point_size(self, *e):
-        self.program.uniform('point_size', self.point_size * max(1.0, self.frame.resulution[0]/self.frame.size[0]))
-
-
-    def draw(self):
-        glEnable(GL_PROGRAM_POINT_SIZE)
-        self.program.use()
-        self.mesh.draw()
-        self.program.unuse()
-
-
-
-class TestGraphProgram(Program):
-    def __init__(self):
-        super().__init__()
-        self.shaders.append(Shader(GL_VERTEX_SHADER, """
-            {% version %}
-            {% uniform_block camera %}
-            {% uniform_block plot %}
-            in vec2 vertex;
-            in vec2 color;
-            uniform float point_size = 1;
-            out vec2 frg_color;
-            void main() {
-                if (camera.mat_view[0][0] == 1){}
-                gl_Position = camera.mat_projection * camera.mat_view * vec4((plot.mat_cs * vec4(vertex, 0, 1)).xyz, 1);
-                frg_color = color;
-                gl_PointSize = point_size;
-            }
-        """))
-        self.shaders.append(Shader(GL_FRAGMENT_SHADER, """
-            {% version %}
-            out vec4 out_color;
-            in vec2 frg_color;
-            void main() {
-                out_color = vec4(frg_color.x, 0, 0,1);
-            }
-        """))
-
-        self.declare_uniform('camera', Camera2D.DTYPE, variable='camera')
-        self.declare_uniform('plot', Plotter2d.UBO_DTYPE, variable='plot')
-        self.link()
-        self.uniform_block_binding('plot', GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
-
-
 
 
 

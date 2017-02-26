@@ -7,6 +7,7 @@ from OpenGL.GL import *
 from gpupy.gl import GPUPY_GL
 import numpy as np
 from functools import partial
+from scipy.ndimage import imread as sc_imread
 
 class Event(list):
     """
@@ -71,6 +72,7 @@ def glbool(v): return GL_TRUE if v else GL_FALSE
 def glfloat(v): return np.float32(v)
 def glint(v): return int(v)
 
-
-
-
+def imread(name, flatten=False, mode=None, normalize=255.0, dtype=np.float32):
+    txt = sc_imread(name, flatten=flatten, mode=mode).astype(dtype)
+    txt = txt.reshape((txt.shape[1], txt.shape[0], txt.shape[2]))
+    return txt / normalize

@@ -335,6 +335,7 @@ class Shader():
 
             error_log = glGetShaderInfoLog(self.gl_shader_id)
             if error_log:
+                print(self._precompiled_source)
                 self.delete()
                 self._serr('{}'.format(error_log))
 
@@ -345,6 +346,8 @@ class Shader():
         # substitutions
         self._precompiled_source = re.sub(r'\{\%\s+version\s+\%\}', "#version {}".format(self.substitutions['VERSION']), self._precompiled_source, flags=re.MULTILINE)
 
+        for n, v in self.substitutions.items():
+            self._precompiled_source = self._precompiled_source.replace('${'+str(n)+'}', str(v))
         for n, v in self.substitutions.items():
             self._precompiled_source = self._precompiled_source.replace('${'+str(n)+'}', str(v))
 

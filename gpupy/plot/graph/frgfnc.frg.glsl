@@ -4,11 +4,10 @@ in vec2 frag_pos;
 out vec4 frag_color;
 
 {% uniform_block plot %}
-uniform sampler1D tex;
 uniform vec2 u_x_space;
 
-${frg_declr}
-${frg_domain}
+${glsl_header}
+${glsl_declr}
 ${clr_kernel}
 
 void main() {

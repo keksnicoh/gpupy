@@ -76,22 +76,22 @@ class Plotter2dBasic():
         size = vec2(self.window.get_size())
         self.camera = Camera2D(screensize=size, position=size.observe_as_vec3(lambda v: (v[0]/2, v[1]/2, 0)))
         s = self.window.get_size()
-        self.plotter = Plotter2d((s[0], s[1]/4), configuration_space=(0, 1, 0, 1))
+        self.plotter = Plotter2d((s[0], s[1]/4), cs=(0, 1, 0, 1))
         self.plotter.axes_unit = (np.pi/4, 0.25)
         self.plotter.plot_padding = (10,10,10,10)
-        self.plotter2 = Plotter2d((s[0], s[1]/4), (0, s[1]/4, 0, 1), configuration_space=(0, 2, 0, 2))
-        self.plotter3 = Plotter2d((s[0]/4, s[1]/4), (0, 2*s[1]/4, 0, 1), configuration_space=(0, 2, 0, 1))
-        self.plotter32 = Plotter2d((s[0]/4, s[1]/4), (s[0]/4, 2*s[1]/4, 0, 1), configuration_space=(0, 1, 0, 3))
+        self.plotter2 = Plotter2d((s[0], s[1]/4), (0, s[1]/4, 0, 1), cs=(0, 2, 0, 2))
+        self.plotter3 = Plotter2d((s[0]/4, s[1]/4), (0, 2*s[1]/4, 0, 1), cs=(0, 2, 0, 1))
+        self.plotter32 = Plotter2d((s[0]/4, s[1]/4), (s[0]/4, 2*s[1]/4, 0, 1), cs=(0, 1, 0, 3))
         self.plotter32._plot_container.border = (5,5,5,5)
         self.plotter32._plot_container.margin = (15,15,15,15)
         self.plotter32._plot_container.border_color = (1,0,1,0.5)
-        self.plotter33 = Plotter2d((s[0]/4, s[1]/4), (2*s[0]/4, 2*s[1]/4, 0, 1), configuration_space=(0.5, 1, 0, 1))
+        self.plotter33 = Plotter2d((s[0]/4, s[1]/4), (2*s[0]/4, 2*s[1]/4, 0, 1), cs=(0.5, 1, 0, 1))
         self.plotter33._plot_container.border = (1,1,1,1)
         self.plotter33._plot_container.margin = (15,15,15,15)
         self.plotter33.plot_padding = (15,15,15,15)
         self.plotter33._plot_container.border_color = (1,0,1,0.5)
-        self.plotter34 = Plotter2d((s[0]/4, s[1]/4), (3*s[0]/4, 2*s[1]/4, 0, 1), configuration_space=(-1, 1, -1, 1))
-        self.plotter4 = Plotter2d((s[0], s[1]/4), (0, 3*s[1]/4, 0, 1), configuration_space=(0, .05, 0, .3), axes_unit=(0.025, 0.025))
+        self.plotter34 = Plotter2d((s[0]/4, s[1]/4), (3*s[0]/4, 2*s[1]/4, 0, 1), cs=(-1, 1, -1, 1))
+        self.plotter4 = Plotter2d((s[0], s[1]/4), (0, 3*s[1]/4, 0, 1), cs=(0, .05, 0, .3), axes_unit=(0.025, 0.025))
         self.plotter4.plot_padding = (1,2,9,18)
         self.plotter4._plot_container.border = (0,23,0,3)
         self.plotter4._plot_container.margin = (12,0,0,9)
@@ -109,22 +109,22 @@ class Plotter2dBasic():
         check_cs = False
         speed = 0.005
         if 68 in self.window.keyboard.active: #d
-            self.plotter.configuration_space += (speed, speed, 0, 0)
+            self.plotter.cs += (speed, speed, 0, 0)
         if 65 in self.window.keyboard.active: #a
-            self.plotter.configuration_space -= (speed, speed, 0, 0)
+            self.plotter.cs -= (speed, speed, 0, 0)
         if 87 in self.window.keyboard.active: #w
-            self.plotter.configuration_space += (0, 0, speed, speed)
+            self.plotter.cs += (0, 0, speed, speed)
         if 83 in self.window.keyboard.active: #s
-            self.plotter.configuration_space -= (0, 0, speed, speed)
+            self.plotter.cs -= (0, 0, speed, speed)
         if 32 in self.window.keyboard.active and 340 in self.window.keyboard.active: #s
             check_cs = True
-            self.plotter.configuration_space *= (+1.01, 1.01, +01.01, 1.01)
+            self.plotter.cs *= (+1.01, 1.01, +01.01, 1.01)
         elif 32 in self.window.keyboard.active: #s
             check_cs = True
-            self.plotter.configuration_space *= (+0.99, .99, +0.99, .99)
+            self.plotter.cs *= (+0.99, .99, +0.99, .99)
         if check_cs:
             au = self.plotter.axes_unit
-            css = self.plotter.configuration_space_size
+            css = self.plotter.cs_size
             n = (css.x/au.x, css.y/au.y)
             if n[0] > 10:
                 self.plotter.axes_unit.x = css.x/5

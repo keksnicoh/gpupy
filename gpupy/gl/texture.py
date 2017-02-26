@@ -5,6 +5,7 @@ texture utilities
 :author: Nicolas 'keksnicoh' Heimann
 """
 from gpupy.gl import GPUPY_GL
+from gpupy.gl.common import imread
 from OpenGL.GL import *
 import numpy as np
 
@@ -25,16 +26,6 @@ NEAREST_FILTERS = {
     GL_TEXTURE_MAG_FILTER: GL_NEAREST,
     GL_TEXTURE_MIN_FILTER: GL_NEAREST
 }
-
-# 1d
-# (n,) (n, d)
-
-# 2d
-# (nx, ny, d)
-
-# 3d
-# (nx, ny, nz, d)
-
 
 
 
@@ -350,6 +341,11 @@ class Texture2D(AbstractTexture):
         texture = Texture2D(gl_texture_id=my_texture_id)
     """
     DIMENSION = 2
+
+    @classmethod
+    def imread(cls, name, flatten=False, mode=None, normalize=255.0, dtype=np.float32):
+        return cls.to_device(imread(name, flatten=False, mode=None, normalize=255.0, dtype=np.float32))
+
 
     def __init__(self,
         gl_texture_id=None,

@@ -34,7 +34,7 @@ class AbstractGrid(Widget):
     size                 = attributes.VectorAttribute(2)
     resolution           = attributes.VectorAttribute(2)
     position             = attributes.VectorAttribute(4)
-    configuration_space  = attributes.VectorAttribute(4)
+    cs  = attributes.VectorAttribute(4)
 
     # grid configuration
     major_grid         = attributes.VectorAttribute(2, (.5, .5))
@@ -50,18 +50,18 @@ class AbstractGrid(Widget):
 
     def __init__(self, size, 
                        position                 = (0, 0, 0, 1), 
-                       configuration_space      = (0,0), 
-                       major_grid                     = (1,1), 
+                       cs                       = (0,0), 
+                       major_grid               = (1,1), 
                        background_color         = (1, 1, 1, 1), 
-                       major_grid_color               = (0, 0, 0, 1),
+                       major_grid_color         = (0, 0, 0, 1),
                        resolution               = None,
-                       minor_grid_color           = (0,0,0,1),
-                       minor_grid_n = (5, 5)):
+                       minor_grid_color         = (0,0,0,1),
+                       minor_grid_n             = (5, 5)):
 
         super().__init__()
         self.position = position
         self.size = size
-        self.configuration_space = configuration_space
+        self.cs = cs
 
         self.major_grid = major_grid
         self.major_grid_color = major_grid_color 
@@ -74,7 +74,7 @@ class AbstractGrid(Widget):
         self._init_plane()
 
     @size.on_change
-    @configuration_space.on_change
+    @cs.on_change
     @major_grid.on_change
     @minor_grid_n.on_change
     @minor_grid_width.on_change
@@ -101,10 +101,10 @@ class AbstractGrid(Widget):
       #  self.program.uniform('u_minor_grid_step', [0.25,np.pi/60.0])
 
       # cartesian
-        l1 = self.configuration_space.values * 1.0001
+        l1 = self.cs.values * 1.0001
 
         self.program.uniform('u_limits1',            l1)
-        self.program.uniform('u_limits2',            self.configuration_space)
+        self.program.uniform('u_limits2',            self.cs)
         self.program.uniform('u_major_grid_step',    self.major_grid)
         self.program.uniform('u_minor_grid_step',    self.major_grid.values/self.minor_grid_n)
         self.program.uniform('u_major_grid_width',   self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0]))

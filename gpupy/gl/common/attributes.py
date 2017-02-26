@@ -8,6 +8,7 @@ descriptor library.
 from gpupy.gl.common.observables import *
 from gpupy.gl.common.vector import vecn
 from gpupy.gl.common import Event 
+from gpupy.gl import BufferObject
 
 from weakref import WeakKeyDictionary
 from functools import partial 
@@ -86,7 +87,8 @@ class Attribute():
 
     def __set__(self, instance_obj, val):
         if not instance_obj in self._val:
-            self._register(instance_obj, None, val)
+            if val is not None:
+                self._register(instance_obj, None, val)
            # self._val[instance_obj].on_change(self._val[instance_obj].val)
         else:
             self.__assign__(self._val[instance_obj], self._val[instance_obj].transformation(val))
@@ -122,7 +124,7 @@ class Attribute():
         if self._transformation is not None:
             transformation = partial(self._transformation, instance_obj)
         
-        val = val or self._default
+        val = val if val is not None else self._default
 
         trans_value = transformation(observable_value(val))
         host_on_change = observable_event(val)
@@ -322,7 +324,25 @@ class ComponentAttribute(Attribute):
 from gpupy.gl.texture import Texture1D, Texture2D, Texture3D, AbstractTexture
 
 class GlTexture(Attribute):
+    """
+    stores a gpupy.gl.texture.AbstractTexture instance.
 
+    when a texture object is defined the attribute setter
+    passes the value to gpupy.gl.texture.AbstractTexture.set(data).
+
+    initially a texture must be defined:
+    i) use to_device kwarg to define a function which creates
+       a texture from a numpy.ndarray
+
+       ```python
+       texture = attributres.GlTextures(to_device=Texture2d.to_device)
+       ```
+
+    ii) set a texture object
+        ```python
+        obj.texture = Texture2d(...)
+
+    """
     def __init__(self, to_device=None):
         if to_device is not None and not hasattr(to_device, '__call__'):
             raise ValueError()
@@ -334,7 +354,6 @@ class GlTexture(Attribute):
         hastex = instance_obj in self._val
         if not hastex:
             _t = self._register(instance_obj, None, val)
-            hastex and self.on_change(_t)
         else:
             _t = self._val[instance_obj]
             _t.set(val)
@@ -358,6 +377,34 @@ class GlTexture(Attribute):
 
         self._val[instance_obj] = _t
         return _t
+
+class BufferObjectAttribute(Attribute):
+    def __init__(self):
+        super().__init__()
+
+    def __get__(self, instance_obj, obj_type):
+        if not instance_obj in self._val:
+            self._register(instance_obj, obj_type)
+        return self._val[instance_obj]
+
+    def __set__(self, instance_obj, val):
+        hasbuf = instance_obj in self._val 
+        isbuf = isinstance(val, BufferObject)
+        if not hasbuf:
+            _b = self._register(instance_obj, None, val)
+        elif isbuf:
+            self._val[instance_obj] = val 
+            self.on_change(val)
+        else:
+            self._val[instance_obj].set(val)
+
+    def _register(self, instance_obj, obj_type, val=None):
+        if isinstance(val, BufferObject):
+            self._val[instance_obj] = val
+        else:
+            self._val[instance_obj] = BufferObject.to_device(val)
+
+        return self._val[instance_obj]
 
 class ObservablesAccessor():
     def __init__(self, host):

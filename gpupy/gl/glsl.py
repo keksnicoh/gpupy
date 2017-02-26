@@ -61,6 +61,25 @@ NPVECTOR_TO_GLVECTOR = {
     '<f8': 'dvec'
 }
 
+
+def dtype_vector(dtype, dim):
+    dtype_descr = dtype.descr[0][1]
+    if dim == 1:
+        return SUPPORTED_VECOTR_TYPS[dtype_descr]
+    elif dim < 5:
+        return '{}{}'.format(NPVECTOR_TO_GLVECTOR[dtype_descr], dim)
+
+    raise GlslRenderError((
+        'invalid type declaration in dtype field "{}".'
+        ' {} components declrared but maximum is 4.'
+    ).format(field, dimension))
+
+def dtype_is_struct(dtype):
+    descr = dtype.descr 
+    return not len(descr) == 1 or descr[0][0] != ''
+
+#SUPPORTED_VECOTR_TYPS
+
 def render_uniform_block_from_dtype(name, dtype, layout, length=None, structs={}, variable=None):
     """
     renders a glsl uniform block by a given dtype
@@ -99,7 +118,84 @@ def render_struct_from_dtype(name, dtype):
 
     return gl_code
 
-def render_struct_items_from_dtype(dtype, structs={}, length=None):
+def dtype_fields_glsl(dtype, structs={}, prefix=''):
+    fields = []
+
+    for ndeclr in dtype.descr:
+        shape = ndeclr[2] if len(ndeclr) > 2 else (1, )
+        field, dtype_descr = ndeclr[0], ndeclr[1]
+        # we have either a scalar, vector or struct as field type.
+        if len(shape) == 1:
+            # the type is a numpy structure.
+            # check if the dtype is defined by one structure
+            # within the structs argument. 
+            if isinstance(dtype_descr, list):
+                sub_dtype = np.dtype(dtype_descr)
+                gl_type = None
+                for struct_name, struct_dtype in structs.items():
+                    if struct_dtype == sub_dtype:
+                        if gl_type is None:
+                            gl_type = struct_name
+                        else:
+                            # XXX:
+                            # - enable the possibility to declare sub dtypes.
+                            raise GlslRenderError((
+                                'cannot match field "{}". Its type is the'
+                                + 'same as the definition of "{}" and "{}" structs.'
+                            ).format(field, gl_type, struct_name))
+
+                if gl_type is None:
+                    raise GlslRenderError('cannot render field "{}". No structure defined for the field.'.format(field))
+            # should be a scalar or vector field type
+            else:
+                if not dtype_descr in SUPPORTED_VECOTR_TYPS:
+                    raise GlslRenderError((
+                        'invalid type ({}) declaration in dtype field "{}".'
+                        ' Supported {} types are: {}'
+                    ).format(dtype_descr, 
+                             field, 
+                             ('vector' if shape[0] > 1 else 'scalar'),
+                             ', '.join(SUPPORTED_VECOTR_TYPS.values())))
+                # check vector size
+                if shape[0] == 1:
+                    gl_type = SUPPORTED_VECOTR_TYPS[dtype_descr]
+                elif shape[0] < 5:
+                    gl_type = '{}{}'.format(NPVECTOR_TO_GLVECTOR[dtype_descr], shape[0])
+                else:
+                    raise GlslRenderError((
+                        'invalid type declaration in dtype field "{}".'
+                        ' {} components declrared but maximum is 4.'
+                    ).format(field, shape[0]))
+            # create scalar or vector declarations
+            fields.append((gl_type, field))
+
+        # matrix types
+        elif len(shape) == 2:
+
+            # matrix size check
+            if shape[0] > 4 or shape[1] > 4:
+                raise GlslRenderError((
+                    'invalid type declaration in dtype field "{}": '
+                    'Matrix dimensions {}x{} exceed maximum of 4x4'
+                ).format(field, shape[0], shape[1]))
+
+            # matrix type check
+            if dtype_descr not in SUPPORTED_MATRIX_TYPES:
+                raise GlslRenderError((
+                    'invalid type ({}) declaration in dtype field "{}". '
+                    'Supported matrix types: {}'
+                ).format(dtype_descr, field, ', '.join('{}={}'.format(*a) for a in SUPPORTED_MATRIX_TYPES.items())))
+
+            # create matN or matNxM as well as dmatN or dmatNxM
+            dimensions = '{}x{}'.format(*shape) if shape[0] != shape[1] else shape[0]
+            fields.append(('{}{}'.format(SUPPORTED_MATRIX_TYPES[dtype_descr], dimensions), field))
+
+        else:
+            raise GlslRenderError('unsupported field type in field "{}": {}'.format(field, dtype_descr))
+
+    return fields
+
+def render_struct_items_from_dtype(dtype, structs={}, length=None, prefix=''):
     """
     renders a string of glsl code which represents the data declaration
     of a structure. 
@@ -189,7 +285,7 @@ def render_struct_items_from_dtype(dtype, structs={}, length=None):
                     ).format(field, shape[0]))
 
             # create scalar or vector declarations
-            gl_code += "\t{} {}{};\n".format(gl_type, field, '[{:d}]'.format(length) if length is not None else '')
+            gl_code += "\t{} {}{}{};\n".format(gl_type, prefix, field, '[{:d}]'.format(length) if length is not None else '')
 
         # matrix types
         elif len(shape) == 2:
@@ -210,7 +306,7 @@ def render_struct_items_from_dtype(dtype, structs={}, length=None):
 
             # create matN or matNxM as well as dmatN or dmatNxM
             dimensions = '{}x{}'.format(*shape) if shape[0] != shape[1] else shape[0]
-            gl_code += "\t{}{} {};\n".format(SUPPORTED_MATRIX_TYPES[dtype_descr], dimensions, field)
+            gl_code += "\t{}{} {}{};\n".format(SUPPORTED_MATRIX_TYPES[dtype_descr], dimensions, prefix, field)
 
         else:
             raise GlslRenderError('unsupported field type in field "{}": {}'.format(field, dtype_descr))

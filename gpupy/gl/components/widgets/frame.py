@@ -15,7 +15,6 @@ from gpupy.gl import *
 from OpenGL.GL import *
 import numpy as np 
 from functools import partial 
-
 class FrameWidget(Widget):
 
 
@@ -65,7 +64,7 @@ class FrameWidget(Widget):
     plane_size   = attributes.ComputedAttribute(size, descriptor=attributes.VectorAttribute(2))
     clear_color  = attributes.VectorAttribute(4)
 
-    def __init__(self, size, resulution=None, position=(0,0,0,1), multisampling=None, post_effects=None, blit=None, clear_color=(0, 0, 0, 1)):
+    def __init__(self, size, resulution=None, position=(0,0,0,1), multisampling=None, post_effects=None, blit=None, clear_color=(0, 0, 0, 1), preload_factor=2):
         """
         creates a framebuffer of *size* and *resulution* 
         at *position*.
@@ -77,23 +76,28 @@ class FrameWidget(Widget):
         # - multisampling 
         # - post effects
         # - blit/record mode
+
         super().__init__()
+        self._res = None
         self.size         = size
         self.position     = position
         self.resulution = resulution if resulution is not None else self.size
         self.viewport     = Viewport((0, 0), self.resulution)
         self.texture      = None
         self.clear_color  = clear_color
-        
+        self.preload_factor = preload_factor
         self._init_capturing()
         self._init_plane()
+
+        
 
         self._require_resize = False 
 
     # -- initialization --
 
     def _init_capturing(self):
-        self.texture = Texture2D.empty((*self.resulution.xy, 4), np.float32)
+        self._res = self.preload_factor*self.resulution.values
+        self.texture = Texture2D.empty((*self._res, 4), np.float32)
         self.texture.interpolation_linear()
         self.framebuffer = Framebuffer()
         self.framebuffer.color_attachment(self.texture)
@@ -102,6 +106,7 @@ class FrameWidget(Widget):
 
     @resulution.on_change
     def resulution_changed(self, value):
+
         self._require_resize = True 
 
     def _init_plane(self):
@@ -114,7 +119,7 @@ class FrameWidget(Widget):
         self.program.uniform('size', self.plane_size.xy)
         self.program.uniform('mat_model', np.identity(4, dtype=np.float32))
         self.program.uniform('position', self.position.xyzw)
-
+        self.program.uniform('rf', (self.resulution[0]/self._res[0], self.resulution[1]/self._res[1]))
         self.position.on_change.append(partial(self.program.uniform, 'position'))
         self.size.on_change.append(partial(self.program.uniform, 'size'))
 
@@ -133,7 +138,10 @@ class FrameWidget(Widget):
 
     def tick(self):
         if self._require_resize:
-            self.texture.resize(self.resulution) 
+            if self._res[0] < self.resulution[0] or self._res[1] < self.resulution[1]:
+                self._res = self.resulution.values * self.preload_factor
+                self.texture.resize(self._res) 
+            self.program.uniform('rf', (self.resulution[0]/self._res[0], self.resulution[1]/self._res[1]))
             self._require_resize = False
 
     def render(self):
@@ -148,7 +156,7 @@ class FrameWidget(Widget):
 
     def use(self): 
         self.framebuffer.use()
-        self.viewport.use((0, 0), self.resulution.xy_gl_int)
+        self.viewport.use((0, 0), np.array(self.resulution, dtype=np.int32))
         glClearColor(*self.clear_color)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -169,6 +177,7 @@ class FrameProgram(Program):
             in vec2 tex;
             out vec2 frag_pos;
             uniform mat4 mat_model;
+            uniform vec2 rf;
             uniform vec2 size;
             void main() {
                 gl_Position = outer_camera.mat_projection 
@@ -177,7 +186,7 @@ class FrameProgram(Program):
                                    position.y + size.y*vertex.y, 
                                    position.z + vertex.z, 
                                    vertex.w);
-                frag_pos = tex;
+                frag_pos = tex*rf;
             }
         """))
 
@@ -188,6 +197,7 @@ class FrameProgram(Program):
             out vec4 frag_color;
             void main() {
                 frag_color = texture(frame_texture, frag_pos);
+                //frag_color = vec4(0, frag_pos.y, 0, 1);
             }
         """))
 

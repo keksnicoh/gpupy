@@ -50,7 +50,7 @@ class Qt5GlWidget(QOpenGLWidget):
         size = (size.width(), size.height())
         self.camera = Camera2D(screensize=size, position=(0,0,1))
 
-        self.plotter = Plotter2d(size, configuration_space=(0, 1, -1, 1))
+        self.plotter = Plotter2d(size, cs=(0, 1, -1, 1))
 
         def dd(*e):
             print(e)
