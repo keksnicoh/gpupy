@@ -110,22 +110,18 @@ def main(window):
 
 
 def plot(plotter):
+
     # some 1d fragment tests
-    plotter['jau'] = Frag1DGraph.glsl_transformation(
-        'sin(x)', 
-        cs=plotter.cs)
-    plotter += Frag1DGraph.glsl_transformation(
-        'cos(10*x)/(1+x*x)', 
-        cs=plotter.cs, 
-        color_kernel=('expr', "vec4(fc.y+0.5, 0, 1-fc.y-.5, exp(-2*abs(xsd)))"))
-    plotter += Frag1DGraph.glsl_transformation(
-        'sin(8*x)/(1.2+sin(x))', 
-        cs=plotter.cs,
-        color_kernel=('function', "if (xsd > 0) { discard; } return vec4(0, fc.y+0.5, 1-fc.y-.2, 0.2*exp(-2*abs(xsd))); "))
-    plotter += Frag1DGraph.glsl_transformation(
-        'x*x', 
-        cs=plotter.cs, 
-        color_kernel=('expr', "vec4(fc.x+0.2, .4, 1-fc.y-.5, exp(-2*abs(xsd)))"))
+
+    # sine on dynamic configuration space
+    plotter['jau'] = Frag1DGraph.glsl_transformation('sin(x)', 
+        cs=plotter.cs.observe(lambda cs: (cs[0], cs[1], -1, 1)))
+
+    # lets plot a parapula within [-5, 5, 0, 25]
+    func = 'x*x'
+    color = "vec4(abs(fc.x)+0.2, .4, 1-abs(fc.y)-.5, exp(-2*abs(xsd)))"
+    cs = (-5, 5, 0, 25)
+    plotter += Frag1DGraph.glsl_transformation(func, cs=cs, color_kernel=('expr', color))
 
     import os
 
@@ -157,71 +153,97 @@ def plot(plotter):
     plotter += gg
 
 
+    # ------ TEST GL POINT GRAPHS -------
+
+    # default behavior 
+    data = np.array([(x, 2*np.sin(x)) for x in (x/1000 for x in range(-2000, 2000))], dtype=np.float32)
+    plotter += GlPointsGraph(domain.VertexDomain(data))
+
+    # struct access with custom kernel
+    data = np.array([((x, 1*np.sin(10*x)), ) for x in (x/1000 for x in range(-2000, 2000))], dtype=np.dtype([('xy', (np.float32, 2))]))
+    plotter += GlPointsGraph(domain.VertexDomain(data), kernel="vec2 kernel() { return ${DOMAIN}_xy; } ")
+
+    # simple dynamic domain
+    data = np.arange(0, 1, .0001, dtype=np.float32)
+    plotter += GlPointsGraph(domain.VertexDomain(data), kernel="""vec2 kernel() { 
+        v_col = vec4(1,1,1,1);
+        gl_PointSize = 4;
+        float x = cartesian_x(${DOMAIN});
+        return vec2(x, 1/x);
+    }""")
 
 
-    data = np.array([
-        ((x, 2*np.sin(x)), ) for x in (x/1000 for x in range(-2000, 2000))
-    ], dtype=np.dtype([
-        ('point', (np.float32, 2))
-    ]))
+    # some fancy stuff and dynamic domain
+    data = np.arange(0, 1, .0001, dtype=np.float32)
+    plotter += GlPointsGraph(domain.VertexDomain(data), kernel="""vec2 kernel() { 
+        float cx = ${DOMAIN}+0.4;
+        v_col = vec4(sin(10*cx)*sin(10*cx),1,cos(10*cx)*cos(10*cx),1);
+        gl_PointSize = 5*cos(10*cx)*cos(10*cx);
+        float x = cartesian_x(${DOMAIN});
+        return vec2(x, sin(20*x) * sin(10*x) * cos(2*x) * cos(2*x) * cos(4*x) * sin(x));
+    }""")
 
 
+
+
+    # composing domains
     datax = np.array([x for x in (x/1000 for x in range(-2000, 2000))], dtype=np.float32)
     datay = np.array([2*np.sin(x) for x in (x/1000 for x in range(-2000, 2000))], dtype=np.float32)
-
     fd = np.array([
         x for x in (x/1000 for x in range(-2000, 2000))
     ], dtype=np.float32)
-
-    orrk = GlPointsGraph()
-    orrk['x'] = domain.VertexDomain(datax)
-    orrk['y'] = domain.VertexDomain(datay)
-    orrk['f'] = domain.VertexDomain(fd)
-    orrk.kernel = """
+    composed_graph = GlPointsGraph()
+    composed_graph['x'] = domain.VertexDomain(datax)
+    composed_graph['y'] = domain.VertexDomain(datay)
+    composed_graph['f'] = domain.VertexDomain(fd)
+    composed_graph.kernel = """
         vec2 kernel() {
             gl_PointSize = 3;
             v_col = vec4(sin(10*${DOMAIN:y})*sin(10*${DOMAIN:y}), cos(10*${DOMAIN:y})*cos(10*${DOMAIN:y}), 0.2, 1);
             return vec2(${DOMAIN:x}, ${DOMAIN:y} * ${DOMAIN:f});
         }
     """
+    plotter += composed_graph
 
 
-    plotter +=orrk
-
-    data = np.array([(x, 2*np.sin(x)) for x in (x/1000 for x in range(-2000, 2000))], dtype=np.float32)
-    orrk = GlPointsGraph(domain.VertexDomain(data))
-    orrk.kernel = "vec2 kernel() { return ${DOMAIN}.xy; } "
-    orrk.cs = plotter.cs
-
-    plotter +=orrk
-
-    data = np.array([((x, 1*np.sin(10*x)), ) for x in (x/1000 for x in range(-2000, 2000))], dtype=np.dtype([('xy', (np.float32, 2))]))
-    orrk = GlPointsGraph(domain.VertexDomain(data))
-    orrk.kernel = "vec2 kernel() { return ${DOMAIN}_xy; } "
-    orrk.cs = plotter.cs
-
-    plotter +=orrk
 
 
-    data = np.arange(0, 1, .0001, dtype=np.float32)
-    orrk = GlPointsGraph(domain.VertexDomain(data))
-    orrk.kernel = """vec2 kernel() { 
-        float x = plot.cs.x + plot.cs_size.x * ${DOMAIN};
-        return vec2(x, sin(20*x) * sin(10*x) * cos(2*x) * cos(2*x) * cos(4*x) * sin(x));
-    } 
+    # ---- COMBINE TEXTURE AND VERTEX PLOT ------
+
+
+    g = GlPointsGraph()
+    g['x'] = domain.VertexDomain(np.arange(0, 15, .0001, dtype=np.float32))
+    g['y'] = domain.TextureDomain.to_device_1d(np.sin(np.arange(0, 15, .01, dtype=np.float32)))
+    g['y'].smooth(True)
+    g.kernel = """
+        vec2 kernel() {
+            v_col = vec4(0, 1, 1, 1);
+            gl_PointSize = 3;
+            return vec2(${DOMAIN:x}, ${DOMAIN:y}(${DOMAIN:x}/15));
+        }
     """
-    plotter +=orrk
-
-    data = np.arange(0, 1, .0001, dtype=np.float32)
-    orrk = GlPointsGraph(domain.VertexDomain(data))
-    orrk['x'] = domain.TransformationDomain("""float ${FNAME}() { return plot.cs.x + plot.cs_size.x * ${DOMAIN}; } """)
-    orrk.kernel = """vec2 kernel() { float x = ${DOMAIN:x}();return vec2(x, ${DOMAIN:y}(x));} """
-    orrk['y'] = domain.TransformationDomain("""float ${FNAME}(float x) {return sin(20*x) * sin(10*x) * cos(2*x) * cos(2*x) * cos(4*x) * sin(x);}""")
-    plotter +=orrk
+    plotter += g
 
 
+    f = lambda x: 0.1*x*np.cos(x) 
+    h = lambda x: 0.1*x*np.sin(x)
+    c = lambda x: np.sin(2*x)**2
+    d = lambda x: 3+2*np.cos(5*x)*np.sin(2*x)
+    data = np.array([(f(x),h(x),c(x),d(x)) for x in np.arange(0, 100, .1)], dtype=np.float32)
+
+    g = GlPointsGraph(domain.TextureDomain.to_device_1d(data), kernel="""
+        vec2 kernel() {
+            vec4 d = ${DOMAIN}(${DOMAIN:arg});
+            ${SIZE} = d.w;
+            ${COLOR} = vec4(0.5+0.5*d.z, d.z, 1-d.z, d.w/5);
+            return vec2(2,2) + d.xy/5;
+        }
+    """)
+    g['arg'] = domain.VertexDomain(np.arange(0, 1, .00001, dtype=np.float32))
+    plotter += g
 
 
+    # ------ APPLY IMAGES TO PLOTTER -------
 
     # apply keksnicoh 
     keksnioh = domain.TextureDomain.colorwheel('keksnicoh')
@@ -231,6 +253,8 @@ def plot(plotter):
     plotter += Frag2DGraph(keksnioh, cs=(-4,-2,2,4), color_kernel="greyscale_avg")
     plotter += Frag2DGraph(keksnioh, cs=(-2,-0,2,4), color_kernel="greyscale_lightness")
     plotter += Frag2DGraph(keksnioh, cs=(-0,2,2,4), color_kernel="greyscale_luminosity")
+
+
 
 
 if __name__ == '__main__':

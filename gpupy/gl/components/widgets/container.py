@@ -46,11 +46,16 @@ class Container(Widget):
     border_color     = attributes.VectorAttribute(4)
 
     # transformed properties
-    content_position = attributes.ComputedAttribute(position, border, margin, padding, 
-        descriptor=attributes.VectorAttribute(4), some_test='TOO')
-    content_size     = attributes.ComputedAttribute(size, border, margin, padding,     
+    content_position = attributes.ComputedAttribute(
+        position, border, margin, padding, 
+        descriptor=attributes.VectorAttribute(4))
+
+    content_size = attributes.ComputedAttribute(
+        size, border, margin, padding,     
         descriptor=attributes.VectorAttribute(2))
-    border_size      = attributes.ComputedAttribute(size, border, margin,              
+
+    border_size = attributes.ComputedAttribute(
+        size, border, margin,              
         descriptor=attributes.VectorAttribute(2))
 
     def __init__(self, widget=None, 
@@ -76,24 +81,24 @@ class Container(Widget):
         self._init_borders()
 
     @content_size.transformation
-    def set_contentsize(self, size, border, margin, padding):
-        x = size.x - border.y - border.w - padding.y - padding.w - margin.y - margin.w
-        y = size.y - border.x - border.z - padding.y - padding.z - margin.x - margin.z
+    def set_contentsize(self, s, b, m, p):
+        x = s.x - b.y - b.w - p.y - p.w - m.y - m.w
+        y = s.y - b.x - b.z - p.y - p.z - m.x - m.z
         return (x, y)
 
 
     @border_size.transformation
-    def weewewwe(self, size, border, margin):
-        x = size.x - border.y - border.w - margin.y - margin.w
-        y = size.y - border.x - border.z - margin.x - margin.z
+    def weewewwe(self, s, b, m):
+        x = s.x - b.y - b.w - m.y - m.w
+        y = s.y - b.x - b.z - m.x - m.z
         return (x, y)
 
 
     @content_position.transformation
-    def swtwef(self, position, border, margin, padding):
-        x = position.x + border.w + padding.w + margin.w
-        y = position.y + border.x + padding.x + margin.x
-        return (x, y, position.z, position.w)
+    def swtwef(self, p, b, m, pd):
+        x = p.x + b.w + pd.w + m.w
+        y = p.y + b.x + pd.x + m.x
+        return (x, y, p.z, p.w)
 
 
     @border_color.on_change 

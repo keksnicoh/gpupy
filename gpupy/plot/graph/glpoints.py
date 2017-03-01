@@ -18,9 +18,9 @@ import os
 
 class GlPointsGraph(DomainGraph):
 
-    def __init__(self, domain=None):
+    def __init__(self, domain=None, kernel=None):
         super().__init__(domain)
-        self.kernel = None
+        self.kernel = kernel or """vec2 kernel() { return ${DOMAIN}; } """
 
     def init(self): 
         self._init_program()
@@ -39,7 +39,7 @@ class GlPointsGraph(DomainGraph):
         _p.declare_uniform('plot', plotter2d.Plotter2d.UBO_DTYPE, variable='plot')
 
         _p.get_shader(GL_VERTEX_SHADER).substitutions.update({
-            'vrt_kernl': self.kernel,
+            'vrt_kernl': self.kernel.replace('${COLOR}', 'v_col').replace('${SIZE}', 'gl_PointSize'),
             'DOMAIN': self.domains[self.main_domain][1]
         })
 
@@ -48,6 +48,14 @@ class GlPointsGraph(DomainGraph):
         
         _p.uniform_block_binding('plot', G_.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
         _p.uniform_block_binding('camera', G_.CONTEXT.buffer_base('gpupy.gl.camera'))
+
+        txunits = []
+        for name, (d, pre) in self.domains.items():
+            d.enable(txunits)
+            d.uniforms(_p, name)
+
+
+        
 
     def _init_vao(self):
         self.vao = glGenVertexArrays(1)
@@ -60,9 +68,19 @@ class GlPointsGraph(DomainGraph):
         glBindVertexArray(0)
 
     def draw(self):
+        self.program.uniform('u_resolution', self.resolution.xy)
+        self.program.uniform('u_viewport', self.viewport.xy)
+
+        length = None
+        txunits = []
+        for n, (d, p) in self.domains.items():
+            d.enable(txunits)
+            if hasattr(d, 'attrib_pointers'):
+                length = len(d)
+
         glEnable(GL_PROGRAM_POINT_SIZE)
         self.program.use()
         glBindVertexArray(self.vao)
-        glDrawArrays(GL_POINTS, 0, len(self[self.main_domain]))
+        glDrawArrays(GL_POINTS, 0, length)
         glBindVertexArray(0)
         self.program.unuse()

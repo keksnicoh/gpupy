@@ -1,28 +1,21 @@
 from gpupy.plot.style import *
 
+from gpupy.gl.components import Component
 from gpupy.gl.components.camera import Camera2D
-
 from gpupy.gl.components.widgets import Widget
 from gpupy.gl.components.widgets.frame import FrameWidget
 from gpupy.gl.components.widgets.grid import CartesianGrid
 from gpupy.gl.components.widgets.container import Container
 
-from gpupy.gl.common.attributes import CastedAttribute
-from gpupy.gl.common import attributes
-from gpupy.gl.common.observables import transform_observables
-
+from gpupy.gl.common import Event, attributes, observables
 from gpupy.gl.common.vector import *
-from gpupy.gl.common import Event
-from gpupy.gl.mesh import StridedVertexMesh, mesh3d_rectangle
 from gpupy.gl import *
-from gpupy.plot.domain import TextureDomain, TransformationDomain, DependencyError
-
-from gpupy.gl.components import Component
-from collections import OrderedDict
 
 from OpenGL.GL import * 
+
 import numpy as np 
 from functools import partial 
+from collections import OrderedDict
 
 DEFAULT_STYLE = {
     'border':                '0 1 1 0 #528682ff',
@@ -32,8 +25,8 @@ DEFAULT_STYLE = {
     'plot-background-color': '#161c20ff',
     'plot-padding':          '0 0 0 0',
     'min-size':              '100 100',
-    'grid-color': '#5f6f77ff',
-    'grid-sub-color': '#3c4c55ff',
+    'grid-color':            '#5f6f77ff',
+    'grid-sub-color':        '#3c4c55ff',
 }
 
 
@@ -72,10 +65,12 @@ def mat_cs(cs, res):
     """ mat4 for projecting from configuration space **cs** 
         to vertex space of having resolution **res** """
     cl = cs_size(cs)
+    tx = -res.x/cl[0]*(cs[0])
+    ty = res.y*(1+cs[2]/cl[1])
     return np.array([res.x/cl[0], 0, 0, 0,
                      0, -res.y/cl[1], 0, 0, 
                      0, 0, 1, 0,
-                     -res.x/cl[0]*(cs[0]), res.y*(1+cs[2]/cl[1]), 0, 1,], np.float32).reshape((4,4))
+                     tx, ty, 0, 1,], np.float32).reshape((4,4))
 
 class Plotter2d(Widget):
     UBO_DTYPE = np.dtype([
@@ -100,7 +95,7 @@ class Plotter2d(Widget):
 
     # the plot plane is implemented via framebuffer. this factor 
     # allows to adjust the resolution of the framebuffer viewport.
-    plot_resolution_factor = CastedAttribute(float, 1)
+    plot_resolution_factor = attributes.CastedAttribute(float, 1)
 
     background_color       = attributes.VectorAttribute(4, (0, 0, 0, 1))
     plot_background_color  = attributes.VectorAttribute(4, (0, 0, 0, 1))
@@ -123,6 +118,7 @@ class Plotter2d(Widget):
         self.position = position
         self._flagged = set()
 
+        self._redraw = True
         if axes_unit is not None:
             self.axes_unit = axes_unit
 
@@ -130,8 +126,8 @@ class Plotter2d(Widget):
         self._style = Style({
             'border':                parse_4f1_1c4,
             'background-color':      parse_1c4,
-            'grid-color':      parse_1c4,
-            'grid-sub-color':      parse_1c4,
+            'grid-color':            parse_1c4,
+            'grid-sub-color':        parse_1c4,
             'plot-background-color': parse_1c4,
             'plot-padding':          parse_4f1,
             'min-size':              parse_2f1,
@@ -155,11 +151,15 @@ class Plotter2d(Widget):
         self._graphs = OrderedDict()
 
         self._initialized = False
-        
 
+    # -- graph api
 
     def __setitem__(self, key, value):
         self._graphs[key] = value
+
+
+    def __getitem__(self, key):
+        return self._graphs[key]
 
     def add(self, value):
         self._graphs[id(value)] = value 
@@ -168,6 +168,8 @@ class Plotter2d(Widget):
     def __iadd__(self, value):
         self.add(value)
         return self
+
+    # -- init
 
     def init(self):        
         self._init_plot_container()
@@ -186,6 +188,8 @@ class Plotter2d(Widget):
 
         self._initialized = True
 
+    # -- plot ubo 
+
     def _init_ubo(self):
         """ initializes plotting ubo """
         self.ubo = BufferObject.to_device(
@@ -194,23 +198,7 @@ class Plotter2d(Widget):
         buffer_base = GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d')
         self.ubo.bind_buffer_base(buffer_base)
         self._plot_container.widget.resulution.on_change.append(self.update_ubo)
-
         self.update_ubo()
-
-    def _init_grid(self):
-        """ initializes grid component """
-        major_grid = transform_observables(
-            transformation=grid, 
-            observables=(self.axes_unit, self.cs))
-        self.grid = CartesianGrid(
-            size                = self._plot_container.widget.size,
-            cs = self.cs,
-            major_grid          = major_grid,
-            major_grid_color    = self._style['grid-color'],
-            minor_grid_color    = self._style['grid-sub-color'],
-            background_color    = self.plot_background_color,
-            resolution          = self._plot_container.widget.resulution,
-            minor_grid_n        = self.minor_axes_n)
 
     @cs.on_change 
     def update_ubo(self, *e):
@@ -219,15 +207,36 @@ class Plotter2d(Widget):
         self.ubo.host['cs_size'] = cs_size(self.cs)
         self.ubo.sync_gpu()
 
+    # -- grid 
+
+    def _init_grid(self):
+        """ initializes grid component """
+        major_grid = observables.transform_observables(
+            transformation=grid, 
+            observables=(self.axes_unit, self.cs))
+        self.grid = CartesianGrid(
+            size                = self._plot_container.widget.size,
+            cs                  = self.cs,
+            major_grid          = major_grid,
+            major_grid_color    = self._style['grid-color'],
+            minor_grid_color    = self._style['grid-sub-color'],
+            background_color    = self.plot_background_color,
+            resolution          = self._plot_container.widget.resulution,
+            minor_grid_n        = self.minor_axes_n)
+
+    # -- camera
+
     def _init_plot_camera(self):
         """
         creates a plot camera which is connected to
         the configuration space
         """
-        pos = transform_observables(
+        pos = observables.transform_observables(
             lambda s: (s[0]*0.5, s[1]*0.5, 1), vecn((0,0,0)), 
             (self._plot_container.widget.resulution, ))
         self._plot_camera = Camera2D(self._plot_container.widget.resulution, pos)
+
+    # -- container
 
     def _init_plot_container(self):
         """ initializes main plotcontainer.
@@ -243,7 +252,7 @@ class Plotter2d(Widget):
 
         plot_container.widget = FrameWidget(size=plot_container.content_size, 
                                             position=plot_container.content_position, 
-                                            resulution=transform_observables(
+                                            resulution=observables.transform_observables(
                                                 transformation=lambda s, v: s * v.xy, 
                                                 observables=(self._.plot_resolution_factor, plot_container.content_size)),
                                             clear_color=self.plot_background_color)
@@ -251,14 +260,28 @@ class Plotter2d(Widget):
         self._plot_container = plot_container
 
 
+        
+    @size.on_change
+    @position.on_change
+    @cs.on_change
+    @axes_unit.on_change
+    @minor_axes_n.on_change
+    @plot_resolution_factor.on_change
+    @background_color.on_change
+    @plot_background_color.on_change
+    @plot_padding.on_change
+    def force_redraw(self, *e):
+        self._redraw = True
 
-    def tick(self, redraw=True):
+    def tick(self, redraw=False):
         if not self._initialized:
             self.init()
+            redraw = True
 
-        pre_plot_event = PrePlotEvent(redraw=redraw)
+        pre_plot_event = PrePlotEvent(redraw=True if self._redraw else redraw)
         self.on_pre_plot(pre_plot_event)
         self._plot_container.tick()
+
         if pre_plot_event.redraw:
             self._plot_container.widget.use()
             self._plot_camera.enable()
@@ -266,18 +289,28 @@ class Plotter2d(Widget):
             self.grid.draw()
 
             self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
+
+            rs = self._plot_container.widget.resulution.xy
+            size = self._plot_container.widget.size.xy
             for d in self._graphs.values():
+                # we only pass the values here, since the plot 
+                # can be plotted within multiple plotters
+                d.resolution = rs
+                d.viewport = size
+
                 d.draw()
             self._plot_container.widget.unuse()
+            self._redraw = False
         self.on_post_plot()
         
-
 
     def draw(self):
         self._plot_container.render() 
 
 
 
+
 class PrePlotEvent():
     def __init__(self, redraw=False):
         self.redraw = redraw 
+

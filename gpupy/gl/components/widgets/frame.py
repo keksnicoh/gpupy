@@ -138,7 +138,8 @@ class FrameWidget(Widget):
 
     def tick(self):
         if self._require_resize:
-            if self._res[0] < self.resulution[0] or self._res[1] < self.resulution[1]:
+            if self._res[0] < self.resulution[0] \
+            or self._res[1] < self.resulution[1]:
                 self._res = self.resulution.values * self.preload_factor
                 self.texture.resize(self._res) 
             self.program.uniform('rf', (self.resulution[0]/self._res[0], self.resulution[1]/self._res[1]))

@@ -21,6 +21,8 @@ class DomainGraph(components.widgets.Widget):
         the domain concept for plotting data. """
 
     main_domain = attributes.CastedAttribute(str)
+    resolution = attributes.VectorAttribute(2, (1, 1))
+    viewport = attributes.VectorAttribute(2, (1, 1))
 
     def __init__(self, domain=None):
         super().__init__()
@@ -31,12 +33,13 @@ class DomainGraph(components.widgets.Widget):
 
     def __setitem__(self, key, value):
         value.requires({n: d[0] for n, d in self.domains.items()})
-        self.domains[key] = (value, 'd_'+key)
+        self.domains[key] = (value, 'd_'+str(key))
         if len(self.domains) == 1 and self.main_domain is None:
             self.main_domain = key
 
     def __getitem__(self, key):
         return self.domains[key][0]
+
 
 class DomainProgram(Program):
     def prepare_domains(self, domains):

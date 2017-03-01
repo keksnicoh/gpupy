@@ -219,6 +219,16 @@ class AbstractTexture():
             for p, v in LINEAR_FILTERS.items():
                 glTexParameterf(self.gl_target, p, v)
 
+    def tex_parameterf(self, pname, param):
+        with self:
+            glTexParameterf(self.gl_target, pname, param)
+    def interpolate_linear(self):
+        self.interpolation_linear()
+
+    def interpolate_nearest(self):
+        self.interpolation_nearest()
+
+
 
     def parameter(self, p, v):
         with self:

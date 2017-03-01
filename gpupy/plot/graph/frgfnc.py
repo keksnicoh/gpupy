@@ -81,11 +81,13 @@ class Frag2DGraph(DomainGraph):
         _p.uniform_block_binding('plot', G_.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
         _p.uniform_block_binding('camera', G_.CONTEXT.buffer_base('gpupy.gl.camera'))
 
-        i = 0
-        for name, (d, pre) in self.domains.items():
-            d.enable(i)
-            d.uniforms(_p, name)
-            i+=1
+        length = None
+        txunits = []
+        for n, (d, p) in self.domains.items():
+            d.enable(txunits)
+            d.uniforms(_p, n)
+            if hasattr(d, 'attrib_pointers'):
+                length = len(d)
 
     @color_kernel.transformation 
     def set_color_kernel(self, ckrn):
@@ -131,10 +133,12 @@ class Frag2DGraph(DomainGraph):
         cs = self.cs.values
         self.program.uniform('cs', cs)
         self.program.uniform('cs_size', (np.abs(cs[1]-cs[0]), np.abs(cs[3]-cs[2])))
-        i = 0
+        length = None
+        txunits = []
         for n, (d, p) in self.domains.items():
-            d.enable(i)
-            i+=1
+            d.enable(txunits)
+            if hasattr(d, 'attrib_pointers'):
+                length = len(d)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         self.program.use()
         self.mesh.draw()

@@ -1,6 +1,6 @@
 from gpupy.gl.common import attributes
 from gpupy.gl.glsl import render_struct_from_dtype, render_struct_items_from_dtype, dtype_is_struct, dtype_vector, dtype_fields_glsl
-from gpupy.gl import Texture2D
+from gpupy.gl import Texture2D, Texture1D
 from OpenGL.GL import * 
 
 import re
@@ -21,13 +21,12 @@ def safe_name(name):
         raise DomainNameError('invaid domain name "{}"'.format(name))
     return name
 
-
 class AbstractDomain():
 
     def requires(self, domains):
         return set()
 
-    def enable(self, n=0):
+    def enable(self, txunits):
         pass
 
     def uniforms(self, program, upref):
@@ -117,11 +116,15 @@ class TextureDomain(AbstractDomain):
 
     # -- attributes
     texture = attributes.GlTexture()
+    cs = attributes.VectorAttribute(4, (0, 1, 0, 1))
 
     @classmethod
-    def load_image(cls, path, normalize=255.0):
+    def load_image(cls, path, smooth=True, periodic=False):
         txt = imread(path, mode="RGB")
-        return cls(Texture2D.to_device(txt))
+        d = cls(Texture2D.to_device(txt))
+        d.periodic(periodic)
+        d.smooth(smooth)
+        return d
 
     @classmethod
     def colorwheel(cls, wheel=DEFAULT_WHEEL):
@@ -130,12 +133,21 @@ class TextureDomain(AbstractDomain):
             raise ValueError(err.format(wheel, ','.join(cls.WHEELS)))
         return cls.load_image(cls.WHEELS[wheel])
 
+    @classmethod
+    def to_device_1d(cls, data, smooth=True, periodic=False):
+        d = cls(Texture1D.to_device(data))
+        d.periodic(periodic)
+        d.smooth(smooth)
+        return d
 
-    def __init__(self, texture):
+    def __init__(self, texture, cs=None):
         self.texture = texture 
+        if cs is not None:
+            self.cs = cs
 
-    def enable(self, n=0):
-        self.texture.activate(n)
+    def enable(self, txunits):
+        self.texture.activate(len(txunits))
+        txunits.append(self)
 
     def uniforms(self, program, upref):
         program.uniform('tx_{}'.format(upref), self.texture)
@@ -159,6 +171,19 @@ class TextureDomain(AbstractDomain):
         d = self.texture.dimension
         return self.__class__._GLSL_TEMPLATE_DECRL.format(d=d, upref=upref)
 
+    def periodic(self, periodic=False):
+        if periodic:
+            self.texture.tex_parameterf(GL_TEXTURE_WRAP_S, GL_REPEAT)
+            self.texture.tex_parameterf(GL_TEXTURE_WRAP_T, GL_REPEAT)
+        else:
+            self.texture.tex_parameterf(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            self.texture.tex_parameterf(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+    def smooth(self, smooth=True):
+        if smooth:
+            self.texture.interpolate_linear()
+        else:
+            self.texture.interpolate_nearest()
 
 
 class TransformationDomain(AbstractDomain):
@@ -187,6 +212,6 @@ class TransformationDomain(AbstractDomain):
 
     def requires(self, domains):
         res = set(re.findall('\$\{DOMAIN:(.*?)\}', str(self.glsl)))
-        frg_dom_names = set(name for name, d in domains.items() if hasattr(d, 'glsl_declr'))
+        frg_dom_names = set(name for name, d in domains.items() if hasattr(d, 'glsl_declr') or hasattr(d, 'glsl_vrt_declr'))
         if len(res - frg_dom_names):
-            raise DependencyError('requires fragment domains: {}'.format(','.join(frg_dom_names)))
+            raise DependencyError('requires fragment domains: {}'.format(','.join(res)))
