@@ -4,16 +4,25 @@ import numpy as np
 def plot(plotter):
 
     g = graph.glpoints.GlPointsGraph()
+
     g['x'] = domain.VertexDomain(np.arange(0, 15, .0001, dtype=np.float32))
     g['y'] = domain.TextureDomain.to_device_1d(np.sin(np.arange(0, 15, .01, dtype=np.float32)))
     g['y'].smooth(True)
+
+    # just for fun we apply a function domain here...
+    g['t'] = domain.FunctionDomain("""
+        float ${FNAME}(float x) {
+            return x*x;
+        }
+    """)
     g.kernel = """
         vec2 kernel() {
             v_col = vec4(0, 1, 1, 1);
             gl_PointSize = 3;
-            return vec2(${DOMAIN:x}, ${DOMAIN:y}(${DOMAIN:x}/15));
+            return vec2(${DOMAIN:x}, ${DOMAIN:t}(${DOMAIN:y}(${DOMAIN:x}/15)));
         }
     """
+
     plotter += g
 
 

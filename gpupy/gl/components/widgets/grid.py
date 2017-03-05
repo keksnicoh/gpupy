@@ -102,10 +102,12 @@ class AbstractGrid(Widget):
 
       # cartesian
         l1 = self.cs.values * 1.0001
+        mg = self.major_grid.values 
+        cs = self.cs.values 
 
         self.program.uniform('u_limits1',            l1)
-        self.program.uniform('u_limits2',            self.cs)
-        self.program.uniform('u_major_grid_step',    self.major_grid)
+        self.program.uniform('u_limits2',            cs)
+        self.program.uniform('u_major_grid_step',    mg)
         self.program.uniform('u_minor_grid_step',    self.major_grid.values/self.minor_grid_n)
         self.program.uniform('u_major_grid_width',   self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0]))
         self.program.uniform('u_minor_grid_width',   self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0]))
@@ -117,6 +119,8 @@ class AbstractGrid(Widget):
 
         self._req_uniforms = False
 
+     #   print('RES', self.resolution, 'size', self.size, 'CS', self.cs)
+     #   print('GRID', self.major_grid)
     def _init_plane(self): 
         self.program = GridProgram()
 

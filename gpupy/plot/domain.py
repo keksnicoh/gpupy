@@ -1,19 +1,31 @@
-from gpupy.gl.common import attributes
-from gpupy.gl.glsl import render_struct_from_dtype, render_struct_items_from_dtype, dtype_is_struct, dtype_vector, dtype_fields_glsl
-from gpupy.gl import Texture2D, Texture1D
+#-*- coding: utf-8 -*-
+"""
+domain module provides an abstraction layer 
+for plot domains. 
+:author: keksnicoh
+"""
+
+# XXX
+# - generic domain names? prefixes...
+
+from gpupy.gl.common import attributes, imread
+from gpupy.gl.glsl import dtype_is_struct, dtype_vector, dtype_fields_glsl
+from gpupy.gl import Texture3D, Texture2D, Texture1D
+
 from OpenGL.GL import * 
-
-import re
 import numpy as np 
-import os
-
-from gpupy.gl.common import imread
-class DomainError(Exception): pass
-class DependencyError(DomainError): pass
-class DomainNameError(DomainError): pass
-
 
 from ctypes import c_void_p
+import re
+import os
+from time import time
+
+class DomainError(Exception): 
+    pass
+class DependencyError(DomainError): 
+    pass
+class DomainNameError(DomainError): 
+    pass
 
 _name_rgx = re.compile('^[a-zA-Z_][a-zA-Z_0-9]*$') #XXX think more about this...
 def safe_name(name):
@@ -22,17 +34,64 @@ def safe_name(name):
     return name
 
 class AbstractDomain():
+    """
+    basic domain API
+    """
+    # ON CHANGE EVENT
 
     def requires(self, domains):
-        return set()
-
-    def enable(self, txunits):
+        """
+        checks whether all required domains are available.
+        if not, this method should raise a DependencyError.
+        """
         pass
 
-    def uniforms(self, program, upref):
+    def enable(self, txunits, program, upref):
+        """
+        enables the domain such that the shadering
+        pipeline is setup
+        """
         pass
 
-class VertexDomain(AbstractDomain):
+
+class SequencialDomain(AbstractDomain):
+    """
+    defines the API for discrete domains like
+    vertex attributes
+    """
+    def glsl_attributes(self):
+        """
+        returns the glsl attribute declaration
+        """
+        raise NotImplementedError('abstract method')  
+
+    def attribute_pointers(self, aname, attr_locations):
+        """
+        binds vertex attribute pointers to the currently
+        bound VAO
+        """
+        raise NotImplementedError('abstract method') 
+
+    def __len__(self):
+        """
+        we should always know the length of the series.
+        """
+        raise NotImplementedError('abstract method')
+
+class ContinuousDomain(AbstractDomain):
+    """
+    defines the API for a continuos domain like
+    functions or texture samplers.
+    """
+    def glsl_declr(self, fname, upref, **kwargs):
+        """
+        returns the glsl declrations 
+        """
+        raise NotImplementedError('abstract method') 
+    
+
+
+class VertexDomain(SequencialDomain):
     """
     vertex domain provides vertex attributes for 
     glsl shader by a given BufferObject
@@ -42,7 +101,9 @@ class VertexDomain(AbstractDomain):
     def __init__(self, data):
         self.buffer = data
 
-    def glsl_vrt_declr(self, aname):
+    # -- sequencial domain API 
+
+    def glsl_attributes(self, aname):
         shape = self.buffer.shape
         dtype = self.buffer.dtype
 
@@ -91,7 +152,7 @@ class VertexDomain(AbstractDomain):
         return len(self.buffer)
 
 
-class TextureDomain(AbstractDomain):
+class TextureDomain(ContinuousDomain):
     """
 
     Allows to use gpupy.gl.texture's as plot 
@@ -140,36 +201,26 @@ class TextureDomain(AbstractDomain):
         d.smooth(smooth)
         return d
 
+    @classmethod
+    def to_device_2d(cls, data, smooth=True, periodic=False):
+        d = cls(Texture2D.to_device(data))
+        d.periodic(periodic)
+        d.smooth(smooth)
+        return d
+
+    @classmethod
+    def to_device_3d(cls, data, smooth=True, periodic=False):
+        d = cls(Texture3D.to_device(data))
+        d.periodic(periodic)
+        d.smooth(smooth)
+        return d
+
+    # -- 
+
     def __init__(self, texture, cs=None):
         self.texture = texture 
         if cs is not None:
             self.cs = cs
-
-    def enable(self, txunits):
-        self.texture.activate(len(txunits))
-        txunits.append(self)
-
-    def uniforms(self, program, upref):
-        program.uniform('tx_{}'.format(upref), self.texture)
-
-    def glsl_declr(self, fname, upref, **kwargs):
-        # XXX
-        # - what about other vector types?
-        c = self.texture.channels
-        ret_type = 'float' if c == 1 else 'vec{}'.format(c)
-        rgba = 'rgba'[0:c]
-        d = self.texture.dimension
-        arg_type = 'float' if d == 1 else 'vec{}'.format(d)
-        tmpl = self.__class__._GLSL_TEMPLATE_DOMAIN
-        return tmpl.format(ret_type=ret_type, 
-                           arg_type=arg_type, 
-                           fname=fname, 
-                           rgba=rgba,
-                           upref=upref)
-
-    def glsl_header(self, upref):
-        d = self.texture.dimension
-        return self.__class__._GLSL_TEMPLATE_DECRL.format(d=d, upref=upref)
 
     def periodic(self, periodic=False):
         if periodic:
@@ -185,8 +236,58 @@ class TextureDomain(AbstractDomain):
         else:
             self.texture.interpolate_nearest()
 
+    # -- domain API 
+    def enable(self, txunits, program, upref):
+        self.texture.activate(len(txunits))
+        txunits.append(self)
+        program.uniform('tx_{}'.format(upref), self.texture)
 
-class TransformationDomain(AbstractDomain):
+    # -- function domain API 
+
+    def glsl_declr(self, fname, upref, **kwargs):
+        # XXX
+        # - what about other vector types?
+        c = self.texture.channels
+        ret_type = 'float' if c == 1 else 'vec{}'.format(c)
+        rgba = 'rgba'[0:c]
+        d = self.texture.dimension
+        arg_type = 'float' if d == 1 else 'vec{}'.format(d)
+        tmpl = self.__class__._GLSL_TEMPLATE_DOMAIN
+        declr = tmpl.format(ret_type=ret_type, 
+                            arg_type=arg_type, 
+                            fname=fname, 
+                            rgba=rgba,
+                            upref=upref)
+        header = self.__class__._GLSL_TEMPLATE_DECRL.format(d=d, upref=upref)
+        return header + '\n\n' + declr
+
+class RandomDomain(ContinuousDomain):
+    # XXX
+    # currently just basic, find a better random
+    # implementation here.
+    def enable(self, txunits, program, upref):
+        t = time()
+        program.uniform('rd_d_{}'.format(upref), t - np.floor(t))
+        program.uniform('rd2_d_{}'.format(upref), t - np.floor(t))
+
+    def glsl_declr(self, fname, domain_fnames, **kwargs):
+        tmpl = """
+            uniform float rd_${FNAME};
+            uniform float rd2_${FNAME};
+            float ${FNAME}(vec2 co){
+                co.x += rd_${FNAME};
+                co.y += rd2_${FNAME};
+
+                return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+            }   
+            float ${FNAME}(float co){
+                return ${FNAME}(vec2(co, co));
+            }   
+        """
+        return tmpl.replace('${UNAME}', fname).replace('${FNAME}', fname)
+
+
+class FunctionDomain(ContinuousDomain):
     """ 
 
     domain generated within fragment shader.
@@ -202,6 +303,16 @@ class TransformationDomain(AbstractDomain):
     def __init__(self, glsl):
         self.glsl = glsl
 
+    # -- domain API 
+
+    def requires(self, domains):
+        res = set(re.findall('\$\{DOMAIN:(.*?)\}', str(self.glsl)))
+        frg_dom_names = set(name for name, d in domains.items() if hasattr(d, 'glsl_declr') or hasattr(d, 'glsl_attributes'))
+        if len(res - frg_dom_names):
+            raise DependencyError('requires fragment domains: {}'.format(','.join(res)))
+
+    # -- function domain API
+
     def glsl_declr(self, fname, domain_fnames, **kwargs):
         glsl = str(self.glsl) 
         subst = {'${FNAME}': fname}
@@ -210,8 +321,3 @@ class TransformationDomain(AbstractDomain):
             glsl = glsl.replace(k, v)
         return glsl
 
-    def requires(self, domains):
-        res = set(re.findall('\$\{DOMAIN:(.*?)\}', str(self.glsl)))
-        frg_dom_names = set(name for name, d in domains.items() if hasattr(d, 'glsl_declr') or hasattr(d, 'glsl_vrt_declr'))
-        if len(res - frg_dom_names):
-            raise DependencyError('requires fragment domains: {}'.format(','.join(res)))

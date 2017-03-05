@@ -6,8 +6,8 @@ uniform vec2 u_resolution;
 uniform vec2 u_viewport;
 uniform vec4 u_col = vec4(1, 0, 0, 1);
 
-${vrt_declr}
-${glsl_header}
+${glsl_attr}
+${glsl_declr}
 out vec4 v_col;
 
 vec4 _cs(vec4 p) { return camera.mat_projection * camera.mat_view * plot.mat_cs * p; }
@@ -19,7 +19,6 @@ vec4 cs(vec4 p)  { return _cs(p); }
 float cartesian_x(float x) { return plot.cs.x + plot.cs_size.x * x; }
 float cartesian_x(vec2 x) { return cartesian_x(x.x); }
 
-${glsl_declr}
 ${vrt_kernl}
 
 void main() {

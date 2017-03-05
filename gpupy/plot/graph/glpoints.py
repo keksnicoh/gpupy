@@ -51,8 +51,7 @@ class GlPointsGraph(DomainGraph):
 
         txunits = []
         for name, (d, pre) in self.domains.items():
-            d.enable(txunits)
-            d.uniforms(_p, name)
+            d.enable(txunits, self.program, name)
 
 
         
@@ -67,6 +66,11 @@ class GlPointsGraph(DomainGraph):
 
         glBindVertexArray(0)
 
+    def gtick(self, gtick):
+        gtick.require_render = True
+        self.program.uniform('u_resolution', self.resolution.xy)
+        self.program.uniform('u_viewport', self.viewport.xy)
+
     def draw(self):
         self.program.uniform('u_resolution', self.resolution.xy)
         self.program.uniform('u_viewport', self.viewport.xy)
@@ -74,7 +78,7 @@ class GlPointsGraph(DomainGraph):
         length = None
         txunits = []
         for n, (d, p) in self.domains.items():
-            d.enable(txunits)
+            d.enable(txunits, self.program, n)
             if hasattr(d, 'attrib_pointers'):
                 length = len(d)
 

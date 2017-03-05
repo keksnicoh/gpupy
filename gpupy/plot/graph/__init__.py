@@ -2,9 +2,27 @@
 """
 graphs are widgets which have the following properties:
 
-XXX
+
 ---
 not defined yet. still in experiment.
+
+
+Graph api:
+
+properties:
+- plotter: if exists, a plotter will assign itself
+  to this attribute to ensure that the graph can
+  only be attached to a single plotter. 
+  Graphs which can be rendered within many
+  plotters should not have this attribute.
+
+- plot_type: to check if a certain graph type
+  is supported by a plotter.
+
+    plt2d : standard 2d plot
+    plt3d : standard 3d plot
+
+  should be an array.
 
 :author: keksnicoh
 """
@@ -16,13 +34,37 @@ from OpenGL.GL import *
 
 from collections import OrderedDict
 
-class DomainGraph(components.widgets.Widget):
+class GraphTick():
+    def __init__(self):
+        self.require_render = True
+
+class Graph(components.widgets.Widget):
+
+    resolution = attributes.VectorAttribute(2, (1, 1))
+    viewport = attributes.VectorAttribute(2, (1, 1))
+
+    def __init__(self):
+        super().__init__()
+
+
+    def tick(self, gtick):
+        self.on_pre_tick(gtick)
+        self.gtick(gtick)
+        self.on_post_tick(gtick)
+
+    def render(self):
+        pass
+
+    def gtick(self, gtick):
+        pass
+
+
+class DomainGraph(Graph):
     """ abstract class for graphs which are using
         the domain concept for plotting data. """
 
     main_domain = attributes.CastedAttribute(str)
-    resolution = attributes.VectorAttribute(2, (1, 1))
-    viewport = attributes.VectorAttribute(2, (1, 1))
+
 
     def __init__(self, domain=None):
         super().__init__()
@@ -52,24 +94,19 @@ class DomainProgram(Program):
         frg_shader.substitutions.update(domain_sfnames)
         vrt_shader.substitutions.update(domain_sfnames)
 
-        frg_subst = {
-            'glsl_header': [], 
+        glsl_subst = {
             'glsl_declr': [],
-            'vrt_declr': [],
-            'vrt_domain': [],
+            'glsl_attr': [],
         }
         for prefix, (domain, fname) in domains.items():
-            if hasattr(domain, 'glsl_header'):
-                frg_subst['glsl_header'].append(domain.glsl_header(prefix))
             if hasattr(domain, 'glsl_declr'):
-                frg_subst['glsl_declr'].append(domain.glsl_declr(fname=fname, upref=prefix, domain_fnames=domain_fnames))
-            if hasattr(domain, 'glsl_vrt_declr'):
-                frg_subst['vrt_declr'].append(domain.glsl_vrt_declr(fname))
-            if hasattr(domain, 'glsl_vrt_domain'):
-                frg_subst['vrt_domain'].append(domain.glsl_vrt_domain(fname))
+                glsl_subst['glsl_declr'].append(domain.glsl_declr(fname=fname, upref=prefix, domain_fnames=domain_fnames))
+            if hasattr(domain, 'glsl_attributes'):
+                glsl_subst['glsl_attr'].append(domain.glsl_attributes(fname))
 
-        frg_shader.substitutions.update({k: '\n'.join(v) for k, v in frg_subst.items()})
-        vrt_shader.substitutions.update({k: '\n'.join(v) for k, v in frg_subst.items()})
+
+        frg_shader.substitutions.update({k: '\n'.join(v) for k, v in glsl_subst.items()})
+        vrt_shader.substitutions.update({k: '\n'.join(v) for k, v in glsl_subst.items()})
 
     def link(self):
         super().link()

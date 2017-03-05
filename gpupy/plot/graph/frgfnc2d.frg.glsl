@@ -5,7 +5,6 @@ out vec4 frag_color;
 
 {% uniform_block plot %}
 
-${glsl_header}
 ${glsl_declr}
 ${clr_kernel}
 

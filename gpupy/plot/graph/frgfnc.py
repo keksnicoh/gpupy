@@ -84,8 +84,7 @@ class Frag2DGraph(DomainGraph):
         length = None
         txunits = []
         for n, (d, p) in self.domains.items():
-            d.enable(txunits)
-            d.uniforms(_p, n)
+            d.enable(txunits, _p, n)
             if hasattr(d, 'attrib_pointers'):
                 length = len(d)
 
@@ -128,15 +127,19 @@ class Frag2DGraph(DomainGraph):
             raise RuntimeError(msg.format(ckrn, ckrn_args, ckrn_kwargs))
         return ckrn
 
-
-    def draw(self):
+    def gtick(self, gtick):
         cs = self.cs.values
+        gtick.require_render = True
         self.program.uniform('cs', cs)
         self.program.uniform('cs_size', (np.abs(cs[1]-cs[0]), np.abs(cs[3]-cs[2])))
+
+    def draw(self):
+        
+
         length = None
         txunits = []
         for n, (d, p) in self.domains.items():
-            d.enable(txunits)
+            d.enable(txunits, self.program, n)
             if hasattr(d, 'attrib_pointers'):
                 length = len(d)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -153,7 +156,7 @@ class Frag1DGraph(DomainGraph):
     DEFAULT_COLOR_KERNEL = 'test'
 
     cs = attributes.VectorAttribute(4)
-    frame               = attributes.ComponentAttribute()
+    frame = attributes.ComponentAttribute()
 
     # main domain name 
     color_kernel = attributes.CastedAttribute(str)
@@ -239,11 +242,13 @@ class Frag1DGraph(DomainGraph):
             raise RuntimeError(msg.format(ckrn, ckrn_args, ckrn_kwargs))
         return ckrn
 
-
-    def draw(self):
+    def gtick(self, gtick):
         cs = self.cs.values
+        gtick.require_render = True
         self.program.uniform('cs', cs)
         self.program.uniform('cs_size', (np.abs(cs[1]-cs[0]), np.abs(cs[3]-cs[2])))
+
+    def draw(self):
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         self.program.use()
         self.mesh.draw()
@@ -304,7 +309,6 @@ Frag2DGraph.COLOR_KERNELS = {
         vec4 color(vec3 x)  { float M = max(x.x, max(x.y, x.z)); float m = min(x.x, min(x.y, x.z)); return vec4(m+M, m+M,m+M,2)/2; }
         vec4 color(vec4 x)  { float M = max(x.x, max(x.y, x.z)); float m = min(x.x, min(x.y, x.z)); return vec4(m+M, m+M,m+M,2)/2; }
     """,
-
     'greyscale_luminosity': """
         vec4 color(float x) { return vec4(x, x, x, 1); }
         vec4 color(vec2 x)  { float _r=0.245*x.x+0.755*x.y; return vec4(_r, _r, _r, 1); }

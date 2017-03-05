@@ -7,6 +7,8 @@ from gpupy.gl.components.widgets.frame import FrameWidget
 from gpupy.gl.components.widgets.grid import CartesianGrid
 from gpupy.gl.components.widgets.container import Container
 
+from gpupy.plot.graph import GraphTick
+
 from gpupy.gl.common import Event, attributes, observables
 from gpupy.gl.common.vector import *
 from gpupy.gl import *
@@ -139,6 +141,8 @@ class Plotter2d(Widget):
         self.plot_padding = self._style['plot-padding']
         self.ubo = None 
 
+        self._g_tick = GraphTick()
+
         # event hooks
         self.on_pre_plot = Event()
         self.on_post_plot = Event()
@@ -150,11 +154,17 @@ class Plotter2d(Widget):
         self._plot_container = None 
         self._graphs = OrderedDict()
 
+        
         self._initialized = False
 
     # -- graph api
 
     def __setitem__(self, key, value):
+        if hasattr(value, 'plotter'):
+            if value.plotter is None:
+                value.plotter = self 
+            elif value.ploter is not self:
+                raise RuntimeError()
         self._graphs[key] = value
 
 
@@ -282,26 +292,34 @@ class Plotter2d(Widget):
         self.on_pre_plot(pre_plot_event)
         self._plot_container.tick()
 
-        if pre_plot_event.redraw:
+        # graph render stack
+        gstack = []
+        rs = self._plot_container.widget.resulution.xy
+        size = self._plot_container.widget.size.xy
+        for d in self._graphs.values():
+            # we only pass the values here, since the plot 
+            # can be plotted within multiple plotters
+            d.resolution = rs
+            d.viewport = size
+            
+            d.tick(self._g_tick)
+            if self._g_tick.require_render:
+                gstack.append(d)
+
+        if pre_plot_event.redraw or len(gstack):
             self._plot_container.widget.use()
             self._plot_camera.enable()
             self.grid.tick()
             self.grid.draw()
 
+            # render graph stack
             self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
-
-            rs = self._plot_container.widget.resulution.xy
-            size = self._plot_container.widget.size.xy
-            for d in self._graphs.values():
-                # we only pass the values here, since the plot 
-                # can be plotted within multiple plotters
-                d.resolution = rs
-                d.viewport = size
-
+            for d in gstack:
                 d.draw()
+
             self._plot_container.widget.unuse()
             self._redraw = False
-        self.on_post_plot()
+            self.on_post_plot()
         
 
     def draw(self):

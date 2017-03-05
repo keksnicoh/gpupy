@@ -8,7 +8,6 @@ uniform vec2 u_x_space;
 uniform vec4 cs;
 uniform vec2 cs_size;
 
-${glsl_header}
 ${glsl_declr}
 ${clr_kernel}
 

@@ -11,6 +11,31 @@ class GlslParseError(GlError):
 class GlslRenderError(GlError):
     pass
 
+
+# parse_glsl
+# prefix_dtype
+# render_glsl
+# dtype_op
+
+"""
+
+uniform camera;
+uniform vec4 derp;
+
+in <adtype> <aname>;
+in <aname>;
+
+[layout (<ulayout>)] uniform <ublock_name> [<udeclr>][\[<n>\]] [uinstance_name];
+uniform [<udtype>][\[<n>\]] <uinstance_name>;
+
+precompiler vars
+$<pvname>
+$<pvname>$<pvname>
+"""
+
+
+# -- THIS WILL BE DEPRECATED
+
 GLTYPY_NUMPY_DTYPE = {
     'mat2'  : (np.float32, (2, 2)),
     'mat3'  : (np.float32, (3, 3)),
