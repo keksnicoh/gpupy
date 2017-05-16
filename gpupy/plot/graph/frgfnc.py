@@ -38,7 +38,7 @@ class Frag2DGraph(DomainGraph):
     @classmethod
     def glsl_transformation(cls, glsl_expr, **kwargs):
         glsl = "float ${FNAME}(float x) { return " + str(glsl_expr) + "; }"
-        return cls(domain.TransformationDomain(glsl), **kwargs)
+        return cls(domain.FunctionDomain(glsl), **kwargs)
 
     def __init__(self, domain=None, cs=None, color_kernel=None):
         self.x_space = [0, 1]
@@ -83,10 +83,10 @@ class Frag2DGraph(DomainGraph):
 
         length = None
         txunits = []
-        for n, (d, p) in self.domains.items():
-            d.enable(txunits, _p, n)
-            if hasattr(d, 'attrib_pointers'):
-                length = len(d)
+        for n, _d in self.domains.items():
+            _d.domain.enable(txunits, _p, _d.prefix)
+            if hasattr(_d.domain, 'attrib_pointers'):
+                length = len(_d.domain)
 
     @color_kernel.transformation 
     def set_color_kernel(self, ckrn):
@@ -138,10 +138,11 @@ class Frag2DGraph(DomainGraph):
 
         length = None
         txunits = []
-        for n, (d, p) in self.domains.items():
-            d.enable(txunits, self.program, n)
-            if hasattr(d, 'attrib_pointers'):
-                length = len(d)
+        for dname, _d in self.domains.items():
+            _d.domain.enable(txunits, self.program, _d.prefix)
+            if hasattr(_d.domain, 'attrib_pointers'):
+                length = len(_d.domain)
+
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         self.program.use()
         self.mesh.draw()
@@ -164,7 +165,7 @@ class Frag1DGraph(DomainGraph):
     @classmethod
     def glsl_transformation(cls, glsl_expr, cs=None, **kwargs):
         glsl = "float ${FNAME}(float x) { return " + str(glsl_expr) + "; }"
-        return cls(domain.TransformationDomain(glsl),cs, **kwargs)
+        return cls(domain.FunctionDomain(glsl),cs, **kwargs)
 
     def __init__(self, domain=None, cs=None, color_kernel=None):
         self.x_space = [0, 1]

@@ -5,7 +5,7 @@
 uniform vec2 u_resolution;
 uniform vec2 u_viewport;
 uniform vec4 u_col = vec4(1, 0, 0, 1);
-
+uniform float ticker_test = 0;
 ${glsl_attr}
 ${glsl_declr}
 out vec4 v_col;
@@ -16,6 +16,8 @@ vec4 cs(vec2 p)  { return _cs(vec4(p, 0, 1)); }
 vec4 cs(vec3 p)  { return _cs(vec4(p,  1)); }
 vec4 cs(vec4 p)  { return _cs(p); }
 
+float cartesian_y(float y) { return plot.cs.z + plot.cs_size.y * y; }
+float cartesian_y(vec2 x) { return cartesian_y(x.y); }
 float cartesian_x(float x) { return plot.cs.x + plot.cs_size.x * x; }
 float cartesian_x(vec2 x) { return cartesian_x(x.x); }
 

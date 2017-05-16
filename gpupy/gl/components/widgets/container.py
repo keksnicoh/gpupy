@@ -188,10 +188,10 @@ class Container(Widget):
         if self._require_create_mesh:
             self._create_mesh()
             self._require_create_mesh = False
-        self.widget.tick()
+        #self.widget.tick()
 
     def _render(self):
-        self.widget.draw()
+        #self.widget.draw()
         self.border_program.use()
         self.border_mesh.draw()
         self.border_program.unuse()

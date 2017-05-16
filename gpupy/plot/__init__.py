@@ -43,7 +43,7 @@ class Plotter2dBasic():
 
     def resize(self, window):
         self.flag(True)
-        self.draw(window)
+        self.draw(window, resize=True)
 
     def init(self, window):
         size = window.size
@@ -56,7 +56,7 @@ class Plotter2dBasic():
         self.plotter._plot_container.margin = (10, 10, 10, 10)
         self.border = 3 
 
-    def draw(self, window):
+    def draw(self, window, resize=False):
         # very basic plot controlling
         dt = time()-self.t
         #self.plotter2.plot_resolution_factor = 0.8+0.5*np.sin(dt)
@@ -65,33 +65,43 @@ class Plotter2dBasic():
         speed = 0.05
         if 68 in self.window.active_keys: #d
             self.plotter.cs += (speed, speed, 0, 0)
+            self.plotter._fast_rs = True
         if 65 in self.window.active_keys: #a
             self.plotter.cs -= (speed, speed, 0, 0)
+            self.plotter._fast_rs = True
         if 87 in self.window.active_keys: #w
             self.plotter.cs += (0, 0, speed, speed)
+            self.plotter._fast_rs = True
         if 83 in self.window.active_keys: #s
             self.plotter.cs -= (0, 0, speed, speed)
+            self.plotter._fast_rs = True
         if 32 in self.window.active_keys and 340 in self.window.active_keys: #s
             check_cs = True
             self.plotter.cs += (-0.01, 0.01, -0.01, 0.01)
+            self.plotter._fast_rs = True
         elif 32 in self.window.active_keys: #s
             check_cs = True
             self.plotter.cs *= (0.99, 0.99, 0.99, 0.99)
+            self.plotter._fast_rs = True
         if False and check_cs:
             au = self.plotter.axes_unit
             css = self.plotter.cs_size
             n = (css.x/au.x, css.y/au.y)
             if n[0] > 10:
                 self.plotter.axes_unit.x = css.x/5
+                self.plotter._fast_rs = True
             if n[1] > 10:
                 self.plotter.axes_unit.y = css.y/5
+                self.plotter._fast_rs = True
             if n[0] < 5:
                 self.plotter.axes_unit.x = css.x/10
+                self.plotter._fast_rs = True
             if n[1] < 5:
                 self.plotter.axes_unit.y = css.y/10
+                self.plotter._fast_rs = True
             print(self.plotter.axes_unit)
         dt = time() - self.t
-        self.plotter.tick()
+        self.plotter.tick(resize=resize)
 
         glClearColor(*self.plotter.background_color.values)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

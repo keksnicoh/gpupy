@@ -1,7 +1,13 @@
 #-*- coding: utf-8 -*-
 """
 domain module provides an abstraction layer 
-for plot domains. 
+for plot domains. A domain is basically anything
+which provides some glsl_identifiers to get data
+from. 
+
+A graph decides which into which shaders the domains
+should be applied.
+
 :author: keksnicoh
 """
 
@@ -20,12 +26,56 @@ import re
 import os
 from time import time
 
+__all__ = [
+    'arange',
+    'array',
+    'empty',
+    'random',
+    'zeros',
+    'ones',
+    'empty_like',
+    'ones_like',
+    'zeros_like',
+    'sarange',
+    'sarray',
+    'sempty',
+    'srandom',
+    'szeros',
+    'sones',
+    'sempty_like',
+    'sones_like',
+    'szeros_like',
+    'VertexDomain', 
+    'TextureDomain', 
+    'RandomDomain', 
+    'FunctionDomain'
+]
 class DomainError(Exception): 
     pass
 class DependencyError(DomainError): 
     pass
 class DomainNameError(DomainError): 
     pass
+
+def arange(): pass
+def array(): pass 
+def empty(): pass 
+def random(): pass 
+def zeros(): pass 
+def ones(): pass 
+def empty_like(): pass 
+def ones_like(): pass 
+def zeros_like(): pass 
+def sarange(): pass
+def sarray(): pass 
+def sempty(): pass 
+def srandom(): pass 
+def szeros(): pass 
+def sones(): pass 
+def sempty_like(): pass 
+def sones_like(): pass 
+def szeros_like(): pass 
+
 
 _name_rgx = re.compile('^[a-zA-Z_][a-zA-Z_0-9]*$') #XXX think more about this...
 def safe_name(name):
@@ -52,6 +102,52 @@ class AbstractDomain():
         pipeline is setup
         """
         pass
+
+    def tick(self):
+        pass
+
+    def glsl_identifier(self, pref):
+        """
+        returns a list of identifiers to access domain data:
+
+        [
+            (sub_name|None, glsl_identifier, type, glsl_type)
+        ]
+
+        sub_name:
+          if the list contains more than one item, the sub_name
+          can be used to name the sub attributes.
+
+        glsl_identifier:
+          the glsl identifier (e.g. function name, variable name)
+
+        type:
+          0: the glsl_identifier is a value
+          1: the glsl_identifier is a function (sampler)
+
+        glsl_type:
+          optional: the dtype of the identifier (later it can be 
+          used to improve debugging and support the user when making
+          mistakes.)
+
+        Example:
+        --------
+
+        ```python
+
+        [((None,), 'derp', 0, 'vec4')]
+        # ${domain.<name>} gets substituted by 'derp' which is a vec4
+
+        [
+            (('a',), 'derp', 0, 'vec4'), 
+            (('b',), 'omg', 1, 'float'),   
+        ]
+        # ${domain.<name>.a} get substituted by 'derp' which is a vec4
+        # ${domain.<name>.b} get substituted by 'omg' which is a float returning function
+        ```
+
+        """
+        return []
 
 
 class SequencialDomain(AbstractDomain):
@@ -100,6 +196,27 @@ class VertexDomain(SequencialDomain):
 
     def __init__(self, data):
         self.buffer = data
+
+    @classmethod 
+    def arange(cls, start, stop, step=None, dtype=np.float32):
+        """
+        creates a domain using np.arange() for spawning
+        vertex data.
+        """
+        return cls(np.arange(start, stop, step, dtype))
+
+    # -- domain API 
+
+    def glsl_identifier(self, pref):
+        dtype = self.buffer.dtype
+        if dtype_is_struct(dtype):
+            fields = dtype_fields_glsl(dtype)
+            return [(f, '{}_{}'.format(pref, f), 0, t) for t, f in fields]
+        shape = self.buffer.shape
+        if len(shape) == 1:
+            shape = (shape, 1)
+        gltype = dtype_vector(dtype, shape[1])
+        return [(None, pref, 0, gltype)]
 
     # -- sequencial domain API 
 
@@ -237,54 +354,80 @@ class TextureDomain(ContinuousDomain):
             self.texture.interpolate_nearest()
 
     # -- domain API 
+
     def enable(self, txunits, program, upref):
         self.texture.activate(len(txunits))
         txunits.append(self)
         program.uniform('tx_{}'.format(upref), self.texture)
 
+    def glsl_identifier(self, pref):
+        t = self.texture
+        ret_type = 'float' if  t.channels == 1 else 'vec{}'.format(t.channels)
+        return [(None, 'txdmn_{}'.format(pref), 1, ret_type)]
+
     # -- function domain API 
 
-    def glsl_declr(self, fname, upref, **kwargs):
+    def glsl_declr(self, upref, **kwargs):
         # XXX
         # - what about other vector types?
-        c = self.texture.channels
-        ret_type = 'float' if c == 1 else 'vec{}'.format(c)
-        rgba = 'rgba'[0:c]
-        d = self.texture.dimension
-        arg_type = 'float' if d == 1 else 'vec{}'.format(d)
+        t = self.texture
+        _, fname, _, ret_type = self.glsl_identifier(upref)[0]
+        #ret_type = 'float' if  t.channels == 1 else 'vec{}'.format( t.channels)
         tmpl = self.__class__._GLSL_TEMPLATE_DOMAIN
         declr = tmpl.format(ret_type=ret_type, 
-                            arg_type=arg_type, 
+                            arg_type=['float', 'vec2', 'vec3'][t.dimension - 1], 
                             fname=fname, 
-                            rgba=rgba,
+                            rgba='rgba'[0 : t.channels],
                             upref=upref)
-        header = self.__class__._GLSL_TEMPLATE_DECRL.format(d=d, upref=upref)
+        header = self.__class__._GLSL_TEMPLATE_DECRL.format(d=t.dimension, upref=upref)
         return header + '\n\n' + declr
 
 class RandomDomain(ContinuousDomain):
+    GLSL_TIMESEED = """
+        uniform float rd_${FNAME};
+        uniform float rd2_${FNAME};
+        float ${FNAME}(vec2 co){
+            co.x += rd_${FNAME};
+            co.y += rd2_${FNAME};
+
+            return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+        }   
+        float ${FNAME}(float co){
+            return ${FNAME}(vec2(co, co));
+        }  
+    """
+
+    GLSL_STATIC = """
+        float ${FNAME}(vec2 co){
+            return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+        }   
+        float ${FNAME}(float co){
+            return ${FNAME}(vec2(co, co));
+        }  
+    """
+
     # XXX
     # currently just basic, find a better random
     # implementation here.
+    def __init__(self, timeseed=True):
+        self.timeseed = timeseed
+
+    def glsl_identifier(self, pref):
+        return [(None, pref, 1, None)]
+
     def enable(self, txunits, program, upref):
-        t = time()
-        program.uniform('rd_d_{}'.format(upref), t - np.floor(t))
-        program.uniform('rd2_d_{}'.format(upref), t - np.floor(t))
+        if self.timeseed:
+            t = time()
+            program.uniform('rd_d_{}'.format(upref), t - np.floor(t))
+            program.uniform('rd2_d_{}'.format(upref), t - np.floor(t))
 
-    def glsl_declr(self, fname, domain_fnames, **kwargs):
-        tmpl = """
-            uniform float rd_${FNAME};
-            uniform float rd2_${FNAME};
-            float ${FNAME}(vec2 co){
-                co.x += rd_${FNAME};
-                co.y += rd2_${FNAME};
+    def glsl_declr(self, upref, **kwargs):
+        if self.timeseed:
+            tmpl = self.__class__.GLSL_TIMESEED
+        else:
+            tmpl = self.__class__.GLSL_STATIC
+        return tmpl.replace('${FNAME}', upref)
 
-                return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
-            }   
-            float ${FNAME}(float co){
-                return ${FNAME}(vec2(co, co));
-            }   
-        """
-        return tmpl.replace('${UNAME}', fname).replace('${FNAME}', fname)
 
 
 class FunctionDomain(ContinuousDomain):
@@ -306,18 +449,19 @@ class FunctionDomain(ContinuousDomain):
     # -- domain API 
 
     def requires(self, domains):
-        res = set(re.findall('\$\{DOMAIN:(.*?)\}', str(self.glsl)))
-        frg_dom_names = set(name for name, d in domains.items() if hasattr(d, 'glsl_declr') or hasattr(d, 'glsl_attributes'))
+        res = set(re.findall('\$\{domain.(.*?)\}', str(self.glsl)))
+        frg_dom_names = set(domains)
         if len(res - frg_dom_names):
             raise DependencyError('requires fragment domains: {}'.format(','.join(res)))
 
+    def glsl_identifier(self, pref):
+        return [(None, pref, 1, None)]
+
     # -- function domain API
 
-    def glsl_declr(self, fname, domain_fnames, **kwargs):
+    def glsl_declr(self, upref, **kwargs):
+        fname = self.glsl_identifier(upref)[0][1]
         glsl = str(self.glsl) 
-        subst = {'${FNAME}': fname}
-        subst.update({'${{DOMAIN:{}}}'.format(n): v for n, v in domain_fnames.items()})
-        for k, v in subst.items():
-            glsl = glsl.replace(k, v)
-        return glsl
+        return glsl.replace('${FNAME}', fname)
+
 

@@ -15,13 +15,21 @@ from OpenGL.GL import (
     glGenVertexArrays, GL_POINTS)
 
 import os 
+from time import time
 
 class GlPointsGraph(DomainGraph):
 
     def __init__(self, domain=None, kernel=None):
         super().__init__(domain)
         self.kernel = kernel or """vec2 kernel() { return ${DOMAIN}; } """
-
+        self.resolution.on_change.append(self._changes)
+        self.viewport.on_change.append(self._changes)
+        self.viewport.on_change.append(self._changes)
+        self._dynamic_test = False
+        self._require_render = True
+        self.ticker = time()
+    def _changes(self, *e):
+        self._require_render = True
     def init(self): 
         self._init_program()
         self._init_vao()
@@ -40,7 +48,7 @@ class GlPointsGraph(DomainGraph):
 
         _p.get_shader(GL_VERTEX_SHADER).substitutions.update({
             'vrt_kernl': self.kernel.replace('${COLOR}', 'v_col').replace('${SIZE}', 'gl_PointSize'),
-            'DOMAIN': self.domains[self.main_domain][1]
+            'DOMAIN': self.domains[self.main_domain].glsl_identifier[0][1]
         })
 
         _p.prepare_domains(self.domains)
@@ -50,37 +58,35 @@ class GlPointsGraph(DomainGraph):
         _p.uniform_block_binding('camera', G_.CONTEXT.buffer_base('gpupy.gl.camera'))
 
         txunits = []
-        for name, (d, pre) in self.domains.items():
-            d.enable(txunits, self.program, name)
-
-
-        
+        for dname, _d in self.domains.items():
+            _d.domain.enable(txunits, self.program, _d.prefix)
 
     def _init_vao(self):
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
 
-        for domain in self.domains.values():
-            if hasattr(domain[0], 'attrib_pointers'):
-                domain[0].attrib_pointers(domain[1], self.program.attributes)
+        for _d in self.domains.values():
+            if hasattr(_d.domain, 'attrib_pointers'):
+                _d.domain.attrib_pointers(_d.prefix, self.program.attributes)
 
         glBindVertexArray(0)
 
-    def gtick(self, gtick):
-        gtick.require_render = True
-        self.program.uniform('u_resolution', self.resolution.xy)
-        self.program.uniform('u_viewport', self.viewport.xy)
 
-    def draw(self):
+    def gtick(self, gtick):
+        gtick.require_render = self._require_render or self._dynamic_test
         self.program.uniform('u_resolution', self.resolution.xy)
         self.program.uniform('u_viewport', self.viewport.xy)
+        self.program.uniform('ticker_test', time() - self.ticker)
+
+    def render(self):
+
 
         length = None
         txunits = []
-        for n, (d, p) in self.domains.items():
-            d.enable(txunits, self.program, n)
-            if hasattr(d, 'attrib_pointers'):
-                length = len(d)
+        for dname, _d in self.domains.items():
+            _d.domain.enable(txunits, self.program, _d.prefix)
+            if hasattr(_d.domain, 'attrib_pointers'):
+                length = len(_d.domain)
 
         glEnable(GL_PROGRAM_POINT_SIZE)
         self.program.use()
@@ -88,3 +94,5 @@ class GlPointsGraph(DomainGraph):
         glDrawArrays(GL_POINTS, 0, length)
         glBindVertexArray(0)
         self.program.unuse()
+
+        self._require_render = False

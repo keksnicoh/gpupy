@@ -731,7 +731,7 @@ class Program():
                 glUniform4f(location, *np.array(value, dtype=np.float32))
 
             elif dtype == 'int':
-                glUniform1i(location, *np.array(value, dtype=np.int32))
+                glUniform1i(location, np.int32(value))
             elif dtype == 'ivec2':
                 glUniform2i(location, *np.array(value, dtype=np.int32))
             elif dtype == 'ivec3':
@@ -756,7 +756,7 @@ class Program():
             else:
                 raise NotImplementedError('oops! dtype "{}" not implemented by shader library.'.format(dtype))
             self._uniform_values[name] = value
-        except TypeError:
+        except TypeError as e:
             raise TypeError(name, value)
     def get_vertex_shader(self):
         """

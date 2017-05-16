@@ -3,15 +3,17 @@ from gpupy.plot.style import *
 from gpupy.gl.components import Component
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.components.widgets import Widget
-from gpupy.gl.components.widgets.frame import FrameWidget
+from gpupy.gl.components.widgets.frame import FrameWidget, FramestackWidget
 from gpupy.gl.components.widgets.grid import CartesianGrid
 from gpupy.gl.components.widgets.container import Container
+from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
 
 from gpupy.plot.graph import GraphTick
 
 from gpupy.gl.common import Event, attributes, observables
 from gpupy.gl.common.vector import *
 from gpupy.gl import *
+from gpupy.gl import GPUPY_GL as _G
 
 from OpenGL.GL import * 
 
@@ -75,6 +77,8 @@ def mat_cs(cs, res):
                      tx, ty, 0, 1,], np.float32).reshape((4,4))
 
 class Plotter2d(Widget):
+    RS_SIZE = 100
+
     UBO_DTYPE = np.dtype([
         ('mat_cs', np.float32, (4, 4)),
         ('cs', np.float32, 4),
@@ -153,26 +157,45 @@ class Plotter2d(Widget):
         self.grid = None 
         self._plot_container = None 
         self._graphs = OrderedDict()
-
+        self._fast_rs = False
         
         self._initialized = False
+        self.init()
+        self.a = False
+        self.last_fr = False
+
+        self.cmc = [
+            [1, 0, 0, 1],
+            [1, 1, 0, 1],
+            [1, 0, 1, 1],
+            [0, 1, 0, 1],
+            [0, 0, 1, 1],
+            [1, 1, 1, 1],
+        ]
 
     # -- graph api
 
     def __setitem__(self, key, value):
+        return
         if hasattr(value, 'plotter'):
             if value.plotter is None:
                 value.plotter = self 
             elif value.ploter is not self:
                 raise RuntimeError()
         self._graphs[key] = value
+        self.rs.append(value, clickmap=self.cmc[len(self._graphs)-1])
+        print(len(self.rs._s))
 
 
     def __getitem__(self, key):
         return self._graphs[key]
 
     def add(self, value):
+        return
         self._graphs[id(value)] = value 
+        self.rs.append(value, clickmap=self.cmc[len(self._graphs)-1])
+        print(len(self.rs._s))
+
         return self 
         
     def __iadd__(self, value):
@@ -181,18 +204,20 @@ class Plotter2d(Widget):
 
     # -- init
 
-    def init(self):        
-        self._init_plot_container()
-        self._init_plot_camera()
-        self._init_grid()
-        self._init_ubo()
+    def init(self):      
+        if not self._initialized:
+            self._init_plot_container()
+            self._init_rs()  
+            self._init_plot_camera()
+            self._init_grid()
+            self._init_ubo()
 
         for d in self._graphs.values():
             try:
                 cs = d.cs
             except Exception:
                 d.cs = self.cs.values
-            d.frame               = self._plot_container.widget
+            d.frame = self.rs
             d.init()
 
 
@@ -207,15 +232,16 @@ class Plotter2d(Widget):
             target=GL_UNIFORM_BUFFER)
         buffer_base = GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d')
         self.ubo.bind_buffer_base(buffer_base)
-        self._plot_container.widget.resulution.on_change.append(self.update_ubo)
+        self.rs.resolution.on_change.append(self.update_ubo)
         self.update_ubo()
 
     @cs.on_change 
     def update_ubo(self, *e):
-        self.ubo.host['mat_cs']  = mat_cs(self.cs, self._plot_container.widget.resulution)
+        self.ubo.host['mat_cs']  = mat_cs(self.cs, self.rs.resolution)
         self.ubo.host['cs']      = self.cs.values
         self.ubo.host['cs_size'] = cs_size(self.cs)
         self.ubo.sync_gpu()
+        self._redraw = True
 
     # -- grid 
 
@@ -225,14 +251,16 @@ class Plotter2d(Widget):
             transformation=grid, 
             observables=(self.axes_unit, self.cs))
         self.grid = CartesianGrid(
-            size                = self._plot_container.widget.size,
+            size                = self.rs.size,
             cs                  = self.cs,
             major_grid          = major_grid,
             major_grid_color    = self._style['grid-color'],
             minor_grid_color    = self._style['grid-sub-color'],
             background_color    = self.plot_background_color,
-            resolution          = self._plot_container.widget.resulution,
-            minor_grid_n        = self.minor_axes_n)
+            resolution          = self.rs.resolution,
+            minor_grid_n        = self.minor_axes_n)#.dev()
+
+        self.rs.insert(0, self.grid)
 
     # -- camera
 
@@ -243,8 +271,8 @@ class Plotter2d(Widget):
         """
         pos = observables.transform_observables(
             lambda s: (s[0]*0.5, s[1]*0.5, 1), vecn((0,0,0)), 
-            (self._plot_container.widget.resulution, ))
-        self._plot_camera = Camera2D(self._plot_container.widget.resulution, pos)
+            (self.rs.resolution, ))
+        self._plot_camera = Camera2D(self.rs.resolution, pos)
 
     # -- container
 
@@ -252,25 +280,26 @@ class Plotter2d(Widget):
         """ initializes main plotcontainer.
             the plotcontainer manages border, margin padding
             and contains the main plot framebuffer """
-        plot_container = Container(widget=None, 
-                                   size=self.size, 
-                                   position=self.position, 
-                                   margin=self._plot_margin, 
-                                   padding=self.plot_padding,
-                                   border=self._style['border'][0], 
-                                   border_color=self._style['border'][1])
-
-        plot_container.widget = FrameWidget(size=plot_container.content_size, 
-                                            position=plot_container.content_position, 
-                                            resulution=observables.transform_observables(
-                                                transformation=lambda s, v: s * v.xy, 
-                                                observables=(self._.plot_resolution_factor, plot_container.content_size)),
-                                            clear_color=self.plot_background_color)
-
+        plot_container = Container(
+           widget=None, 
+           size=self.size, 
+           position=self.position, 
+           margin=self._plot_margin, 
+           padding=self.plot_padding,
+           border=self._style['border'][0], 
+           border_color=self._style['border'][1])
         self._plot_container = plot_container
 
+    def _init_rs(self):
+        #return
+        pc = self._plot_container
+        self.rs = FramestackWidget(
+            position=pc.content_position,
+            size=pc.content_size,
+            resolution=observables.transform_observables(
+                transformation=lambda s, v: v.xy, 
+                observables=(self._.plot_resolution_factor, pc.content_size)))    
 
-        
     @size.on_change
     @position.on_change
     @cs.on_change
@@ -282,49 +311,135 @@ class Plotter2d(Widget):
     @plot_padding.on_change
     def force_redraw(self, *e):
         self._redraw = True
+        self._fast_rs = True
 
-    def tick(self, redraw=False):
+    def tick(self, redraw=False, resize=False):
+        
         if not self._initialized:
             self.init()
             redraw = True
 
-        pre_plot_event = PrePlotEvent(redraw=True if self._redraw else redraw)
-        self.on_pre_plot(pre_plot_event)
-        self._plot_container.tick()
+        fr = self._fast_rs
+        if self._fast_rs: 
+            rs = self.rs.resolution.xy
+            size = self.rs.size.xy
+            for i, d in enumerate(self._graphs.values()):
+                # we only pass the values here, since the plot 
+                # can be plotted within multiple plotters
+                d.resolution = rs
+                d.viewport = size
+                d.tick(self._g_tick)
 
-        # graph render stack
-        gstack = []
-        rs = self._plot_container.widget.resulution.xy
-        size = self._plot_container.widget.size.xy
-        for d in self._graphs.values():
-            # we only pass the values here, since the plot 
-            # can be plotted within multiple plotters
-            d.resolution = rs
-            d.viewport = size
-            
-            d.tick(self._g_tick)
-            if self._g_tick.require_render:
-                gstack.append(d)
-
-        if pre_plot_event.redraw or len(gstack):
-            self._plot_container.widget.use()
+            # enable plot camera
             self._plot_camera.enable()
+
+            # plot widgets tick
             self.grid.tick()
-            self.grid.draw()
 
-            # render graph stack
+            self._plot_container.tick()
+
+
+            # rendering
             self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
-            for d in gstack:
-                d.draw()
+           # self.rs.render_stack(mode=self.rs.M_TOP_LAYER)
 
-            self._plot_container.widget.unuse()
-            self._redraw = False
-            self.on_post_plot()
-        
+            # fast rs is only enabled for one tick
+            self._fast_rs = False 
+
+        else:
+            pre_plot_event = PrePlotEvent(redraw=True if self._redraw else redraw)
+            self.on_pre_plot(pre_plot_event)
+            self._plot_container.tick()
+            return
+            gstack = []
+            if redraw or self.last_fr or pre_plot_event.redraw:
+                gstack.append(0)
+
+            # graph render stack
+            rs = self.rs.resolution.xy
+            size = self.rs.size.xy
+            for i, d in enumerate(self._graphs.values()):
+                # we only pass the values here, since the plot 
+                # can be plotted within multiple plotters
+                d.resolution = rs
+                d.viewport = size
+                d.tick(self._g_tick)
+                if self._redraw or self.last_fr or pre_plot_event.redraw or self._g_tick.require_render:
+                    gstack.append(self.rs.get_layer(d))
+
+            #pre_plot_event.redraw= True
+            if self.last_fr or pre_plot_event.redraw or len(gstack):
+                self._plot_camera.enable()
+                self.grid.tick()
+                self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
+                self._redraw = False
+                self.on_post_plot()
+
+                if resize:
+                    fr = True
+
+
+                if fr:
+                    self.last_fr = True
+                print(self.rs.M_LAYERS if not fr else self.rs.M_TOP_LAYER, gstack)
+       
+
+                self.rs.render_stack(mode=self.rs.M_LAYERS if not fr else self.rs.M_TOP_LAYER, layers=gstack)
+                
+            self._fast_rs = False 
+
 
     def draw(self):
+       # self.rs.render()
         self._plot_container.render() 
 
+
+class _Graph():
+    def __init__(self, graph):
+        self.graph = graph
+        self.render = True
+        self.tick = True
+        self.rs_index = -1
+
+class RsProgram(Program):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.shaders.append(Shader(GL_VERTEX_SHADER, """
+            {% version %}
+            {% uniform_block outer_camera %}
+            in vec4 vertex;
+            uniform vec4 position = vec4(0, 0, 0, 1);
+            in vec2 tex;
+            out vec2 frag_pos;
+            uniform mat4 mat_model;
+            uniform vec2 rf;
+            uniform vec2 size;
+            void main() {
+                gl_Position = outer_camera.mat_projection 
+                            * outer_camera.mat_view * mat_model 
+                            * vec4(position.x + size.x*vertex.x, 
+                                   position.y + size.y*vertex.y, 
+                                   position.z + vertex.z, 
+                                   vertex.w);
+                frag_pos = tex*rf;
+            }
+        """))
+
+        self.shaders.append(Shader(GL_FRAGMENT_SHADER, """
+            {% version %}
+            uniform sampler2DArray frame_texture;
+            in vec2 frag_pos;
+            out vec4 frag_color;
+            uniform int layer = 0;
+            void main() {
+                frag_color = texture(frame_texture, vec3(frag_pos, layer));
+               // frag_color = vec4(0, frag_pos.y, 0, 1);
+            }
+        """))
+
+        self.declare_uniform('outer_camera', Camera.DTYPE, variable='outer_camera')
+        self.link()
 
 
 
@@ -332,3 +447,4 @@ class PrePlotEvent():
     def __init__(self, redraw=False):
         self.redraw = redraw 
 
+#http://stackoverflow.com/questions/2171085/opengl-blending-with-previous-contents-of-framebuffer

@@ -29,7 +29,7 @@ properties:
 
 from gpupy.gl.common import attributes
 from gpupy.gl import components, Program, GPUPY_GL as G_
-
+from gpupy.plot.domain import safe_name
 from OpenGL.GL import * 
 
 from collections import OrderedDict
@@ -37,6 +37,16 @@ from collections import OrderedDict
 class GraphTick():
     def __init__(self):
         self.require_render = True
+
+class _DomainInfo():
+    def __init__(self, domain, prefix):
+        self.prefix = prefix 
+        self.domain = domain
+
+    @property
+    def glsl_identifier(self):
+        return self.domain.glsl_identifier(self.prefix)
+    
 
 class Graph(components.widgets.Widget):
 
@@ -65,7 +75,6 @@ class DomainGraph(Graph):
 
     main_domain = attributes.CastedAttribute(str)
 
-
     def __init__(self, domain=None):
         super().__init__()
         self.domains = OrderedDict()
@@ -73,14 +82,23 @@ class DomainGraph(Graph):
         if domain is not None:
             self['domain'] = domain 
 
-    def __setitem__(self, key, value):
-        value.requires({n: d[0] for n, d in self.domains.items()})
-        self.domains[key] = (value, 'd_'+str(key))
+    def __setitem__(self, key, domain):
+        safe_name(key)
+        domain.requires(list(self.domains.keys()))
+        self.domains[key] = _DomainInfo(domain, 'd_{}'.format(key))
         if len(self.domains) == 1 and self.main_domain is None:
             self.main_domain = key
 
+    #    handler = self._domain_changed 
+    #    event = observable_event(value)
+    #    if event is not None and handler not in event:
+    #        event.append(handler)
+
+    def _domain_changed(self, domain):
+        pass
+
     def __getitem__(self, key):
-        return self.domains[key][0]
+        return self.domains[key].domain
 
 
 class DomainProgram(Program):
@@ -88,23 +106,26 @@ class DomainProgram(Program):
         frg_shader = self.get_shader(GL_FRAGMENT_SHADER)
         vrt_shader = self.get_shader(GL_VERTEX_SHADER)
 
-        domain_sfnames = {'DOMAIN:{}'.format(dname): d[1] for dname, d in domains.items()}
-
-        domain_fnames = {dname: d[1] for dname, d in domains.items()}
+        # domain name substitutions
+        domain_sfnames = {}
+        for dname, _d in domains.items():
+            print(_d.glsl_identifier)
+            for ident, glsl_id, glsl_meta, glsl_type in _d.glsl_identifier:
+                dname = [dname]
+                if ident is not None:
+                    dname.append(ident)
+                domain_sfnames.update({'domain.{}'.format('.'.join(dname)): glsl_id})
         frg_shader.substitutions.update(domain_sfnames)
         vrt_shader.substitutions.update(domain_sfnames)
 
-        glsl_subst = {
-            'glsl_declr': [],
-            'glsl_attr': [],
-        }
-        for prefix, (domain, fname) in domains.items():
+        # domain code substitutions
+        glsl_subst = {'glsl_declr': [], 'glsl_attr': []}
+        for dname, _d in domains.items():
+            domain = _d.domain
             if hasattr(domain, 'glsl_declr'):
-                glsl_subst['glsl_declr'].append(domain.glsl_declr(fname=fname, upref=prefix, domain_fnames=domain_fnames))
+                glsl_subst['glsl_declr'].append(domain.glsl_declr(upref=_d.prefix))
             if hasattr(domain, 'glsl_attributes'):
-                glsl_subst['glsl_attr'].append(domain.glsl_attributes(fname))
-
-
+                glsl_subst['glsl_attr'].append(domain.glsl_attributes(_d.prefix))
         frg_shader.substitutions.update({k: '\n'.join(v) for k, v in glsl_subst.items()})
         vrt_shader.substitutions.update({k: '\n'.join(v) for k, v in glsl_subst.items()})
 

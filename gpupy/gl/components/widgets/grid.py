@@ -71,6 +71,7 @@ class AbstractGrid(Widget):
 
         self._req_uniforms = True
         self.resolution = resolution or self.size
+        self._dev = False
         self._init_plane()
 
     @size.on_change
@@ -131,21 +132,41 @@ class AbstractGrid(Widget):
                                       GL_TRIANGLES, 
                                       attribute_locations=self.program.attributes)
 
+    def dev(self):
+        self.program = GridProgramDev()
+        self.program.uniform_block_binding('camera', GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
+        self.upload_uniforms() 
+        self._dev = True
+        return self
+
     def _tick(self):
         if self._req_uniforms:
             self.upload_uniforms()
 
 
-    def draw(self):
+    def _render(self):
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        if self._dev:
+            self.program.uniform('dev_color1', (1, 0, 0, 1));
+            self.program.uniform('dev_color2', (1, 0, 1, 1));
         self.program.use()
         self.mesh.draw()
         self.program.unuse()
+  
+        if self._dev:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            self.program.uniform('dev_color1', (0, 1, 0, 1));
+            self.program.uniform('dev_color2', (0, 1, 1, 1));
+            self.program.use()
+            self.mesh.draw()
+            self.program.unuse()
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
 class CartesianGrid(AbstractGrid): pass 
 
 class GridProgram(Program):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -166,9 +187,16 @@ class GridProgram(Program):
             }
         """))
 
-        self.shaders.append(Shader(GL_FRAGMENT_SHADER, open(os.path.dirname(__file__)+'/grid.frag.glsl').read()))
+        self.shaders.append(Shader(GL_FRAGMENT_SHADER, self.glsl_frg_shader()))
 
         self.declare_uniform('camera', Camera.DTYPE, variable='camera')
         self.link()
+
+    def glsl_frg_shader(self):
+        return open(os.path.dirname(__file__)+'/grid.frag.glsl').read()
+
+class GridProgramDev(GridProgram):
+    def glsl_frg_shader(self):
+        return open(os.path.dirname(__file__)+'/grid_dev.frg.glsl').read()
 
 

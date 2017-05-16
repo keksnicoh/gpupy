@@ -7,13 +7,14 @@ import numpy as np
 def plot(plotter):
 
     # simple dynamic domain
-    data = np.arange(0, 1, 0.001, dtype=np.float32)
-    graph = GlPointsGraph(domain.VertexDomain(data), kernel="""vec2 kernel() { 
-        float x = ${DOMAIN};
-        v_col = vec4(1 - ${DOMAIN:rand}(x), 1, ${DOMAIN:rand}(x), 1);
-        return vec2(x, ${DOMAIN:rand}(x));
+    graph = GlPointsGraph(domain.arange(0, 1, 0.00001), kernel="""vec2 kernel() { 
+        float x = cartesian_x(${DOMAIN});
+        float y = ${domain.rand}(x);
+        ${SIZE} = 2;
+        v_col = vec4(1 - ${domain.rand}(x), 1, ${domain.rand}(x), 1);
+        return vec2(x, y);
     }""")
-    graph['rand'] = domain.RandomDomain()
+    graph['rand'] = domain.RandomDomain(timeseed=False)
 
     plotter += graph
 

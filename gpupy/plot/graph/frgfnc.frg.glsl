@@ -25,7 +25,7 @@ void main() {
     float y = frag_pos.y * cs_size.y + cs.z;
 
     // function value at x
-    float ty = ${DOMAIN:${MAIN_DOMAIN}}(x);
+    float ty = ${domain.${MAIN_DOMAIN}}(x);
 
     // signed distance from the graph y-value to x-axis.
     // positive if outside otherwise negative.

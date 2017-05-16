@@ -11,5 +11,5 @@ ${clr_kernel}
 void main() {
     // color kernel here
     vec2 x = vec2(frag_pos.x, 1.0-frag_pos.y);
-    frag_color = color(${DOMAIN:${MAIN_DOMAIN}}(x));
+    frag_color = color(${domain.${MAIN_DOMAIN}}(x));
 }

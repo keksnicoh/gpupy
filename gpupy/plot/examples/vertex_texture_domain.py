@@ -4,9 +4,11 @@ import numpy as np
 def plot(plotter):
 
     g = graph.glpoints.GlPointsGraph()
-
+    
     g['x'] = domain.VertexDomain.arange(0, 15, .0001, dtype=np.float32)
+   # g['x'] = domain.arange(0, 15, .0001, dtype=np.float32)
     g['y'] = domain.TextureDomain.to_device_1d(np.sin(np.arange(0, 15, .01, dtype=np.float32)))
+    #g['y'] = domain.tarray(np.sin(np.arange(0, 15, .01, dtype=np.float32)))
     g['y'].smooth(True)
 
     # just for fun we apply a function domain here...
@@ -19,7 +21,7 @@ def plot(plotter):
         vec2 kernel() {
             v_col = vec4(0, 1, 1, 1);
             gl_PointSize = 3;
-            return vec2(${DOMAIN:x}, ${DOMAIN:t}(${DOMAIN:y}(${DOMAIN:x}/15)));
+            return vec2(${domain.x}, ${domain.t}(${domain.y}(${domain.x}/15)));
         }
     """
 
@@ -34,7 +36,7 @@ def plot(plotter):
 
     g = graph.glpoints.GlPointsGraph(domain.TextureDomain.to_device_1d(data), kernel="""
         vec2 kernel() {
-            vec4 d = ${DOMAIN}(${DOMAIN:arg});
+            vec4 d = ${DOMAIN}(${domain.arg});
             ${SIZE} = d.w;
             ${COLOR} = vec4(0.5+0.5*d.z, d.z, 1-d.z, d.w/5);
             return vec2(2,2) + d.xy/5;
