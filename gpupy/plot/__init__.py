@@ -8,8 +8,6 @@ import numpy as np
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.glfw import GLFW_window
 from time import time
-from gpupy.plot.graph.frgfnc import Frag1DGraph, Frag2DGraph
-from gpupy.plot.graph.glpoints import GlPointsGraph
 from gpupy.plot import domain
 
 from functools import partial
@@ -51,9 +49,8 @@ class Plotter2dBasic():
         s = self.window.size
         self.plotter = Plotter2d(size, cs=(-4, 4, -4, 4))
         self._plot(self.plotter)
-        self.plotter.init()
-        self.plotter._plot_container.border = (2,2,2,2)
-        self.plotter._plot_container.margin = (10, 10, 10, 10)
+        self.plotter.layer.border = (2,2,2,2)
+        self.plotter.layer.margin = (30, 30, 30, 30)
         self.border = 3 
 
     def draw(self, window, resize=False):
@@ -101,7 +98,7 @@ class Plotter2dBasic():
                 self.plotter._fast_rs = True
             print(self.plotter.axes_unit)
         dt = time() - self.t
-        self.plotter.tick(resize=resize)
+        self.plotter.tick()
 
         glClearColor(*self.plotter.background_color.values)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

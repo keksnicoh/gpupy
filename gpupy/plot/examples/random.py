@@ -1,42 +1,41 @@
 #-*- coding: utf-8 -*-
 """
-example creates a glpoints graph using a cartesian
-x domain and a random function domain for y-values.
+example creates a glprimitives graph over x axis.
+y values are sampled from a random function domain within
+the vertex shader.
+
 :author: keksnicoh
 """
 
 from gpupy.plot import plot2d
-from gpupy.plot.domain import VertexDomain, RandomDomain
-from gpupy.plot.graph.glpoints import GlPointsGraph 
+from gpupy.plot.domain import arange, random
+from gpupy.plot.graph.glprimitives import GlPrimitivesGraph 
 
 @plot2d 
 def plot(plotter):
 
-    # domain on [0, 1] will be projected onto full cs
-    # x-axes by using shader function cartesian_x
-    domain = VertexDomain.arange(0, 1, 0.00001)
+    plotter += GlPrimitivesGraph({
+        # domain on [0, 1] will be projected onto full cs
+        # x-axes by using shader function cartesian_x
+        'x': arange(0, 1, 0.00001),
 
-    # glpoints graph with custom kernel
-    graph = GlPointsGraph(domain, kernel="""vec2 kernel() { 
+        # random domain
+        'rand': random(timeseed=False),
+
+    }, kernel="""vec2 kernel() { 
         // point pixel size
-        ${SIZE} = 2;
+        $size = 2;
 
         // extend vertex domain over x axis
-        float x = cartesian_x(${DOMAIN});
+        float x = cartesian_x($D.x);
 
         // colorize 
-        v_col = vec4(1 - ${domain.rand}(x), 1, ${domain.rand}(x), 1);
+        $color = vec4(1 - $D.rand(x), 1, $D.rand(x), 1);
 
         // vertex coords
-        return vec2(x, ${domain.rand}(x));
+        return vec2(x, $D.rand(x));
     }""")
 
-    # add the random domain to the graph
-    graph['rand'] = RandomDomain(timeseed=False)
-    #graph['rand'] = dm.random()
-
-    # add graph to plotter
-    plotter += graph
-
+    
 if __name__ == '__main__':
     plot()

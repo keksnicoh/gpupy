@@ -17,9 +17,9 @@ vec4 cs(vec3 p)  { return _cs(vec4(p,  1)); }
 vec4 cs(vec4 p)  { return _cs(p); }
 
 float cartesian_y(float y) { return plot.cs.z + plot.cs_size.y * y; }
-float cartesian_y(vec2 x) { return cartesian_y(x.y); }
+float cartesian_y(vec2 x) {  return cartesian_y(x.y); }
 float cartesian_x(float x) { return plot.cs.x + plot.cs_size.x * x; }
-float cartesian_x(vec2 x) { return cartesian_x(x.x); }
+float cartesian_x(vec2 x) {  return cartesian_x(x.x); }
 
 ${vrt_kernl}
 

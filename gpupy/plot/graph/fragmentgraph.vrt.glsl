@@ -7,7 +7,6 @@ in vec2 tex;
 
 uniform vec4 cs;
 uniform vec2 cs_size;
-
 out vec2 frag_pos;
 
 void main() {

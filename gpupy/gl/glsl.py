@@ -86,6 +86,72 @@ NPVECTOR_TO_GLVECTOR = {
     '<f8': 'dvec'
 }
 
+def parse_template(template, context):
+    """
+    context is a dict containing substitutions
+
+    like string.Template:
+    $a -> context['a']
+    $$a -> $$a              double $$ escapes single $ 
+    ${a} -> context['a']
+
+    allowed characters: abcdefghijklmnopqrstuvxyz0123456789_
+    accessing members seperator: .
+
+    extension: keys and list
+    $a.b  -> context['a']['b']
+    ${a.b} -> context['a']['b']
+    ${a.b}.c -> context['a']['b'] + ".c"
+
+    """
+    flat_context = {}
+    def _flattenize(context, prefix=''):
+        for (k, v) in context:
+            if isinstance(v, dict):
+                _flattenize(v.items(), '{}{}.'.format(prefix, k))
+            elif isinstance(v, list):
+                _flattenize(enumerate(v), '{}{}.'.format(prefix, k))
+            else:
+                flat_context[prefix+str(k)] = v
+    _flattenize(context.items())
+
+    import re
+    # $xyz.derp
+    substitutions = set(re.findall(r'[^\$]\$([a-zA-Z0-9_.]{3,})', template, flags=re.MULTILINE))
+    # ${hello.hi}
+    substitutions |= set(re.findall(r'[^\$]\$\{([a-zA-Z0-9_.]{3,})\}', template, flags=re.MULTILINE))
+
+    # -- check for missing substitutions
+    missing_subst = substitutions - set(flat_context.keys())
+    if len(missing_subst):
+        raise KeyError("missing substitutions: {}".format(', '.join(missing_subst)))
+
+    # -- replace longest substitutions first to
+    #    avoid collisions like $hello vs. $hellolong
+    rendered = str(template)
+    for key in sorted(substitutions, key=lambda v: -len(v)):
+        rendered = re.sub(r'([^\$]|)\$(\{)?'+re.escape(key)+'(\})?', 
+                          r'\1'+re.escape(str(flat_context[key])), 
+                          rendered, 
+                          flags=re.MULTILINE)
+    return rendered
+
+class Template:
+    """
+    very simple template which is an extension to PEP 292:
+    nested context is allowed using a seperator:
+
+      $x.y
+      ${x.y}
+
+    """
+    def __init__(self, template, context={}):
+        self.template = template
+        self.context = context
+    def render(self):
+        return parse_template(self.template, self.context)
+    def substitute(self, **context):
+        return parse_template(self.template, context)
 
 def dtype_vector(dtype, dim):
     dtype_descr = dtype.descr[0][1]

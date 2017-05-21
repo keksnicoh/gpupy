@@ -27,6 +27,7 @@ import os
 from time import time
 
 __all__ = [
+    'to_gpu',
     'arange',
     'array',
     'empty',
@@ -48,7 +49,9 @@ __all__ = [
     'VertexDomain', 
     'TextureDomain', 
     'RandomDomain', 
-    'FunctionDomain'
+    'FunctionDomain',
+    'enable_for_program',
+    'domains_to_subsitutions',
 ]
 class DomainError(Exception): 
     pass
@@ -57,13 +60,28 @@ class DependencyError(DomainError):
 class DomainNameError(DomainError): 
     pass
 
-def arange(): pass
-def array(): pass 
-def empty(): pass 
-def random(): pass 
-def zeros(): pass 
-def ones(): pass 
-def empty_like(): pass 
+
+def to_gpu(data):
+    return VertexDomain(data)
+
+def arange(start, end, step=None, dtype=np.float32): 
+    return VertexDomain.arange(start, end, step, dtype=np.float32)
+
+def array(data, dtype=np.float32): 
+    return VertexDomain(np.array(data, dtype=dtype)) 
+
+def empty(shape, dtype=np.float32): 
+    return VertexDomain(np.empty(shape, dtype))
+
+def zeros(shape, dtype=np.float32): 
+    return VertexDomain(np.zeros(shape, dtype))
+
+def ones(shape, dtype=np.float32): 
+    return VertexDomain(np.ones(shape, dtype))
+
+def random(timeseed=False): 
+    return RandomDomain(timeseed=timeseed) 
+def empty_like(): pass
 def ones_like(): pass 
 def zeros_like(): pass 
 def sarange(): pass
@@ -76,6 +94,15 @@ def sempty_like(): pass
 def sones_like(): pass 
 def szeros_like(): pass 
 
+
+def enable_domains(program, domains, texunit=0):
+    # -- enable domains.
+    # 
+    # we need to assign texture units to texture
+    # domains. If a domain uses a texture domains it
+    # will return increates texunit. 
+    for dname, domain in domains:
+        texunit = domain.domain.enable(program, domain.prefix, texunit)
 
 _name_rgx = re.compile('^[a-zA-Z_][a-zA-Z_0-9]*$') #XXX think more about this...
 def safe_name(name):
@@ -96,12 +123,12 @@ class AbstractDomain():
         """
         pass
 
-    def enable(self, txunits, program, upref):
+    def enable(self, program, upref, texunit=0):
         """
         enables the domain such that the shadering
         pipeline is setup
         """
-        pass
+        return texunit
 
     def tick(self):
         pass
@@ -286,8 +313,11 @@ class TextureDomain(ContinuousDomain):
     _GLSL_TEMPLATE_DECRL = "uniform sampler{d:}D tx_{upref:};"
 
     WHEELS = {
-        'complex': os.path.join(os.path.dirname(__file__), 'graph', 'res', 'cwheel_cmplx.jpg'),
+        'complex':   os.path.join(os.path.dirname(__file__), 'graph', 'res', 'cwheel_cmplx.jpg'),
+        'complex2':  os.path.join(os.path.dirname(__file__), 'graph', 'res', 'cwheel_cmplx2.png'),
+        'complex3':  os.path.join(os.path.dirname(__file__), 'graph', 'res', 'cwheel_cmplx3.png'),
         'keksnicoh': os.path.join(os.path.dirname(__file__), 'graph', 'res', 'keksnicoh.png'),
+        'homer':     os.path.join(os.path.dirname(__file__), 'graph', 'res', 'homer.png'),
     }
 
     DEFAULT_WHEEL = 'complex'
@@ -309,7 +339,10 @@ class TextureDomain(ContinuousDomain):
         if wheel not in cls.WHEELS:
             err = 'unkown wheel "{}". Available wheels: {}'
             raise ValueError(err.format(wheel, ','.join(cls.WHEELS)))
-        return cls.load_image(cls.WHEELS[wheel])
+        d = cls.load_image(cls.WHEELS[wheel])
+        d.periodic(False)
+        d.smooth(True)
+        return d
 
     @classmethod
     def to_device_1d(cls, data, smooth=True, periodic=False):
@@ -320,6 +353,13 @@ class TextureDomain(ContinuousDomain):
 
     @classmethod
     def to_device_2d(cls, data, smooth=True, periodic=False):
+        if data.dtype == np.float64:
+            data = data.astype(np.float32)
+        if data.dtype == np.complex128:
+            data = data.astype(np.complex64)
+        if data.dtype == np.complex64:
+            data = np.stack((data.real, data.imag), -1)
+
         d = cls(Texture2D.to_device(data))
         d.periodic(periodic)
         d.smooth(smooth)
@@ -355,10 +395,10 @@ class TextureDomain(ContinuousDomain):
 
     # -- domain API 
 
-    def enable(self, txunits, program, upref):
-        self.texture.activate(len(txunits))
-        txunits.append(self)
+    def enable(self, program, upref, texunit=0):
+        self.texture.activate(texunit)
         program.uniform('tx_{}'.format(upref), self.texture)
+        return texunit +1
 
     def glsl_identifier(self, pref):
         t = self.texture
@@ -415,12 +455,13 @@ class RandomDomain(ContinuousDomain):
     def glsl_identifier(self, pref):
         return [(None, pref, 1, None)]
 
-    def enable(self, txunits, program, upref):
+    def enable(self, program, upref, texunit=0):
         if self.timeseed:
             t = time()
-            program.uniform('rd_d_{}'.format(upref), t - np.floor(t))
-            program.uniform('rd2_d_{}'.format(upref), t - np.floor(t))
-
+            program.uniform('rd_{}'.format(upref), t - np.floor(t))
+            program.uniform('rd2_{}'.format(upref), t - np.floor(t))
+        return texunit 
+        
     def glsl_declr(self, upref, **kwargs):
         if self.timeseed:
             tmpl = self.__class__.GLSL_TIMESEED
@@ -440,7 +481,7 @@ class FunctionDomain(ContinuousDomain):
     this should be used
 
     a) to see some quick results
-    b) to combine other fragment domains with an expression.
+    b) to combine other domains
 
     """
     def __init__(self, glsl):

@@ -328,15 +328,40 @@ class Shader():
             self._compile_structs()
             self._compile_uniform_blocks()
 
-            
-
             glShaderSource(self.gl_shader_id, self._precompiled_source)
             glCompileShader(self.gl_shader_id)
 
+            # -- check for errors
             error_log = glGetShaderInfoLog(self.gl_shader_id)
             if error_log:
-                print(self._precompiled_source)
+                GPUPY_GL.warn("\033[31;3m --------------------------------- \033[0m")
+                GPUPY_GL.warn("\033[31;3m -                               - \033[0m")
+                GPUPY_GL.warn("\033[31;3m -        SHADER ERROR           - \033[0m")
+                GPUPY_GL.warn("\033[31;3m -                               - \033[0m")
+                GPUPY_GL.warn("\033[31;3m --------------------------------- \033[0m")
+                GPUPY_GL.warn("\033[31;3m {}".format(self.gl_shader_type))
+                GPUPY_GL.warn("\033[31;3m {}".format(error_log))
+
+                # extract error, if possible print highlighted
+                # source code. Otherwise print whole source code
+                result = re.match(b'^ERROR:\s*(\d+):(\d+): (.*)', error_log, flags=re.MULTILINE)
+                if result:
+                    _, line = result.group(1), int(result.group(2))
+                    lines = self._precompiled_source.split('\n')
+                    for line in range(max(0, line -10), line-1):
+                        GPUPY_GL.warn("\033[32m{:4}\033[0m: \033[37m{}\033[0m".format(line +1, lines[line]))
+                    GPUPY_GL.warn("\033[31;3m{:4}: {}\033[0m".format(line+2, lines[line+1]))
+                    GPUPY_GL.warn("      \033[1;35m{}\033[0m".format(result.group(3)))
+                    for line in range(line +2, min(len(lines) -1, line + 10)):
+                        GPUPY_GL.warn("\033[32m{:4}\033[0m: \033[37m{}\033[0m".format(line +1, lines[line]))
+                else:
+                    for line in self._precompiled_source.split('\n'):
+                        GPUPY_GL.warn(line)
+
+                # delete shader
                 self.delete()
+
+                # raise general shader error
                 self._serr('{}'.format(error_log))
 
         return self.gl_shader_id
@@ -344,7 +369,11 @@ class Shader():
     def _compile_tags(self):
         # 
         # substitutions
-        self._precompiled_source = re.sub(r'\{\%\s+version\s+\%\}', "#version {}".format(self.substitutions['VERSION']), self._precompiled_source, flags=re.MULTILINE)
+        self._precompiled_source = re.sub(
+            r'\{\%\s+version\s+\%\}', 
+            "#version {}".format(self.substitutions['VERSION']), 
+            self._precompiled_source, 
+            flags=re.MULTILINE)
 
         for n, v in self.substitutions.items():
             self._precompiled_source = self._precompiled_source.replace('${'+str(n)+'}', str(v))
@@ -666,7 +695,7 @@ class Program():
         shader is in use.
         """
         if not name in self.uniforms:
-            raise ProgramError('unkown uniform "{}"'.format(name))
+            raise ProgramError('unkown uniform "{}". Available: {}'.format(name, ', '.join(list(self.uniforms.keys()))))
         if flush or self.gl_shader_id == Program.__LAST_USE_GL_ID:
             self._uniform(name, value)
         else:
@@ -758,6 +787,8 @@ class Program():
             self._uniform_values[name] = value
         except TypeError as e:
             raise TypeError(name, value)
+
+
     def get_vertex_shader(self):
         """
         returns vertex shader if appended
@@ -796,6 +827,7 @@ class Program():
         """
         self.uniforms = {}
         for shader in self.shaders:
+
             for k, u in shader.uniforms.items():
                 # check whether any uniform is defined in 2 shaders with different types.
                 if k in self.uniforms and self.uniforms[k][1] != u[0]:
@@ -826,7 +858,6 @@ class Program():
                     continue
 
                 self.uniform_block_index[block_name] = block_index
-
 
     def uniform_block_binding(self, name, index):
         if name not in self.uniform_block_index:

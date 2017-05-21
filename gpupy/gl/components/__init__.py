@@ -21,15 +21,11 @@ class Component():
     if the component has a components attribute it is an node (parent component).
 
     Events
-        on_pre_tick 
-        on_post_tick 
+        on_tick 
     """
     def __init__(self):
-        self.on_pre_tick = Event()
-        self.on_post_tick = Event()
+        self.on_tick = Event()
         self._ = ObservablesAccessor(self)
         
     def tick(self):
-        self.on_pre_tick()
-        self._tick()
-        self.on_post_tick()
+        self.on_tick()

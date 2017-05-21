@@ -10,10 +10,24 @@ from gpupy.gl.common import Event
 import numpy as np 
 from OpenGL.GL import *
 
+def border_size(s, b, m):
+    x = s.x - b.y - b.w - m.y - m.w
+    y = s.y - b.x - b.z - m.x - m.z
+    return (x, y)
+
+def content_size(s, b, m, p):
+    x = s.x - b.y - b.w - p.y - p.w - m.y - m.w
+    y = s.y - b.x - b.z - p.y - p.z - m.x - m.z
+    return (x, y)
+
+def content_position(p, b, m, pd):
+    x = p.x + b.w + pd.w + m.w
+    y = p.y + b.x + pd.x + m.x
+    return (x, y, p.z, p.w)
 
 class Container(Widget):
     """
-    like a div container the Container widget has a position, size, margin, border and padding. 
+    like a div container, the Container widget has a position, size, margin, border and padding. 
 
      position
        \        size x
@@ -31,10 +45,10 @@ class Container(Widget):
         +---------------------------- ... +
 
     ```python
-    container = Container((100, 100), margin=(10, 10), padding=(10, 10), border=(10, 10, 10, 10), border_color=(1, 0, 0, 1))
-    container.widget = SomeWidget(size=container.content_size, position=container_position)
-    container.tick()
-    container.render()
+        container = Container((100, 100), margin=(10, 10), padding=(10, 10), border=(10, 10, 10, 10), border_color=(1, 0, 0, 1))
+        container.widget = SomeWidget(size=container.content_size, position=container_position)
+        container.tick()
+        container.render()
     ```
     """
     size = attributes.VectorAttribute(2)
@@ -48,23 +62,27 @@ class Container(Widget):
     # transformed properties
     content_position = attributes.ComputedAttribute(
         position, border, margin, padding, 
+        transformation=content_position,
         descriptor=attributes.VectorAttribute(4))
 
     content_size = attributes.ComputedAttribute(
-        size, border, margin, padding,     
+        size, border, margin, padding,    
+        transformation=content_size, 
         descriptor=attributes.VectorAttribute(2))
 
     border_size = attributes.ComputedAttribute(
-        size, border, margin,              
+        size, border, margin,             
+        transformation=border_size,
         descriptor=attributes.VectorAttribute(2))
 
-    def __init__(self, widget=None, 
-                       size=(0, 0), 
-                       position=(0, 0, 0, 0), 
-                       margin=(0, 0, 0, 0), 
-                       padding=(0, 0, 0, 0), 
-                       border=(1, 1, 1, 1), 
-                       border_color=(0, 0, 0, 1)):
+    def __init__(self, 
+                 widget=None, 
+                 size=(0, 0), 
+                 position=(0, 0, 0, 0), 
+                 margin=(0, 0, 0, 0), 
+                 padding=(0, 0, 0, 0), 
+                 border=(1, 1, 1, 1), 
+                 border_color=(0, 0, 0, 1)):
 
         super().__init__()
 
@@ -75,36 +93,25 @@ class Container(Widget):
         self.border_color = border_color
         self.margin       = margin
 
-        self.widget = widget
+        self._widget = None
+        self.set_widget(widget)
 
-        self._require_create_mesh = True
+        self.to_gpu = True
         self._init_borders()
 
-    @content_size.transformation
-    def set_contentsize(self, s, b, m, p):
-        x = s.x - b.y - b.w - p.y - p.w - m.y - m.w
-        y = s.y - b.x - b.z - p.y - p.z - m.x - m.z
-        return (x, y)
 
-
-    @border_size.transformation
-    def weewewwe(self, s, b, m):
-        x = s.x - b.y - b.w - m.y - m.w
-        y = s.y - b.x - b.z - m.x - m.z
-        return (x, y)
-
-
-    @content_position.transformation
-    def swtwef(self, p, b, m, pd):
-        x = p.x + b.w + pd.w + m.w
-        y = p.y + b.x + pd.x + m.x
-        return (x, y, p.z, p.w)
-
+    def set_widget(self, widget):
+        self._widget = widget 
 
     @border_color.on_change 
     @content_size.on_change 
+    @border_size.on_change
     def _flag_create_mesh(self, *a):
-        self._require_create_mesh = True
+        self.on_tick.once(self.sync_gpu)
+
+
+    def sync_gpu(self):
+        self._create_mesh()
 
 
     def _init_borders(self):
@@ -115,10 +122,9 @@ class Container(Widget):
         ])), GL_TRIANGLES, attribute_locations=self.border_program.attributes)
 
 
+
     def _create_mesh(self):
-        b = self.border
-        c = self.border_color
-        s =  self.border_size
+        b, c, s = self.border, self.border_color, self.border_size
         p = self.position + (b[3] + self.margin[3], b[0] + self.margin[0], 0, 0)
         crn = (p[1], p[0] + s[0], p[1] + s[1], p[0]) # corner coords
         vcnt = sum(6*(int(l > 0) + int(l > 0 and b[(i + 1) % 4] > 0)) for i, l in enumerate(b))
@@ -183,15 +189,7 @@ class Container(Widget):
 
         self.border_mesh.buffer.set(v)
 
-
-    def _tick(self):
-        if self._require_create_mesh:
-            self._create_mesh()
-            self._require_create_mesh = False
-        #self.widget.tick()
-
     def _render(self):
-        #self.widget.draw()
         self.border_program.use()
         self.border_mesh.draw()
         self.border_program.unuse()

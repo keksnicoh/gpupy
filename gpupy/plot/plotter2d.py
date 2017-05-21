@@ -8,8 +8,6 @@ from gpupy.gl.components.widgets.grid import CartesianGrid
 from gpupy.gl.components.widgets.container import Container
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
 
-from gpupy.plot.graph import GraphTick
-
 from gpupy.gl.common import Event, attributes, observables
 from gpupy.gl.common.vector import *
 from gpupy.gl import *
@@ -23,8 +21,10 @@ from collections import OrderedDict
 
 DEFAULT_STYLE = {
     'border':                '0 1 1 0 #528682ff',
+    'border':                '0 1 1 0 #ff8500ff',
     'background-color':      '#303233ff',
     'background-color':      '#202122ff',
+    'background-color':      '#101011ff',
     'plot-scaling':          '.5',
     'plot-background-color': '#161c20ff',
     'plot-padding':          '0 0 0 0',
@@ -77,11 +77,10 @@ def mat_cs(cs, res):
                      tx, ty, 0, 1,], np.float32).reshape((4,4))
 
 class Plotter2d(Widget):
-    RS_SIZE = 100
 
     UBO_DTYPE = np.dtype([
-        ('mat_cs', np.float32, (4, 4)),
-        ('cs', np.float32, 4),
+        ('mat_cs',  np.float32, (4, 4)),
+        ('cs',      np.float32, 4),
         ('cs_size', np.float32, 2)
     ])
 
@@ -97,7 +96,7 @@ class Plotter2d(Widget):
     axes_unit = attributes.VectorAttribute(2, (0.25, 0.25))
 
     # division of one axes_unit into sub units
-    minor_axes_n = attributes.VectorAttribute(2, (5,5))
+    minor_axes_n = attributes.VectorAttribute(2, (5, 5))
 
     # the plot plane is implemented via framebuffer. this factor 
     # allows to adjust the resolution of the framebuffer viewport.
@@ -117,14 +116,14 @@ class Plotter2d(Widget):
                        cs=(0, 1, 0, 1), 
                        style=DEFAULT_STYLE,
                        axes_unit=None):
+
         super().__init__()
+
         # state
         self.cs = cs
         self.size = size 
         self.position = position
-        self._flagged = set()
 
-        self._redraw = True
         if axes_unit is not None:
             self.axes_unit = axes_unit
 
@@ -143,26 +142,21 @@ class Plotter2d(Widget):
         self.background_color = self._style['background-color']
         self.plot_background_color = self._style['plot-background-color']
         self.plot_padding = self._style['plot-padding']
-        self.ubo = None 
+        self.ubo = None
 
-        self._g_tick = GraphTick()
-
-        # event hooks
-        self.on_pre_plot = Event()
-        self.on_post_plot = Event()
-        self.on_pre_graph = Event()
-        self.on_post_graph = Event()
+        self.on_plot = Event() 
 
         self._plot_margin = vec4((0, 0, 0, 0))
         self.grid = None 
-        self._plot_container = None 
-        self._graphs = OrderedDict()
-        self._fast_rs = False
-        
-        self._initialized = False
-        self.init()
+        self.layer = None 
+
+        self._graphs = []
+        self._graphs_initialized = False
+
+        self._init()
         self.a = False
         self.last_fr = False
+        self.on_plot.once(self.init_graphs)
 
         self.cmc = [
             [1, 0, 0, 1],
@@ -175,53 +169,30 @@ class Plotter2d(Widget):
 
     # -- graph api
 
-    def __setitem__(self, key, value):
-        return
-        if hasattr(value, 'plotter'):
-            if value.plotter is None:
-                value.plotter = self 
-            elif value.ploter is not self:
-                raise RuntimeError()
-        self._graphs[key] = value
-        self.rs.append(value, clickmap=self.cmc[len(self._graphs)-1])
-        print(len(self.rs._s))
+    def init_graphs(self):
+        for graph in self._graphs:
+            graph.init()
+        self._graphs_initialized = True
 
-
-    def __getitem__(self, key):
-        return self._graphs[key]
-
-    def add(self, value):
-        return
-        self._graphs[id(value)] = value 
-        self.rs.append(value, clickmap=self.cmc[len(self._graphs)-1])
-        print(len(self.rs._s))
-
-        return self 
+    def append(self, graph):
+        self._graphs.append(graph)
+        if self._graphs_initialized:
+            graph.init()
+            graph.resolution = self.plotframe.resulution
+            graph.viewport = self.plotframe.resulution
         
-    def __iadd__(self, value):
-        self.add(value)
+    def __iadd__(self, graph):
+        self.append(graph)
         return self
 
     # -- init
 
-    def init(self):      
-        if not self._initialized:
-            self._init_plot_container()
-            self._init_rs()  
-            self._init_plot_camera()
-            self._init_grid()
-            self._init_ubo()
+    def _init(self):  
+        self._initlayer()
+        self._initplotcam()
+        self._init_grid()
+        self._init_ubo()
 
-        for d in self._graphs.values():
-            try:
-                cs = d.cs
-            except Exception:
-                d.cs = self.cs.values
-            d.frame = self.rs
-            d.init()
-
-
-        self._initialized = True
 
     # -- plot ubo 
 
@@ -232,16 +203,14 @@ class Plotter2d(Widget):
             target=GL_UNIFORM_BUFFER)
         buffer_base = GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d')
         self.ubo.bind_buffer_base(buffer_base)
-        self.rs.resolution.on_change.append(self.update_ubo)
         self.update_ubo()
 
     @cs.on_change 
     def update_ubo(self, *e):
-        self.ubo.host['mat_cs']  = mat_cs(self.cs, self.rs.resolution)
+        self.ubo.host['mat_cs']  = mat_cs(self.cs, self.layer.content_size)
         self.ubo.host['cs']      = self.cs.values
         self.ubo.host['cs_size'] = cs_size(self.cs)
         self.ubo.sync_gpu()
-        self._redraw = True
 
     # -- grid 
 
@@ -250,197 +219,75 @@ class Plotter2d(Widget):
         major_grid = observables.transform_observables(
             transformation=grid, 
             observables=(self.axes_unit, self.cs))
+
         self.grid = CartesianGrid(
-            size                = self.rs.size,
+            size                = self.layer.content_size,
+            position            = self.layer.content_position,
             cs                  = self.cs,
             major_grid          = major_grid,
             major_grid_color    = self._style['grid-color'],
             minor_grid_color    = self._style['grid-sub-color'],
             background_color    = self.plot_background_color,
-            resolution          = self.rs.resolution,
+            resolution          = self.layer.content_size,
             minor_grid_n        = self.minor_axes_n)#.dev()
-
-        self.rs.insert(0, self.grid)
 
     # -- camera
 
-    def _init_plot_camera(self):
+    def _initplotcam(self):
         """
         creates a plot camera which is connected to
         the configuration space
         """
         pos = observables.transform_observables(
             lambda s: (s[0]*0.5, s[1]*0.5, 1), vecn((0,0,0)), 
-            (self.rs.resolution, ))
-        self._plot_camera = Camera2D(self.rs.resolution, pos)
+            (self.layer.content_size, ))
+        self.plotcam = Camera2D(self.layer.content_size, pos)
 
     # -- container
 
-    def _init_plot_container(self):
+    def _initlayer(self):
         """ initializes main plotcontainer.
             the plotcontainer manages border, margin padding
             and contains the main plot framebuffer """
+
         plot_container = Container(
-           widget=None, 
-           size=self.size, 
-           position=self.position, 
-           margin=self._plot_margin, 
-           padding=self.plot_padding,
-           border=self._style['border'][0], 
-           border_color=self._style['border'][1])
-        self._plot_container = plot_container
+            size=self.size, 
+            position=self.position, 
+            margin=self._plot_margin, 
+            padding=self.plot_padding,
+            border=self._style['border'][0], 
+            border_color=self._style['border'][1])
 
-    def _init_rs(self):
-        #return
-        pc = self._plot_container
-        self.rs = FramestackWidget(
-            position=pc.content_position,
-            size=pc.content_size,
-            resolution=observables.transform_observables(
-                transformation=lambda s, v: v.xy, 
-                observables=(self._.plot_resolution_factor, pc.content_size)))    
+        self.plotframe = FrameWidget(position=plot_container.content_position,
+                                     size=plot_container.content_size,
+                                     resulution=plot_container.content_size,
+                                     clear_color=(0, 0, 0, 0))
+        self.layer = plot_container
+        self.layer.content_size.on_change.append(self.update_ubo)
 
-    @size.on_change
-    @position.on_change
-    @cs.on_change
-    @axes_unit.on_change
-    @minor_axes_n.on_change
-    @plot_resolution_factor.on_change
-    @background_color.on_change
-    @plot_background_color.on_change
-    @plot_padding.on_change
-    def force_redraw(self, *e):
-        self._redraw = True
-        self._fast_rs = True
+    def tick(self):
+        self.on_tick()
 
-    def tick(self, redraw=False, resize=False):
-        
-        if not self._initialized:
-            self.init()
-            redraw = True
+        # -- tick the components
+        self.plotcam.enable()
+        self.layer.tick()
+        self.grid.tick()
+        self.plotframe.tick()
 
-        fr = self._fast_rs
-        if self._fast_rs: 
-            rs = self.rs.resolution.xy
-            size = self.rs.size.xy
-            for i, d in enumerate(self._graphs.values()):
-                # we only pass the values here, since the plot 
-                # can be plotted within multiple plotters
-                d.resolution = rs
-                d.viewport = size
-                d.tick(self._g_tick)
-
-            # enable plot camera
-            self._plot_camera.enable()
-
-            # plot widgets tick
-            self.grid.tick()
-
-            self._plot_container.tick()
-
-
-            # rendering
-            self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
-           # self.rs.render_stack(mode=self.rs.M_TOP_LAYER)
-
-            # fast rs is only enabled for one tick
-            self._fast_rs = False 
-
-        else:
-            pre_plot_event = PrePlotEvent(redraw=True if self._redraw else redraw)
-            self.on_pre_plot(pre_plot_event)
-            self._plot_container.tick()
-            return
-            gstack = []
-            if redraw or self.last_fr or pre_plot_event.redraw:
-                gstack.append(0)
-
-            # graph render stack
-            rs = self.rs.resolution.xy
-            size = self.rs.size.xy
-            for i, d in enumerate(self._graphs.values()):
-                # we only pass the values here, since the plot 
-                # can be plotted within multiple plotters
-                d.resolution = rs
-                d.viewport = size
-                d.tick(self._g_tick)
-                if self._redraw or self.last_fr or pre_plot_event.redraw or self._g_tick.require_render:
-                    gstack.append(self.rs.get_layer(d))
-
-            #pre_plot_event.redraw= True
-            if self.last_fr or pre_plot_event.redraw or len(gstack):
-                self._plot_camera.enable()
-                self.grid.tick()
-                self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
-                self._redraw = False
-                self.on_post_plot()
-
-                if resize:
-                    fr = True
-
-
-                if fr:
-                    self.last_fr = True
-                print(self.rs.M_LAYERS if not fr else self.rs.M_TOP_LAYER, gstack)
-       
-
-                self.rs.render_stack(mode=self.rs.M_LAYERS if not fr else self.rs.M_TOP_LAYER, layers=gstack)
-                
-            self._fast_rs = False 
-
+        # -- graph rendering
+        self.plotframe.use()
+        self.plotcam.enable()
+        self.on_plot()
+        self.ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('gpupy.plot.plotter2d'))
+        for graph in self._graphs:
+            graph.tick()
+            graph.render()
+        self.plotframe.unuse()
 
     def draw(self):
-       # self.rs.render()
-        self._plot_container.render() 
-
-
-class _Graph():
-    def __init__(self, graph):
-        self.graph = graph
-        self.render = True
-        self.tick = True
-        self.rs_index = -1
-
-class RsProgram(Program):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.shaders.append(Shader(GL_VERTEX_SHADER, """
-            {% version %}
-            {% uniform_block outer_camera %}
-            in vec4 vertex;
-            uniform vec4 position = vec4(0, 0, 0, 1);
-            in vec2 tex;
-            out vec2 frag_pos;
-            uniform mat4 mat_model;
-            uniform vec2 rf;
-            uniform vec2 size;
-            void main() {
-                gl_Position = outer_camera.mat_projection 
-                            * outer_camera.mat_view * mat_model 
-                            * vec4(position.x + size.x*vertex.x, 
-                                   position.y + size.y*vertex.y, 
-                                   position.z + vertex.z, 
-                                   vertex.w);
-                frag_pos = tex*rf;
-            }
-        """))
-
-        self.shaders.append(Shader(GL_FRAGMENT_SHADER, """
-            {% version %}
-            uniform sampler2DArray frame_texture;
-            in vec2 frag_pos;
-            out vec4 frag_color;
-            uniform int layer = 0;
-            void main() {
-                frag_color = texture(frame_texture, vec3(frag_pos, layer));
-               // frag_color = vec4(0, frag_pos.y, 0, 1);
-            }
-        """))
-
-        self.declare_uniform('outer_camera', Camera.DTYPE, variable='outer_camera')
-        self.link()
-
+        self.grid.render()
+        self.layer.render() 
+        self.plotframe.render()
 
 
 class PrePlotEvent():

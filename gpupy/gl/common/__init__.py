@@ -35,6 +35,12 @@ class Event(list):
             raise OverflowError()
         super().append(callback)
 
+    def once(self, callback, no_args=False):
+        def _delete_wrapper(*args, **kwargs):
+            callback(*args, **kwargs)
+            self.remove(_delete_wrapper)
+        self.append(_delete_wrapper)
+
 class CommandQueue(list):
     """
     simple command queue structure.

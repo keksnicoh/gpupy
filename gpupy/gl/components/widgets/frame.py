@@ -477,11 +477,19 @@ class FrameWidget(Widget):
 
     size         = attributes.VectorAttribute(2)
     position     = attributes.VectorAttribute(4)
-    resulution = attributes.VectorAttribute(2)
+    resulution   = attributes.VectorAttribute(2)
     plane_size   = attributes.ComputedAttribute(size, descriptor=attributes.VectorAttribute(2))
     clear_color  = attributes.VectorAttribute(4)
 
-    def __init__(self, size, resulution=None, position=(0,0,0,1), multisampling=None, post_effects=None, blit=None, clear_color=(0, 0, 0, 1), preload_factor=2):
+    def __init__(self, 
+                 size, 
+                 resulution=None, 
+                 position=(0,0,0,1), 
+                 multisampling=None, 
+                 post_effects=None, 
+                 blit=None, 
+                 clear_color=(0, 0, 0, 1), 
+                 preload_factor=2):
         """
         creates a framebuffer of *size* and *resulution* 
         at *position*.
@@ -523,11 +531,11 @@ class FrameWidget(Widget):
 
     @resulution.on_change
     def resulution_changed(self, value):
-
+        print('WFWEFWEFFF§§33')
         self._require_resize = True 
 
     def _init_plane(self):
-        self.program = _CameraProgram(_GLSL_VRT, _GLSL_VRT)
+        self.program = _CameraProgram(_GLSL_VRT, _GLSL_FRG)
         self.texture.activate()
 
         self.program.uniform('frame_texture', self.texture)
@@ -555,6 +563,7 @@ class FrameWidget(Widget):
 
     def tick(self):
         if self._require_resize:
+            
             if self._res[0] < self.resulution[0] \
             or self._res[1] < self.resulution[1]:
                 self._res = self.resulution.values * self.preload_factor

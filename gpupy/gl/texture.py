@@ -192,19 +192,30 @@ class AbstractTexture():
         self.unbind()
 
     def activate(self, unit=0):
-        unit_str = 'GL_TEXTURE%d' % unit
-        gl_unit = globals()[unit_str]
-        glActiveTexture(gl_unit)
+        # deprecated, use bind(unit=) instead.
+        self.bind(unit=unit)
+        return self.gl_texture_unit
 
-        glBindTexture(self.gl_target, self.gl_texture_id)
-        self.gl_texture_unit = unit
+    def bind(self, unit=None):
+        """
+        binds the texture using glBindTexture
 
-        return unit
+        if unit is a positive integer, the texture
+        will be bound to the corresponding 
+        texture unit. 
+        """
+        if unit is not None:
+            unit_str = 'GL_TEXTURE%d' % unit
+            gl_unit = globals()[unit_str]
+            glActiveTexture(gl_unit)
+            self.gl_texture_unit = unit
 
-    def bind(self):
         glBindTexture(self.gl_target, self.gl_texture_id)
 
     def unbind(self):
+        """
+        wrapper for glBindTexture
+        """
         glBindTexture(self.gl_target, 0)
 
     def interpolation_nearest(self):
@@ -280,10 +291,36 @@ class AbstractTexture():
             elif channels == 4:
                 gl_format = GL_RGBA
                 gl_internal_format = GL_RGBA32F
+
+        # -- complex numbers
+        #
+        # XXX is this correct? Does numpy represent complex numbers
+        #     like below?
+        #
+        # one channel equals two floats, 
+        # two channels ...   four floats,
+        # therefore more channels are not supported.
+        elif dtype == np.complex64:
+            gl_type = GL_FLOAT 
+            if channels == 1:
+                gl_format = GL_RG
+                gl_internal_format = GL_RG32F
+            elif channels == 2:
+                gl_format = GL_RGBA
+                gl_internal_format = GL_RGBA32F
+            else:
+                raise ValueError('to many colorchannels for complex numbers')
+
+        # -- double precision
+        #
+        # not supported at the moment
+        # XXX fill missing dtypes
+        elif dtype in [np.complex128, np.float64]:
+            raise ValueError('double precision dtype {}: not supported'.format(dtype))
+
+        # -- missing implementation
         else:
-            # XXX
-            # - implement missing types
-            raise ValueError('bad dtype. currently np.float32 supported')
+            raise ValueError('bad dtype {}. currently np.float32, np.complex64 supported'.format(dtype))
 
         return gl_type, gl_format, gl_internal_format
 

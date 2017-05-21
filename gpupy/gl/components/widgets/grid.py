@@ -48,17 +48,19 @@ class AbstractGrid(Widget):
     # style
     background_color  = attributes.VectorAttribute(4, (1, 1, 1, 1))
 
-    def __init__(self, size, 
-                       position                 = (0, 0, 0, 1), 
-                       cs                       = (0,0), 
-                       major_grid               = (1,1), 
-                       background_color         = (1, 1, 1, 1), 
-                       major_grid_color         = (0, 0, 0, 1),
-                       resolution               = None,
-                       minor_grid_color         = (0,0,0,1),
-                       minor_grid_n             = (5, 5)):
+    def __init__(self, 
+                 size, 
+                 position                 = (0, 0, 0, 1), 
+                 cs                       = (0,0), 
+                 major_grid               = (1,1), 
+                 background_color         = (1, 1, 1, 1), 
+                 major_grid_color         = (0, 0, 0, 1),
+                 resolution               = None,
+                 minor_grid_color         = (0,0,0,1),
+                 minor_grid_n             = (5, 5)):
 
         super().__init__()
+
         self.position = position
         self.size = size
         self.cs = cs
@@ -69,9 +71,19 @@ class AbstractGrid(Widget):
         self.minor_grid_n = minor_grid_n
         self.background_color = background_color
 
+
         self._req_uniforms = True
         self.resolution = resolution or self.size
         self._dev = False
+
+
+        self._mat_model = np.array([
+            self.resolution.x, 0, 0, 0,
+            0, self.resolution.y, 0, 0,
+            0, 0, 1, 0, 
+            self.position.x, self.position.y, 0, 1           
+        ], dtype=np.float32).reshape((4, 4)).T
+
         self._init_plane()
 
     @size.on_change
@@ -86,22 +98,21 @@ class AbstractGrid(Widget):
         self._req_uniforms = True
 
     def upload_uniforms(self):
-        self.program.uniform('mat_model', np.array([
-            self.resolution.x, 0, 0, 0,
-            0, self.resolution.y, 0, 0,
-            0, 0, 1, 0, 
-            0, 0, 0, 1           
-        ], dtype=np.float32).T)
+        # update model matrix
+        self._mat_model[0][0] = self.resolution[0]
+        self._mat_model[1][1] = self.resolution[1]
+        self._mat_model[3] = self.position
+        self.program.uniform('mat_model', self._mat_model)
 
+
+        # -- polar
+        #  self.program.uniform('u_limits1',[-5.1,+5.1,-5.1,+5.1])
+        #  self.program.uniform('u_limits2',  [-5.0,+5.0, np.pi/6.0, 11.0*np.pi/6.0])
+        #  self.program.uniform('u_major_grid_step', [1.00,np.pi/ 6.0])
+        #  self.program.uniform('u_minor_grid_step', [0.25,np.pi/60.0])
+
+        # -- cartesian
         # add this extra bit and assure that u_limits1 != u_limit2
-      
-      # polar
-      #  self.program.uniform('u_limits1',[-5.1,+5.1,-5.1,+5.1])
-      #  self.program.uniform('u_limits2',  [-5.0,+5.0, np.pi/6.0, 11.0*np.pi/6.0])
-      #  self.program.uniform('u_major_grid_step', [1.00,np.pi/ 6.0])
-      #  self.program.uniform('u_minor_grid_step', [0.25,np.pi/60.0])
-
-      # cartesian
         l1 = self.cs.values * 1.0001
         mg = self.major_grid.values 
         cs = self.cs.values 
@@ -139,9 +150,10 @@ class AbstractGrid(Widget):
         self._dev = True
         return self
 
-    def _tick(self):
+    def tick(self):
         if self._req_uniforms:
             self.upload_uniforms()
+        super().tick()
 
 
     def _render(self):

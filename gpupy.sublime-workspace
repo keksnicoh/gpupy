@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"uni",
+				"uniforms"
+			],
+			[
+				"frag",
+				"fragment_kernel"
+			],
+			[
+				"GL_LIN",
+				"GL_LINE_STRIP"
+			],
+			[
+				"GL_LINES",
+				"GL_LINE_SMOOTH\tstatement"
+			],
+			[
+				"is",
+				"isinstance\tfunction"
+			],
+			[
+				"_graph",
+				"_graphs_initialized"
+			],
+			[
 				"config",
 				"configuration"
 			],
@@ -82,10 +106,6 @@
 			[
 				"all",
 				"allocator"
-			],
-			[
-				"is",
-				"isinstance"
 			],
 			[
 				"_t",
@@ -494,59 +514,72 @@
 			[
 				"inte",
 				"integrator_param\tstatement"
-			],
-			[
-				"thermal_",
-				"thermal_values\tstatement"
-			],
-			[
-				"ther",
-				"thermal_values\tstatement"
-			],
-			[
-				"themr",
-				"thermal_value\tstatement"
-			],
-			[
-				"lock_",
-				"lock_file\tstatement"
-			],
-			[
-				"LOCK",
-				"LOCK_BASE"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"contents": "#-*- coding: utf-8 -*-\n\"\"\"\nexample creates a glpoints graph using a cartesian\nx domain and a random function domain for y-values.\n:author: keksnicoh\n\"\"\"\n\nfrom gpupy.plot import plot2d\nfrom gpupy.plot.domain import VertexDomain, RandomDomain\nfrom gpupy.plot.graph.glpoints import GlPointsGraph \n\n@plot2d \ndef plot(plotter):\n\n    # domain on [0, 1] will be projected onto full cs\n    # x-axes by using shader function cartesian_x\n    domain = VertexDomain.arange(0, 1, 0.00001)\n\n    # glpoints graph with custom kernel\n    graph = GlPointsGraph(domain, kernel=\"\"\"vec2 kernel() { \n        // point pixel size\n        ${SIZE} = 2;\n\n        // extend vertex domain over x axis\n        float x = cartesian_x(${DOMAIN});\n\n        // colorize \n        v_col = vec4(1 - ${domain.rand}(x), 1, ${domain.rand}(x), 1);\n\n        // vertex coords\n        return vec2(x, ${domain.rand}(x));\n    }\"\"\")\n\n    # add the random domain to the graph\n    graph['rand'] = RandomDomain(timeseed=False)\n    #graph['rand'] = dm.random()\n\n    # add graph to plotter\n    plotter += graph\n\n    \n\nif __name__ == '__main__':\n    plot()",
 			"file": "gpupy/plot/examples/random.py",
-			"file_size": 1096,
-			"file_write_time": 131333981650000000,
 			"settings":
 			{
-				"buffer_size": 1102,
+				"buffer_size": 951,
+				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "gpupy/plot/plotter2d.py",
+			"file": "gpupy/plot/domain.py",
 			"settings":
 			{
-				"buffer_size": 14251,
+				"buffer_size": 14095,
+				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"contents": "from gpupy.plot import plot2d, domain, graph \nimport numpy as np \n@plot2d \ndef plot(plotter):\n\n    g = graph.glpoints.GlPointsGraph()\n\n    g['x'] = domain.VertexDomain.arange(0, 15, .0001, dtype=np.float32)\n    g['y'] = domain.TextureDomain.to_device_1d(np.sin(np.arange(0, 15, .01, dtype=np.float32)))\n    g['y'].smooth(True)\n    \n    g['t'] = domain.FunctionDomain(\"\"\"\n        float ${FNAME}(float x) {\n            return x*x;\n        }\n    \"\"\")\n    g.kernel = \"\"\"\n        vec2 kernel() {\n            v_col = vec4(0, 1, 1, 1);\n            gl_PointSize = 3;\n            return vec2(${domain.x}, ${domain.t}(${domain.y}(${domain.x}/15)));\n        }\n    \"\"\"\n\n    plotter += g\n\n\n    f = lambda x: 0.1*x*np.cos(x) \n    h = lambda x: 0.1*x*np.sin(x)\n    c = lambda x: np.sin(2*x)**2\n    d = lambda x: 3+2*np.cos(5*x)*np.sin(2*x)\n    data = np.array([(f(x),h(x),c(x),d(x)) for x in np.arange(0, 100, .1)], dtype=np.float32)\n\n    g = graph.glpoints.GlPointsGraph(domain.TextureDomain.to_device_1d(data), kernel=\"\"\"\n        vec2 kernel() {\n            vec4 d = ${DOMAIN}(${domain.arg});\n            ${SIZE} = d.w;\n            ${COLOR} = vec4(0.5+0.5*d.z, d.z, 1-d.z, d.w/5);\n            return vec2(2,2) + d.xy/5;\n        }\n    \"\"\")\n    g['arg'] = domain.VertexDomain(np.arange(0, 1, .0001, dtype=np.float32))\n    plotter += g\n\n    keksnioh = domain.TextureDomain.colorwheel('keksnicoh')\n    def upper_right(cs):\n        return (cs[1]-(cs[1]-cs[0])*0.25, cs[1], cs[3]-(cs[3]-cs[2])*0.25, cs[3])\n    plotter += graph.frgfnc.Frag2DGraph(keksnioh, cs=plotter.cs.observe(upper_right))\n\nif __name__ == '__main__':\n    plot()",
-			"file": "gpupy/plot/examples/vertex_texture_domain.py",
-			"file_size": 1803,
-			"file_write_time": 131370133970000000,
+			"file": "demos/framebuffer.py",
 			"settings":
 			{
-				"buffer_size": 1612,
+				"buffer_size": 6259,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/plot/examples/glprimitives.py",
+			"settings":
+			{
+				"buffer_size": 2404,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/plot/examples/texture.py",
+			"settings":
+			{
+				"buffer_size": 526,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/plot/graph/__init__.py",
+			"settings":
+			{
+				"buffer_size": 4812,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/plot/graph/fragmentgraph.py",
+			"settings":
+			{
+				"buffer_size": 4963,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "fragmentgraph.py"
 			}
 		}
 	],
@@ -781,52 +814,62 @@
 		"/Users/keksnicoh/gpupy/gpupy/gl/common",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples",
 		"/Users/keksnicoh/gpupy/gpupy/plot",
 		"/Users/keksnicoh/gpupy/gpupy/plot/examples",
 		"/Users/keksnicoh/gpupy/gpupy/plot/graph"
 	],
 	"file_history":
 	[
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/texture.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/font/renderer.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glprimitives.vrt.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/fragmentgraph.frg.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glprimitives.frg.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/gl/shader.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glprimitives.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc2d.frg.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/fragmentgraph.vrt.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/plot/__init__.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/glsl.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/matrix.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/examples/api.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/examples/glprimitives.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/domain.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/__init__.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/plotter2d.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.vrt.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.vrt.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.frg.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/plot/examples/texture.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.py",
+		"/Users/keksnicoh/gpupy/gpupy/plot/examples/vertex_texture_domain.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.frg.glsl",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/container.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/grid.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/examples/glpoints.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.vrt.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/framebuffer.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/plotter2d.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/common/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/frame.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/vertex_texture_domain.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/shader.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.frg.glsl",
+		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/__init__.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/components/__init__.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/font/renderer.py",
+		"/Users/keksnicoh/gpupy/gpupy/gl/framebuffer.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/framestack.frg.glsl",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/framestack.vrt.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/plotter2d_basic.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/examples/randomwalk.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/grid_dev.frg.glsl",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/grid.frag.glsl",
 		"/Users/keksnicoh/gpupy/gpupy/gl/common/attributes.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc2d.frg.glsl",
 		"/Users/keksnicoh/gpupy/gpupy/plot/examples/random.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/domain.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_combine_texture_vertex_domain.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.vrt.glsl",
 		"/Users/keksnicoh/gpupy/gpupy/plot/examples/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_frg1d.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/glsl.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_glpoints.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_random.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/glfw.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/plotter2d_layout.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/qt.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/mesh.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/camera.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/graph/gllines.py",
@@ -838,7 +881,6 @@
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/style.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/layout.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples/frame.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/matrix.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/test/test_vector.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/viewport.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/gpupygl.py",
@@ -861,9 +903,7 @@
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/OLD.py",
 		"/Users/keksnicoh/gpupy/README.md",
 		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/plotter_2d_layout.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/viewport.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/__init__.py",
 		"/Users/keksnicoh/gpupy/gpupy/plot/style.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/examples/test.py",
 		"/Users/keksnicoh/gpupy/gpupy/gl/components/scale.py",
@@ -907,15 +947,7 @@
 		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/static/js/evaluation.js",
 		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/views/evaluation.py",
 		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/views/transfer.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/templates/evaluation.html",
-		"/Users/keksnicoh/wrk/sk/skdeploy/container/web/Dockerfile",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/overview.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/services/__init__.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/confirm_delete.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/stepBase.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/teams/teamWidget.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/views.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/models.py"
+		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/templates/evaluation.html"
 	],
 	"find":
 	{
@@ -978,134 +1010,134 @@
 		"case_sensitive": true,
 		"find_history":
 		[
-			"txt",
-			"renderer",
-			"_g_tick",
-			"print",
-			"self.tarray_rl",
-			"x",
-			"cx",
-			"tick",
-			"tarray",
-			"plane_size",
-			"self.CLICKMA",
-			"self.IDX",
-			"_redraw",
-			"_rs_prg",
-			"tarray_rh",
-			"texture",
-			"glFramebufferTextureLayer",
-			"uint32",
-			"int32",
-			"_resolutions",
-			"20, ",
-			"2*self._s[len(self._s)-1][self.IDX]+1",
-			"_tidx(idx) ",
-			"2*idx",
-			"2*idx+1",
-			"2*idx",
-			"_fast_rstack",
-			"_fast_render_once",
-			"outer_camera",
-			"idx",
-			"self",
-			"FbRenderStack.",
-			"FbRenderStack",
-			"mat_model",
-			"size",
-			"LAYERS",
-			"TOP_LAYER",
-			"rf",
-			"_rs_prg_layer",
-			" | GL_DEPTH_BUFFER_BIT",
-			"idx",
-			"target, ",
-			"attachment",
-			"glBindFramebuffer",
-			"[self.IDX]",
-			"idx",
-			"glViewport",
-			"_rs_prg",
-			"resolution",
-			"tarray.gl_texture_id",
-			"si[self.IDX]",
-			"self.capture_size",
-			"shader",
-			"self.pf",
-			"preload_factor",
-			"self._res[",
-			"self._res",
-			"si[self.IDX]",
-			"tarray",
-			"self._res",
-			"resulution",
-			"preload_factor",
-			"format(",
-			"format",
-			"self._plot_container.widget.resulution",
-			"resulution",
-			"CALLABLE",
-			"RENDERER",
-			"insert(0, ",
-			"self.rs.append(",
-			"layer",
-			"outer_camera",
-			"resolution",
-			"vec4(1, 0, 1, 1)",
-			"vec4(1, 0, 0, 1)",
-			"discard;",
-			"unshift",
-			"TransformationDomain",
-			"self.plane_size",
-			"self.resulution",
-			"FrameProgram",
-			"program",
-			"glsl_subst['glsl_declr']",
-			"DOMAIN:",
-			"fname",
-			"value",
-			"self.texture",
-			"DOMAIN",
-			"${DOMAIN:rand}(x)",
-			"time()",
-			"FunctionDomain",
-			"c_void_p",
-			"imread",
-			"Texture2D",
-			"attributes",
-			"dtype_fields_glsl",
-			"dtype_vector",
-			"dtype_is_struct",
-			"render_struct_items_from_dtype",
-			"render_struct_from_dtype",
-			"DomainError",
-			"DomainNameError",
-			"require",
-			"requires",
-			"uniforms",
-			" d.enable(",
-			"txunits",
+			"COLOR_KERNELS",
+			"RandomDomain",
+			"dimension",
+			"_uniform_key",
 			"enable",
-			"vrt_declr",
-			"glsl_vrt_declr",
-			"glsl_vrt_domain",
-			"frg_subst",
-			"cs",
-			"gltick",
-			"viewport",
-			"resolution",
-			"update_ubo",
-			"GPUPY_GL",
-			"container",
-			"OrderedDict",
-			"DependencyError",
-			"TextureDomain",
-			"TransformationDomain",
+			"upref",
+			"enable",
+			"enable(",
+			"print",
+			"uniforms",
+			"DOMAIN",
+			"txcoords",
+			"COLOR_KERNELS",
+			"os",
+			"DomainGraph",
+			"DomainProgram",
+			"domain",
+			"plotter2d",
+			"components",
+			"Shader",
+			"attributes",
 			"StridedVertexMesh",
 			"mesh3d_rectangle",
+			"OrderedDict",
+			"sync_gpu",
+			"x_space",
+			"'domain'",
+			"GlPointsGraph",
+			"glpoints",
+			"WFWEFWEFFF",
 			"Camera2D",
-			"Container",
-			"CartesianGrid"
+			"resize=resize",
+			"30",
+			"2",
+			"_redraw",
+			"self._redraw",
+			"_redraw",
+			"_flagged",
+			"cs",
+			"_plot_margin",
+			"_plot_container",
+			"_initialized",
+			"_graphs",
+			"_fast_rs",
+			"GraphTick",
+			"viewport",
+			"resolution",
+			"self.f",
+			"self.ve",
+			"self.",
+			"prg",
+			"DomainProgram",
+			"_domain_changed",
+			"main_domain",
+			"Template",
+			"GL_VERTEX_SHADER",
+			"import",
+			"GL_PROGRAM_POINT_SIZE",
+			"glBindVertexArray",
+			"glDrawArrays",
+			"Frag1DGraph",
+			"Frag2DGraph",
+			"GlPointsGraph",
+			"glpoint",
+			"GlPointsGraph",
+			"glpoints",
+			"GlPointsGraph",
+			"_changes",
+			"_dynamic_test",
+			"_require_render",
+			"set_range",
+			"g",
+			"self",
+			"ticker",
+			"_d",
+			"_DomainInfo",
+			"_d",
+			"vert_path",
+			"_p.",
+			"_p",
+			"rs_clr",
+			"color",
+			"domain_sfnames",
+			"enable",
+			"domain",
+			"DOMAIN",
+			"parsed",
+			"code",
+			"_p.",
+			"_p",
+			"print",
+			"cs_size",
+			"frame",
+			"tmpl",
+			"_GLSL_TEMPLATE_DOMAIN",
+			"tx_",
+			"length",
+			"x_space",
+			"gtick",
+			"default",
+			"_2d_ckrn_clr",
+			"default",
+			"kernel here",
+			"domain.",
+			"prepare_domains",
+			"DOMAIN",
+			"ident",
+			"datax",
+			"_plot_camera",
+			"on_post_tick",
+			"on_pre_tick",
+			"GraphTick",
+			"value",
+			"self._plot_container",
+			"resulution",
+			"blit",
+			"mat_cs",
+			"RS_SIZE",
+			"_Graph",
+			"RsProgram",
+			"_g_tick",
+			"on_post_graph",
+			"on_pre_graph",
+			"on_pre_plot",
+			"on_post_plot",
+			"self.rs",
+			"_require_create_mesh",
+			"plot_container"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1172,7 +1204,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -1181,15 +1213,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1102,
+						"buffer_size": 951,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								294,
-								294
+								592,
+								592
 							]
 						],
 						"settings":
@@ -1199,19 +1231,49 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 97.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "gpupy/plot/plotter2d.py",
+					"file": "gpupy/plot/domain.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 14095,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13781,
+								13781
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1338.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "demos/framebuffer.py",
 					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 14251,
+						"buffer_size": 6259,
 						"regions":
 						{
 						},
@@ -1229,27 +1291,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 3586.0,
+						"translation.y": 1551.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "gpupy/plot/examples/vertex_texture_domain.py",
+					"buffer": 3,
+					"file": "gpupy/plot/examples/glprimitives.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1612,
+						"buffer_size": 2404,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1057,
-								1057
+								1576,
+								1576
 							]
 						],
 						"settings":
@@ -1264,13 +1326,106 @@
 					},
 					"stack_index": 2,
 					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "gpupy/plot/examples/texture.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 526,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								380,
+								380
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "gpupy/plot/graph/__init__.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4812,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4061,
+								4091
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1087.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 6,
+					"file": "gpupy/plot/graph/fragmentgraph.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4963,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								679,
+								761
+							]
+						],
+						"settings":
+						{
+							"auto_name": "fragmentgraph.py",
+							"syntax": "Packages/Python 3/Python3.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
 				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 23.0
+		"height": 27.0
 	},
 	"input":
 	{
@@ -1285,11 +1440,18 @@
 				0,
 				1,
 				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.5,
 			1.0
 		],
 		"rows":
@@ -1331,7 +1493,7 @@
 	"project": "",
 	"replace":
 	{
-		"height": 42.0
+		"height": 50.0
 	},
 	"save_all_on_build": true,
 	"select_file":
