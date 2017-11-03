@@ -10,7 +10,7 @@ from gpupy.gl.components.fps import Fps
 from gpupy.gl.glfw import GLFW_window
 from gpupy.gl import *
 from gpupy.gl.components.camera import Camera2D
-from gpupy.gl.matrix import *
+from gpupy.gl.lib.matrix import *
 from gpupy.gl.lib.vector import *
 from OpenGL.GL import *
 

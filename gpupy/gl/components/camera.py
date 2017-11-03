@@ -5,7 +5,7 @@ EXPERIMENTAL - CAMERAS WILL LISTEN TO VECTOR EVENTS
 from gpupy.gl import GPUPY_GL
 from gpupy.gl.lib import *
 from gpupy.gl.buffer import BufferObject
-from gpupy.gl.matrix import *
+from gpupy.gl.lib.matrix import *
 from gpupy.gl.lib.vector import * 
 import numpy as np
 

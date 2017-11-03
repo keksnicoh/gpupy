@@ -13,7 +13,7 @@ from gpupy.gl.lib import attributes
 from gpupy.gl.components.widgets import Widget
 from gpupy.gl import *
 from gpupy.gl import GPUPY_GL as _G
-
+from gpupy.gl.glx import camera
 from OpenGL.GL import *
 import numpy as np 
 from functools import partial 
@@ -596,7 +596,7 @@ class _CameraProgram(Program):
         super().__init__(*args, **kwargs)
         self.shaders.append(Shader(GL_VERTEX_SHADER, vrt))
         self.shaders.append(Shader(GL_FRAGMENT_SHADER, frg))
-        self.declare_uniform('camera', Camera.DTYPE, variable='camera')
+        self.declare_uniform('camera', camera.Cartesian2D.DTYPE, variable='camera')
         self.link()
         self.uniform_block_binding('camera', _G.CONTEXT.buffer_base('gpupy.gl.camera'))
 

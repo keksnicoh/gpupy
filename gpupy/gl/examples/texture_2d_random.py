@@ -6,28 +6,25 @@ is regenerated each rendering cycle.
 :author: Nicolas 'keksnicoh' Heimann
 """
 
-from gpupy.gl.glfw import GLFW_WindowFunction
+from gpupy.gl.glfw import bootstrap_gl, create_runner, GLFW_Window
 from gpupy.gl.texture import Texture2D
 from gpupy.gl.buffer import BufferObject, create_vao_from_program_buffer_object
 from gpupy.gl.shader import Program, Shader
-from gpupy.gl.camera import Camera, keyboard_flyaround
+from gpupy.gl.glx.camera import Cartesian2D
 from gpupy.gl.mesh import mesh3d_rectangle
+from gpupy.gl.lib import attributes
+from gpupy.gl import GPUPY_GL
 from OpenGL.GL import *
 import numpy as np
 
 
 class TextureContorller():
-    def __init__(self, window):
-        self.window = window
-        window.on_init.append(self.init)
-        window.on_cycle.append(self.draw)
-
-    def init(self):
+    size = attributes.VectorAttribute(2)
+    def __init__(self, size):
+        self.size = size
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        camera = Camera(self.window.get_size(), projection=Camera.PROJECTION_ORTHOGRAPHIC)
-        camera.translate(x=0, y=0, z=-1)
         vertex_shader = Shader(GL_VERTEX_SHADER, """
             {% version %}
             {% uniform_block camera %}
@@ -51,27 +48,26 @@ class TextureContorller():
         program = Program()
         program.shaders.append(vertex_shader)
         program.shaders.append(fragment_shader)
-        program.declare_uniform('camera', camera, variable='camera')
+        program.declare_uniform('camera', Cartesian2D.DTYPE, variable='camera')
         program.link()
 
-        program.uniform_block_binding('camera', camera)
-        rect_size     = self.window.get_size();
+        program.uniform_block_binding('camera', GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
+        rect_size     = self.size;
         rect_position = (-rect_size[0]/2, -rect_size[1]/2)
 
         self.texture            = Texture2D.from_numpy(np.random.random((500, 500, 3)).astype(np.float32))
         self.render_data        = BufferObject.to_device(mesh3d_rectangle(center=rect_position, *rect_size))
         self.vao                = create_vao_from_program_buffer_object(program, self.render_data)
         self.program            = program
-        self.camera             = camera
-        self.keyboard_flyaround = keyboard_flyaround()
+        #self.keyboard_flyaround = keyboard_flyaround()
         self.step               = 1
         self.last_random        = 1
 
         self.texture.interpolation_linear()
 
-    def draw(self):
+    def __call__(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        self.keyboard_flyaround(self.camera, self.window.keyboard.active)
+        #self.keyboard_flyaround(self.camera, self.window.keyboard.active)
 
         self.program.use()
         self.texture.bind()
@@ -108,11 +104,22 @@ class TextureContorller():
 
         self.last_random = new_data[0][0][0]
         self.step += 1
+        return True
+
+def main():
+    bootstrap_gl()
+    window = GLFW_Window()
+    windows = [window]
+    camera = Cartesian2D(screensize=window.size)
+ 
+    window.widget = TextureContorller(size=window.size)
+    for window in create_runner(windows):
+        if not window():
+            windows.remove(window)
 
 
-@GLFW_WindowFunction
-def main(window):
-    texture_controller = TextureContorller(window)
 
 if __name__ == '__main__':
     main()
+else:
+    raise Exception('please run as __main__.')

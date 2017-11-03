@@ -31,6 +31,11 @@ def bootstrap_gl(version=def_version):
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, glbool(True));
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+def run(*windows):
+    windows = windows[:]
+    for window in create_runner(windows):
+        if not window():
+            windows.remove(window)
 def create_runner(windows):
     """
     creates a simple runner 
@@ -56,7 +61,7 @@ class GLFW_Window(Context):
     title      = attributes.CastedAttribute(str, 'window')
     visible    = attributes.CastedAttribute(bool)
 
-    def __init__(self, size=(400, 400), title='gpupy glfw window', bootstrap=True):
+    def __init__(self, size=(400, 400), title='gpupy glfw window', bootstrap=True, widget=None):
         super().__init__()
         self._glfw_initialized = False
         self.size = size 
@@ -69,12 +74,14 @@ class GLFW_Window(Context):
         self.on_resize = Event()
         self.on_close = Event()
 
-        self.widget = lambda *a: True
+        
         self.active_keys = set()
 
         if bootstrap:
             self.bootstrap()
 
+        self.make_context()
+        self.widget = widget or (lambda *a: True)
 
     @visible.on_change
     def set_visible(self, visible):

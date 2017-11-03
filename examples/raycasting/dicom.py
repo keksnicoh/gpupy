@@ -2,6 +2,8 @@
 """
 ray casting demo using gpupy lib
 
+still under construction yo 
+
 :author: Nicolas 'keksnicoh' Heimann
 """
 from gpupy.gl.mesh import mesh3d_cube, mesh3d_rectangle # XXX
@@ -116,7 +118,7 @@ class RaycastingDemoWidget():
 
         # create 3d texture 
         self.texture = Texture3D.from_numpy(self.volumedata)
-        self.texture.interpolation_nearest()
+        self.texture.interpolation_linear()
         self.texture.parameters.update({
             GL_TEXTURE_WRAP_S: GL_CLAMP_TO_BORDER,
             GL_TEXTURE_WRAP_T: GL_CLAMP_TO_BORDER,
@@ -243,9 +245,9 @@ def main():
     # 3d texture
     #volumedata = np.load(os.path.join(os.path.dirname(__file__), 'resources', DATA))
     #dicom_file = 'MR-MONO2-8-16x-heart'
-    #dicom_file = 'dragonfruit.dcm'
-    dicom_file = 'brokoli.dcm'
-    dicom_file = 'corn.dcm'
+    dicom_file = 'dragonfruit.dcm'
+    #dicom_file = 'brokoli.dcm'
+    #dicom_file = 'corn.dcm'
     ds = dicom.read_file(os.path.join(os.path.dirname(__file__), 'resources', dicom_file))
     volumedata = (ds.pixel_array / np.max(ds.pixel_array)).astype(np.float32)    
     volumedata = np.einsum('ijk->jki', volumedata)

@@ -52,6 +52,86 @@ class Camera(object):
         self._ubo.set(self.__buffer__())
 
 
+class Cartesian2D(Camera):
+    """
+    2d cartesian camera 
+
+    Attributes:
+        screensize (float[2]): lengths of the space dimensions
+        position (float[3]): camera position
+        roll (float): rotation of the coordinate space
+
+    Examples:
+
+        XXX
+
+    """
+    screensize = attributes.VectorAttribute(2, (1, 1))
+    roll = attributes.CastedAttribute(float, 0)
+    position = attributes.VectorAttribute(3, (0, 0, 0))
+
+    DTYPE = np.dtype([
+        ('mat_view',         np.float32, (4, 4)),
+        ('mat_projection',   np.float32, (4, 4)),
+        ('position',         np.float32, 3),
+        ('roll',             np.float32),
+        ('direction',        np.float32, 3),
+        ('_b1',              np.float32), 
+        ('direction_right',  np.float32, 3),
+        ('_b2',              np.float32),
+        ('direction_top',    np.float32, 3),
+    ])
+
+    def __init__(self, screensize, position=(0, 0, 0), roll=0, buffer_base=None):
+
+        super().__init__(
+            Cartesian2D.DTYPE, 
+            buffer_base or GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
+
+        self._camera = np.zeros(1, dtype=Cartesian2D.DTYPE)
+
+        self.screensize = screensize
+        self.position = position
+        self.roll = roll
+
+        self.commit()
+
+    # -- api --
+
+    def __buffer__(self):
+        mat_projection = np.array([
+            1, 0, 0, -self.position.x,
+            0, 1, 0, -self.position.y,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+        ], dtype=np.float32).reshape((4, 4))
+        mat_view = np.array([
+            2.0 / self.screensize.x, 0, 0, 0,
+            0, -2.0 / self.screensize.y, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+        ], dtype=np.float32).reshape((4, 4))
+
+        self._camera['mat_view']       = mat_view.T
+        self._camera['mat_projection'] = mat_projection.T
+        self._camera['roll']           = self.roll
+        self._camera['position']       = self.position.xyz
+
+        # XXX is a function of roll
+        self._camera['direction']       = (0, 0, -1)
+        self._camera['direction_right'] = (1, 0, 0)
+        self._camera['direction_top']   = (0, 1, 0)
+        return self._camera
+
+    # -- matrix methods 
+
+    @roll.on_change
+    @position.on_change
+    @screensize.on_change
+    def _attributes_changed(self, *e):
+        self.commit()
+
+
 class Perspective3D(Camera):
     """
     3d perspective camera
@@ -75,21 +155,24 @@ class Perspective3D(Camera):
     fov = attributes.CastedAttribute(float, 0.5 * 65.0 * np.pi / 180.0) 
 
     DTYPE = np.dtype([
-        ('mat_view',         np.float32, (4, 4)),
-        ('mat_projection',   np.float32, (4, 4)),
-        ('mat_viewprojection',   np.float32, (4, 4)),
-        ('position',         np.float32, 3),
-        ('yaw',              np.float32),
-        ('direction',        np.float32, 3),
-        ('pitch',            np.float32), 
-        ('direction_right',  np.float32, 3),
-        ('roll',             np.float32),
-        ('direction_top',    np.float32, 3),
+        ('mat_view',           np.float32, (4, 4)),
+        ('mat_projection',     np.float32, (4, 4)),
+        ('mat_viewprojection', np.float32, (4, 4)),
+        ('position',           np.float32, 3),
+        ('yaw',                np.float32),
+        ('direction',          np.float32, 3),
+        ('pitch',              np.float32), 
+        ('direction_right',    np.float32, 3),
+        ('roll',               np.float32),
+        ('direction_top',      np.float32, 3),
     ])
 
     def __init__(self, screensize, position=(0, 0, 0), rotation=(0, 0, 0), buffer_base = None):
 
-        super().__init__(Perspective3D.DTYPE, buffer_base or GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
+        super().__init__(
+            Perspective3D.DTYPE, 
+            buffer_base or GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
+
         self._camera = np.zeros(1, dtype=Perspective3D.DTYPE)
         self._mat_projection = None 
         self._mat_view = None

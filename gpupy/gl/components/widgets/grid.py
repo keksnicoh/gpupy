@@ -18,6 +18,7 @@ from gpupy.gl.lib.observables import transform_observables
 from gpupy.gl import * 
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
 from gpupy.gl.lib.vector import *
+from gpupy.gl.glx import camera
 
 from OpenGL.GL import *
 
@@ -209,7 +210,7 @@ class GridProgram(Program):
 
         self.shaders.append(Shader(GL_FRAGMENT_SHADER, self.glsl_frg_shader()))
 
-        self.declare_uniform('camera', Camera.DTYPE, variable='camera')
+        self.declare_uniform('camera', camera.Cartesian2D.DTYPE, variable='camera')
         self.link()
 
     def glsl_frg_shader(self):
