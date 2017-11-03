@@ -49,6 +49,9 @@ def gl_texture_unit(texture_unit):
     """
     if hasattr(texture_unit, 'gl_texture_unit'):
         texture_unit = texture_unit.gl_texture_unit
+
+    if 33984 <= texture_unit < 33984+100: # XXX determine max tex unit...
+        return texture_unit
     if 'GL_TEXTURE'+str(texture_unit) not in globals():
         raise ValueError('unvalid texture unit ({}). Please use GL_TEXTURE<N>'.format(texture_unit))
 
@@ -65,6 +68,7 @@ class AbstractTexture():
         self.gl_texture_id = gl_texture_id
         self.gl_texture_parameters = gl_texture_parameters
         self.gl_texture_unit = None
+        self._gl_texture_unit = None
 
         self._gl_format = None
         self._gl_internal_format = None
@@ -197,7 +201,7 @@ class AbstractTexture():
     def activate(self, unit=0):
         # deprecated, use bind(unit=) instead.
         self.bind(unit=unit)
-        return self.gl_texture_unit
+        return unit
 
     def bind(self, unit=None):
         """
@@ -212,8 +216,12 @@ class AbstractTexture():
             gl_unit = globals()[unit_str]
             glActiveTexture(gl_unit)
             self.gl_texture_unit = unit
+            self._gl_texture_unit = gl_unit
 
         glBindTexture(self.gl_target, self.gl_texture_id)
+
+    def reactivate(self):
+        glActiveTexture(self._gl_texture_unit)
 
     def unbind(self):
         """

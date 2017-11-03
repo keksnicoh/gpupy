@@ -32,7 +32,7 @@ def bootstrap_gl(version=def_version):
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 def run(*windows):
-    windows = windows[:]
+    windows = list(windows[:])
     for window in create_runner(windows):
         if not window():
             windows.remove(window)

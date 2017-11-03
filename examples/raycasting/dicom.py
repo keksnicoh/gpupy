@@ -269,9 +269,13 @@ def main():
         if window.active_keys:
             if 76 in window.active_keys:
                 texture_widget.texture.interpolation_linear()
+                texture_widget.texture_front.reactivate()
+                texture_widget.texture_back.reactivate()
             if 78 in window.active_keys:
                 texture_widget.texture.interpolation_nearest()
-
+                texture_widget.texture_front.reactivate()
+                texture_widget.texture_back.reactivate()
+                
             if 264 in window.active_keys:
                 camera.position.z -= 10
                 texture_widget.force_viewbox_render = True

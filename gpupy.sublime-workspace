@@ -4,582 +4,148 @@
 		"selected_items":
 		[
 			[
-				"uni",
-				"uniforms"
+				"vol",
+				"volumedata"
 			],
 			[
-				"frag",
-				"fragment_kernel"
+				"uplo",
+				"upload_mat_volume"
 			],
 			[
-				"GL_LIN",
-				"GL_LINE_STRIP"
+				"pro",
+				"program_ray"
 			],
 			[
-				"GL_LINES",
-				"GL_LINE_SMOOTH\tstatement"
+				"di",
+				"dicom_file"
 			],
 			[
-				"is",
-				"isinstance\tfunction"
+				"RAY_",
+				"RAYCASTING_FRG_SHADER"
 			],
 			[
-				"_graph",
-				"_graphs_initialized"
+				"V_",
+				"v_transparancy"
 			],
 			[
-				"config",
-				"configuration"
+				"acti",
+				"active_keys"
 			],
 			[
-				"Fr",
-				"FramestackWidget"
-			],
-			[
-				"LAY",
-				"TOP_LAYER"
-			],
-			[
-				"_res",
-				"_resolutions"
-			],
-			[
-				"re",
-				"resulution"
-			],
-			[
-				"res",
-				"resolution"
-			],
-			[
-				"to_Devi",
-				"to_device_1d\tfunction"
-			],
-			[
-				"F",
-				"FunctionDomain"
-			],
-			[
-				"glsl",
-				"glsl_header\tfunction"
-			],
-			[
-				"complex",
-				"complex_plane"
-			],
-			[
-				"frg_s",
-				"frg_subst\tstatement"
-			],
-			[
-				"SUPP",
-				"SUPPORTED_VECOTR_TYPS\tstatement"
-			],
-			[
-				"color",
-				"color_kernels"
-			],
-			[
-				"mes",
-				"mesh3d_rectangle"
-			],
-			[
-				"frg",
-				"frg_declr"
-			],
-			[
-				"gl_ty",
-				"gl_shader_type"
-			],
-			[
-				"tex",
-				"texture"
-			],
-			[
-				"_GLSL_T",
-				"_GLSL_TEMPLATE_DECRL"
-			],
-			[
-				"class",
-				"classmethod\tclass"
-			],
-			[
-				"all",
-				"allocator"
-			],
-			[
-				"_t",
-				"_expl_transformation"
-			],
-			[
-				"Text",
-				"Texture3D"
-			],
-			[
-				"glfwWindow",
-				"glfwWindowShouldClose"
-			],
-			[
-				"glfwWin",
-				"glfwWindowShouldClose"
-			],
-			[
-				"__gl_",
-				"__gl_context_enable__"
-			],
-			[
-				"option",
-				"optionmap"
-			],
-			[
-				"configi",
-				"configuration_space_size"
-			],
-			[
-				"unfi",
-				"uniform_block_binding"
-			],
-			[
-				"_plot",
-				"_plotter_ubo"
-			],
-			[
-				"unit",
-				"unit_density_factor"
-			],
-			[
-				"axes",
-				"axes_unit"
-			],
-			[
-				"trans",
-				"transform_observables"
-			],
-			[
-				"minor",
-				"minor_grid_n"
-			],
-			[
-				"init",
-				"initial_arg_values\tstatement"
-			],
-			[
-				"plot",
-				"plot_resolution_factor"
-			],
-			[
-				"conte",
-				"content_position"
-			],
-			[
-				"transf",
-				"transform_observables"
-			],
-			[
-				"tra",
-				"transform_observables"
-			],
-			[
-				"host_",
-				"host_on_change"
-			],
-			[
-				"cof",
-				"configuration_space"
-			],
-			[
-				"configura",
-				"configuration_space"
-			],
-			[
-				"obs",
-				"transform_observables"
-			],
-			[
-				"_ploit",
-				"_plot_container"
-			],
-			[
-				"obser",
-				"observables"
-			],
-			[
-				"hos",
-				"host_listener"
-			],
-			[
-				"ob",
-				"observable_event"
-			],
-			[
-				"attr_val",
-				"attr_value"
-			],
-			[
-				"attr",
-				"attributes"
-			],
-			[
-				"Ob",
-				"ObservableAttributeProvider\tclass"
-			],
-			[
-				"transfo",
-				"transformation"
-			],
-			[
-				"comp",
-				"components\tparam"
-			],
-			[
-				"wac",
-				"watch_observables"
-			],
-			[
-				"de",
-				"descriptor\tstatement"
-			],
-			[
-				"instn",
-				"instance_obj"
-			],
-			[
-				"Wa",
-				"WeakKeyDictionary"
-			],
-			[
-				"inst",
-				"instance_obj"
-			],
-			[
-				"insn",
-				"instance_obj"
-			],
-			[
-				"_plotc",
-				"_plot_container\tstatement"
-			],
-			[
-				"capt",
-				"capture_size"
-			],
-			[
-				"bord",
-				"border_color"
-			],
-			[
-				"_re",
-				"_require_update_mesh"
-			],
-			[
-				"positi",
-				"positive_definite"
-			],
-			[
-				"posit",
-				"positive_definite"
-			],
-			[
-				"size",
-				"size_changed"
-			],
-			[
-				"int",
-				"instance_obj"
-			],
-			[
-				"vertex",
-				"vertex_count"
-			],
-			[
-				"configur",
-				"configuration_space"
-			],
-			[
-				"captu",
-				"capture_scaling"
-			],
-			[
-				"confiu",
-				"configuration_space"
-			],
-			[
-				"_siz",
-				"_size_changed\tfunction"
-			],
-			[
-				"_Plot",
-				"_PlotConfigurationSpace"
-			],
-			[
-				"_crea",
-				"_create_projection_matrix"
-			],
-			[
-				"Camera",
-				"Camera2D\tclass"
-			],
-			[
-				"vert",
-				"vertices"
-			],
-			[
-				"NotImplemen",
-				"NotImplementedError\tclass"
-			],
-			[
-				"plane",
-				"plane_shader"
-			],
-			[
-				"Tex",
-				"Texture2D"
-			],
-			[
-				"plae",
-				"plane_shader"
-			],
-			[
-				"_cap",
-				"_capture_size_changed\tfunction"
-			],
-			[
-				"eve",
-				"event_handler"
-			],
-			[
-				"raise",
-				"raise_as_shader_error"
-			],
-			[
-				"_precom",
-				"_precompile_uniform_blocks"
-			],
-			[
-				"_pre",
-				"_precompile_uniforms"
-			],
-			[
-				"_gl",
-				"_glfw_window\tstatement"
-			],
-			[
-				"ste",
-				"strength\tstatement"
-			],
-			[
-				"str",
-				"strength_value\tstatement"
-			],
-			[
-				"stre",
-				"strength_value\tstatement"
-			],
-			[
-				"Str",
-				"StrengthValues\tclass"
-			],
-			[
-				"Stren",
-				"StrengthGroup\tclass"
-			],
-			[
-				"Streng",
-				"StrengthValues\tclass"
-			],
-			[
-				"stren",
-				"strength_group"
-			],
-			[
-				"Strength",
-				"StrengthGroupValue\tclass"
-			],
-			[
-				"Feed",
-				"FeedbackExternPerson\tclass"
-			],
-			[
-				"manda",
-				"mandantId\tstatement"
-			],
-			[
-				"entit",
-				"entity_id"
-			],
-			[
-				"mess",
-				"message"
-			],
-			[
-				"Tr",
-				"TransferCompass\tclass"
-			],
-			[
-				"back",
-				"background-origin"
-			],
-			[
-				"trn",
-				"transfer_compass"
-			],
-			[
-				"transfe",
-				"transfer_compass"
-			],
-			[
-				"transfer",
-				"transfer_compass_id\tparam"
-			],
-			[
-				"form",
-				"form_data\tstatement"
-			],
-			[
-				"im",
-				"implementationPartner"
-			],
-			[
-				"Stre",
-				"StrengthSet\tclass"
-			],
-			[
-				"mand",
-				"mandant_id"
-			],
-			[
-				"Strengt",
-				"StrengthSet"
-			],
-			[
-				"strn",
-				"strengthsetcategory_id"
-			],
-			[
-				"hidd",
-				"hidden_category_element"
-			],
-			[
-				"Strn",
-				"StrengthSetCategory\tclass"
-			],
-			[
-				"tr",
-				"transfer_admin"
-			],
-			[
-				"staer",
-				"staerkenkompass2"
-			],
-			[
-				"Impo",
-				"ImproperlyConfigured\tclass"
-			],
-			[
-				"impo",
-				"import_data_path\tstatement"
-			],
-			[
-				"fil",
-				"filename\tstatement"
-			],
-			[
-				"file",
-				"filename"
-			],
-			[
-				"NotIm",
-				"NotImplementedError\tclass"
-			],
-			[
-				"cont",
-				"contextDict\tstatement"
-			],
-			[
-				"pre",
-				"prec_flt\tstatement"
-			],
-			[
-				"VARU_F",
-				"VARU_FACTOR"
-			],
-			[
-				"ca",
-				"cache_folder\tstatement"
-			],
-			[
-				"devi",
-				"device_id"
-			],
-			[
-				"inte",
-				"integrator_param\tstatement"
+				"text",
+				"texture_widget"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "gpupy/plot/examples/random.py",
+			"file": "gpupy/gl/glfw.py",
 			"settings":
 			{
-				"buffer_size": 951,
+				"buffer_size": 13924,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "gpupy/plot/domain.py",
+			"file": "gpupy/gl/texture.py",
 			"settings":
 			{
-				"buffer_size": 14095,
+				"buffer_size": 18356,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "demos/framebuffer.py",
+			"file": "gpupy/gl/examples/volumetric_raycasting_opt_box.py",
 			"settings":
 			{
-				"buffer_size": 6259,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "gpupy/plot/examples/glprimitives.py",
-			"settings":
-			{
-				"buffer_size": 2404,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "gpupy/plot/examples/texture.py",
-			"settings":
-			{
-				"buffer_size": 526,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "gpupy/plot/graph/__init__.py",
-			"settings":
-			{
-				"buffer_size": 4812,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "gpupy/plot/graph/fragmentgraph.py",
-			"settings":
-			{
-				"buffer_size": 4963,
+				"buffer_size": 16374,
 				"encoding": "UTF-8",
 				"line_ending": "Unix",
-				"name": "fragmentgraph.py"
+				"name": "volumetric_raycasting_opt_box.py"
+			}
+		},
+		{
+			"file": "gpupy/gl/buffer.py",
+			"settings":
+			{
+				"buffer_size": 12638,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/examples/volumetric_raycasting.py",
+			"settings":
+			{
+				"buffer_size": 12305,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/components/widgets/frame.py",
+			"settings":
+			{
+				"buffer_size": 23719,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/framebuffer.py",
+			"settings":
+			{
+				"buffer_size": 1731,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/examples/raycasting/generate_geometric_mesh.py",
+			"settings":
+			{
+				"buffer_size": 954,
+				"encoding": "UTF-8",
+				"line_ending": "Unix",
+				"name": "generate_geometric_mesh.py"
+			}
+		},
+		{
+			"file": "gpupy/gl/examples/raycasting/gemoetric1.npy",
+			"settings":
+			{
+				"buffer_size": 80000200,
+				"encoding": "Hexadecimal",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/matrix.py",
+			"settings":
+			{
+				"buffer_size": 1520,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/context.py",
+			"settings":
+			{
+				"buffer_size": 6723,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "gpupy/gl/camera.py",
+			"settings":
+			{
+				"buffer_size": 13120,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
 			}
 		}
 	],
@@ -590,32 +156,12 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 320.0,
-		"last_filter": "pa in",
+		"height": 359.0,
+		"last_filter": "pac ins",
 		"selected_items":
 		[
 			[
-				"pa in",
-				"Package Control: Install Package"
-			],
-			[
-				"pack en ",
-				"Package Control: Enable Package"
-			],
-			[
-				"Package Control: dele",
-				"Package Control: Disable Package"
-			],
-			[
-				"pa inst",
-				"Package Control: Install Package"
-			],
-			[
-				"color",
-				"Colorsublime: Install Theme"
-			],
-			[
-				"pa ins ",
+				"pac ins",
 				"Package Control: Install Package"
 			],
 			[
@@ -623,174 +169,22 @@
 				"Package Control: Install Package"
 			],
 			[
-				"pac ins",
-				"Package Control: Install Package"
-			],
-			[
-				"pa int",
-				"Package Control: Install Package"
-			],
-			[
-				"pacl ins",
-				"Package Control: Install Package"
-			],
-			[
-				"pa in ",
-				"Package Control: Install Package"
-			],
-			[
-				"pa in s",
-				"Package Control: Install Package"
+				"sele the",
+				"UI: Select Theme"
 			],
 			[
 				"pack ins",
 				"Package Control: Install Package"
-			],
-			[
-				"pack in",
-				"Package Control: Install Package"
-			],
-			[
-				"pack remo ve ",
-				"Package Control: Remove Package"
-			],
-			[
-				"pack",
-				"Package Control: Add Repository"
-			],
-			[
-				"install",
-				"Package Control: Install Package"
-			],
-			[
-				"Install package",
-				"Package Control: Install Package"
-			],
-			[
-				"Instal",
-				"Package Control: Install Package"
-			],
-			[
-				"package control: inst",
-				"Package Control: Install Package"
-			],
-			[
-				"insta",
-				"Package Control: Install Package"
-			],
-			[
-				"gitp ush ",
-				"Git: Push"
-			],
-			[
-				"git commt cur",
-				"Git: Quick Commit Current File"
-			],
-			[
-				"git commit cur",
-				"Git: Quick Commit Current File"
-			],
-			[
-				"git pull",
-				"Git: Pull"
-			],
-			[
-				"git push ",
-				"Git: Push"
-			],
-			[
-				"",
-				"About"
-			],
-			[
-				"git comm",
-				"Git: Commit"
-			],
-			[
-				"git statu",
-				"Git: Status"
-			],
-			[
-				"git push",
-				"Git: Push"
-			],
-			[
-				"git com",
-				"Git: Commit"
-			],
-			[
-				"git status",
-				"Git: Status"
-			],
-			[
-				"git p",
-				"Git: Pull"
-			],
-			[
-				"git commit",
-				"Git: Commit"
-			],
-			[
-				"git stat",
-				"Git: Status"
-			],
-			[
-				"git pus",
-				"Git: Push"
-			],
-			[
-				"git psuh",
-				"Git: Push Current Branch"
-			],
-			[
-				"gitp ul",
-				"Git: Pull"
-			],
-			[
-				"git pl",
-				"Git: Pull"
-			],
-			[
-				"git sttu",
-				"Git: Status"
-			],
-			[
-				"git pul",
-				"Git: Pull"
-			],
-			[
-				"gitp ush",
-				"Git: Push"
-			],
-			[
-				"git pull ",
-				"Git: Pull"
-			],
-			[
-				"sublimeGit:A",
-				"SublimeGit: Add License"
-			],
-			[
-				"gitpl",
-				"Git: Pull"
-			],
-			[
-				"git checkout",
-				"Git: Checkout"
-			],
-			[
-				"gitpull",
-				"Git: Pull"
 			]
 		],
-		"width": 453.0
+		"width": 412.0
 	},
 	"console":
 	{
-		"height": 139.0,
+		"height": 130.0,
 		"history":
 		[
-			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+			"import urllib.request,os,hashlib; h = '6f4c264a24d933ce70df5dedcf1dcaee' + 'ebe013ee18cced0ef93d5f746d80ef60'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
 		]
 	},
 	"distraction_free":
@@ -804,340 +198,151 @@
 	},
 	"expanded_folders":
 	[
-		"/Users/keksnicoh/gpupy",
-		"/Users/keksnicoh/gpupy/demos",
-		"/Users/keksnicoh/gpupy/docs",
-		"/Users/keksnicoh/gpupy/docs/gl",
-		"/Users/keksnicoh/gpupy/gpupy",
-		"/Users/keksnicoh/gpupy/gpupy/__pycache__",
-		"/Users/keksnicoh/gpupy/gpupy/gl",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets",
-		"/Users/keksnicoh/gpupy/gpupy/plot",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph"
+		"/Users/keksnicoh/projects/gpupy",
+		"/Users/keksnicoh/projects/gpupy/demos",
+		"/Users/keksnicoh/projects/gpupy/gpupy",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/components",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/components/widgets",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/examples",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/examples/__pycache__",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/examples/raycasting",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/lib",
+		"/Users/keksnicoh/projects/gpupy/gpupy/plot",
+		"/Users/keksnicoh/projects/gpupy/gpupy/plot/examples"
 	],
 	"file_history":
 	[
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/texture.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glprimitives.vrt.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/fragmentgraph.frg.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glprimitives.frg.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/gl/shader.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glprimitives.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc2d.frg.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/fragmentgraph.vrt.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/glsl.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/matrix.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/api.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/glprimitives.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/domain.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/plotter2d.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.vrt.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.vrt.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.frg.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/texture.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/glpoints.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/vertex_texture_domain.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/frgfnc.frg.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/container.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/grid.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/glpoints.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/frame.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/font/renderer.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/framebuffer.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/framestack.frg.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/framestack.vrt.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/plotter2d_basic.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/randomwalk.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/grid_dev.frg.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/grid.frag.glsl",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common/attributes.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/random.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_combine_texture_vertex_domain.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/examples/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_frg1d.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_glpoints.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/ex_random.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/glfw.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/plotter2d_layout.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/qt.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/mesh.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/camera.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/graph/gllines.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/util.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/vector.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common/vector.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common/observables.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/frame.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/style.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/layout.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples/frame.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/test/test_vector.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/viewport.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/gpupygl.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/wefwef.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/context.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/driver/glfw.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples/texture_2d_random.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples/glfw_window.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples/font.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples/texture_3d_ball.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples/volumetric_raycasting.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/driver.py",
-		"/Users/keksnicoh/gpupy/tt.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/camera.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/buffer.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/layout/boxes.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/layout.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/gltype.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/state.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/OLD.py",
-		"/Users/keksnicoh/gpupy/README.md",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/plotter_2d_layout.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/widgets/viewport.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/style.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/examples/test.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/scale.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/common.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/attributes.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/box.py",
-		"/Users/keksnicoh/gpupy/test.py",
-		"/Users/keksnicoh/gpupy/gpupy/common/helper.py",
-		"/Users/keksnicoh/gpupy/gpupy/common/color.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/fps.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/integration/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/test/__init__.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/main.py",
-		"/Users/keksnicoh/gpupy/gpupy/plot/plotter3d.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/config.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/settings.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/boxlayout.py",
-		"/Users/keksnicoh/gpupy/runtests.sh",
-		"/Users/keksnicoh/gpupy/gpupy/gl/driver/qt.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/grid.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/path.py",
-		"/Users/keksnicoh/gpupy/gpupy/gl/test/test_glsl.py",
-		"/Users/keksnicoh/gpupy/docs/gl/shader.md",
-		"/Users/keksnicoh/gpupy/gpupy/gl/components/framelayout.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/greeting.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/greeting_transfer.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/strengthWidget.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/templates/boxes/hint_box.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/views/rating.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/rating/templates/step.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/views/briefing.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/commands/transfer_briefing_strengths.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/data/management/commands/exportdata.py",
-		"/Users/keksnicoh/wrk/sk/skdeploy/docker-compose.yml",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/services/__init__.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/templates/transfer/compass_admin.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/strength/models.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/locale/de/LC_MESSAGES/django.po",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/feedbackExtern/templates/inviteExternFeedbackEmailTransfer.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/templates/evaluationHintContainer.html",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/static/js/evaluation.js",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/views/evaluation.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/mandant/views/transfer.py",
-		"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps/evaluation/templates/evaluation.html"
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/examples/frame.py",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/examples/raycasting/volumetric_raycasting_box_optimized.py",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/examples/volumetric_raycasting.py",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/shader.py",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/examples/glfw_window.py",
+		"/Users/keksnicoh/projects/gpupy/gpupy/gl/mesh.py",
+		"/Users/keksnicoh/projects/gpupy/Requirements.txt",
+		"/Users/keksnicoh/Desktop/projects/lokalhorst/Projekt/connect_db.php",
+		"/Users/keksnicoh/Desktop/projects/lokalhorst/Projekt/Rangliste.php",
+		"/Users/keksnicoh/Desktop/projects/lokalhorst/Projekt/index.php",
+		"/Users/keksnicoh/Desktop/projects/lokalhorst/Projekt/Spielfenster.php",
+		"/Users/keksnicoh/unih/README.md"
 	],
 	"find":
 	{
-		"height": 54.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
-		"height": 134.0,
+		"height": 0.0,
 		"where_history":
 		[
-			"/Users/keksnicoh/gpupy/gpupy",
-			"/Users/keksnicoh/gpupy/gpupy/gl",
-			"/Users/keksnicoh/gpupy/gpupy",
-			"/Users/keksnicoh/gpupy/gpupy/gl",
-			"/Users/keksnicoh/gpupy/gpupy",
-			"/Users/keksnicoh/gpupy/gpupy/gl",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/skdeploy",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/skdeploy",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass/apps",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/files/static",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass",
-			"/Users/keksnicoh/wrk/sk/staerkenkompass/files/static",
-			"",
-			"/Users/keksnicoh/unih/GPU-approach-to-Quantum-Kapitza-Effect/numerics",
-			"/Users/keksnicoh/slice-dice/valuenet.life/frontend",
-			"/Users/keksnicoh/slice-dice/valuenet.life/frontend/src",
-			"services/vbm",
-			"",
-			"from services.vbm.",
-			"",
-			"Collins\\Bundle\\Module\\Command",
-			""
 		]
 	},
 	"find_state":
 	{
-		"case_sensitive": true,
+		"case_sensitive": false,
 		"find_history":
 		[
-			"COLOR_KERNELS",
-			"RandomDomain",
-			"dimension",
-			"_uniform_key",
-			"enable",
-			"upref",
-			"enable",
-			"enable(",
-			"print",
-			"uniforms",
-			"DOMAIN",
-			"txcoords",
-			"COLOR_KERNELS",
-			"os",
-			"DomainGraph",
-			"DomainProgram",
-			"domain",
-			"plotter2d",
-			"components",
-			"Shader",
-			"attributes",
-			"StridedVertexMesh",
-			"mesh3d_rectangle",
-			"OrderedDict",
-			"sync_gpu",
-			"x_space",
-			"'domain'",
-			"GlPointsGraph",
-			"glpoints",
-			"WFWEFWEFFF",
-			"Camera2D",
-			"resize=resize",
-			"30",
-			"2",
-			"_redraw",
-			"self._redraw",
-			"_redraw",
-			"_flagged",
-			"cs",
-			"_plot_margin",
-			"_plot_container",
-			"_initialized",
-			"_graphs",
-			"_fast_rs",
-			"GraphTick",
-			"viewport",
-			"resolution",
-			"self.f",
-			"self.ve",
+			"cf",
+			"mat_volume",
+			"fragment_position",
+			"frag_color",
+			"dst",
+			"layern",
+			"datan",
+			"translation",
+			"1",
+			"rotation",
+			"1000",
+			"600",
 			"self.",
-			"prg",
-			"DomainProgram",
-			"_domain_changed",
-			"main_domain",
-			"Template",
-			"GL_VERTEX_SHADER",
-			"import",
-			"GL_PROGRAM_POINT_SIZE",
-			"glBindVertexArray",
-			"glDrawArrays",
-			"Frag1DGraph",
-			"Frag2DGraph",
-			"GlPointsGraph",
-			"glpoint",
-			"GlPointsGraph",
-			"glpoints",
-			"GlPointsGraph",
-			"_changes",
-			"_dynamic_test",
-			"_require_render",
-			"set_range",
-			"g",
-			"self",
-			"ticker",
-			"_d",
-			"_DomainInfo",
-			"_d",
-			"vert_path",
-			"_p.",
-			"_p",
-			"rs_clr",
-			"color",
-			"domain_sfnames",
-			"enable",
-			"domain",
-			"DOMAIN",
-			"parsed",
-			"code",
-			"_p.",
-			"_p",
-			"print",
-			"cs_size",
-			"frame",
-			"tmpl",
-			"_GLSL_TEMPLATE_DOMAIN",
-			"tx_",
-			"length",
-			"x_space",
-			"gtick",
-			"default",
-			"_2d_ckrn_clr",
-			"default",
-			"kernel here",
-			"domain.",
-			"prepare_domains",
-			"DOMAIN",
-			"ident",
-			"datax",
-			"_plot_camera",
-			"on_post_tick",
-			"on_pre_tick",
-			"GraphTick",
-			"value",
-			"self._plot_container",
-			"resulution",
-			"blit",
-			"mat_cs",
-			"RS_SIZE",
-			"_Graph",
-			"RsProgram",
-			"_g_tick",
-			"on_post_graph",
-			"on_pre_graph",
-			"on_pre_plot",
-			"on_post_plot",
-			"self.rs",
-			"_require_create_mesh",
-			"plot_container"
+			"volume_matrix",
+			"framebuffer_front",
+			"300",
+			"200",
+			"volumedata",
+			"my_array",
+			"windows",
+			"100",
+			"800",
+			"CUBE_TEXTURE_SIZE",
+			"200",
+			"self.program_ray",
+			"ball_data",
+			"partial",
+			"Framebuffer",
+			"Camera2D",
+			"keyboard_flyaround",
+			"create_vao_from_program_buffer_object",
+			"Texture2D",
+			"GLFW_Window",
+			"GLFW_window",
+			"gmgmgmg",
+			"ray_program",
+			"shader_program",
+			"current",
+			"v_RAY",
+			"V_TRANSPARANCY",
+			"v_transparancy",
+			"V_TRANSPARANCY",
+			"v_transparancy",
+			"V_TRANSPARANCY",
+			"v_ds",
+			"V_DS",
+			"v_ds",
+			"V_DS",
+			"50",
+			"v_iter",
+			"V_ITER",
+			"v_iter",
+			"V_ITER",
+			"49",
+			"100",
+			"0]",
+			"(100,",
+			" 100, ",
+			"-100)",
+			"1)",
+			"0.5",
+			"2",
+			"1",
+			"150",
+			"0.1",
+			"pn",
+			"700",
+			"CUBE_TEXTURE_SIZE",
+			"200",
+			"CUBE_TEXTURE_SIZE",
+			"mat4_rot_z",
+			"ray_program",
+			"vao",
+			"cube_buffer",
+			"p",
+			"vol",
+			"100",
+			"fragment_position",
+			"shader_program",
+			"ray_program",
+			"keyboard_flyaround",
+			"400",
+			"controller",
+			"GlConfig",
+			"GlConfi",
+			"screensize",
+			"camera",
+			"screensize",
+			"ensure_vec2",
+			"ensure",
+			"self.window",
+			"self.win",
+			"self.window.get_size()",
+			"texture_controller",
+			"_close_callback",
+			"boot_gl",
+			"bootstrap",
+			"CloseContextException",
+			"version",
+			"GlConfig",
+			"GLFW_WindowFunction"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1145,62 +350,13 @@
 		"regex": false,
 		"replace_history":
 		[
-			"cs",
-			"from gpupy.gl.common.vector impo",
-			"from gpupy.gl.common.vector import",
-			"from gpupy.gl.common.vector",
-			"from gpupy.gl.glfw import GLFW_WindowFunction",
-			"from gpupy.gl.common import Event",
-			"from gpupy.gl import GlConfig",
-			"GlConfig.",
-			"ViewPort",
-			"from gpupy.gl.config import Gl",
-			"from gpupy.gl.settings import LibrarySettings",
-			"content_type=\"application/json\"",
-			"except $1 as $2",
-			"except $1 as $2:",
-			"try:\n    from django.utils import simplejson\nexcept:\n    import simplejson",
-			"transaction.atomic",
-			"@ransaction.atomic",
-			"@transaction.atomic",
-			"from django.template.defaultfilters import truncatewords as truncate_words",
-			"SafeText",
-			"except $1 as e",
-			"except Exception as e",
-			"--EC='1'",
-			"--N_0='0'",
-			"sfd_field_ec4j1b50",
-			"--wd=1.0",
-			"sjj",
-			"numerics",
-			"freibetrag",
-			"einmalzahlung",
-			"services.vbm.rechner.neo",
-			"IdenticalTo('services.vbm.",
-			"from services.vbm.",
-			"[1]",
-			"a",
-			"bundle.command.",
-			"bundle.log.",
-			"Collins\\Bundle\\Log",
-			"Collins\\Bundle\\Command\\Command\\Yii",
-			"Collins\\Bundle\\Command",
-			"Collins\\Bundle\\Module\\Command",
-			"ac",
-			"Module\\Ac"
 		],
 		"reverse": false,
-		"show_context": false,
-		"use_buffer2": false,
+		"show_context": true,
+		"use_buffer2": true,
 		"whole_word": false,
 		"wrap": true
 	},
-	"folders":
-	[
-		{
-			"path": "/Users/keksnicoh/gpupy"
-		}
-	],
 	"groups":
 	[
 		{
@@ -1209,24 +365,24 @@
 			[
 				{
 					"buffer": 0,
-					"file": "gpupy/plot/examples/random.py",
+					"file": "gpupy/gl/glfw.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 951,
+						"buffer_size": 13924,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								592,
-								592
+								1471,
+								1471
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"syntax": "Packages/Python/Python.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -1234,46 +390,77 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 10,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "gpupy/plot/domain.py",
+					"file": "gpupy/gl/texture.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 14095,
+						"buffer_size": 18356,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								13781,
-								13781
+								0,
+								18356
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"syntax": "Packages/Python/Python.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 1338.0,
+						"translation.x": 2.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "demos/framebuffer.py",
+					"file": "gpupy/gl/examples/volumetric_raycasting_opt_box.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 16374,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4916,
+								4916
+							]
+						],
+						"settings":
+						{
+							"auto_name": "volumetric_raycasting_opt_box.py",
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1380.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "gpupy/gl/buffer.py",
 					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 6259,
+						"buffer_size": 12638,
 						"regions":
 						{
 						},
@@ -1286,37 +473,37 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"syntax": "Packages/Python/Python.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1551.0,
+						"translation.y": 4895.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "gpupy/plot/examples/glprimitives.py",
+					"buffer": 4,
+					"file": "gpupy/gl/examples/volumetric_raycasting.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2404,
+						"buffer_size": 12305,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1576,
-								1576
+								10908,
+								10867
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"syntax": "Packages/Python/Python.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -1328,90 +515,176 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "gpupy/plot/examples/texture.py",
+					"buffer": 5,
+					"file": "gpupy/gl/components/widgets/frame.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 526,
+						"buffer_size": 23719,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								380,
-								380
+								21931,
+								21931
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage"
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1977.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "gpupy/gl/framebuffer.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1731,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								630,
+								640
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
-					"file": "gpupy/plot/graph/__init__.py",
+					"buffer": 7,
+					"file": "gpupy/gl/examples/raycasting/generate_geometric_mesh.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4812,
+						"buffer_size": 954,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4061,
-								4091
+								738,
+								740
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python 3/Python3.tmLanguage",
+							"auto_name": "generate_geometric_mesh.py",
+							"syntax": "Packages/Python/Python.sublime-syntax",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1087.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 8,
 					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 0,
-			"sheets":
-			[
+				},
 				{
-					"buffer": 6,
-					"file": "gpupy/plot/graph/fragmentgraph.py",
+					"buffer": 8,
+					"file": "gpupy/gl/examples/raycasting/gemoetric1.npy",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4963,
+						"buffer_size": 80000200,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								679,
-								761
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"auto_name": "fragmentgraph.py",
-							"syntax": "Packages/Python 3/Python3.tmLanguage"
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "gpupy/gl/matrix.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1520,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								22,
+								22
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "gpupy/gl/context.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6723,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2434,
+								2434
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -1419,17 +692,47 @@
 					},
 					"stack_index": 5,
 					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "gpupy/gl/camera.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13120,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13071,
+								13071
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
 				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 23.0
 	},
 	"input":
 	{
-		"height": 64.0
+		"height": 36.0
 	},
 	"layout":
 	{
@@ -1440,18 +743,11 @@
 				0,
 				1,
 				1
-			],
-			[
-				1,
-				0,
-				2,
-				1
 			]
 		],
 		"cols":
 		[
 			0.0,
-			0.5,
 			1.0
 		],
 		"rows":
@@ -1461,39 +757,15 @@
 		]
 	},
 	"menu_visible": true,
-	"output.exec":
-	{
-		"height": 27.0
-	},
 	"output.find_results":
 	{
-		"height": 156.0
-	},
-	"output.git-checkout":
-	{
-		"height": 112.0
-	},
-	"output.git-commit":
-	{
-		"height": 112.0
-	},
-	"output.git-pull":
-	{
-		"height": 216.0
-	},
-	"output.git-push":
-	{
-		"height": 162.0
-	},
-	"output.unsaved_changes":
-	{
-		"height": 118.0
+		"height": 0.0
 	},
 	"pinned_build_system": "",
-	"project": "",
+	"project": "gpupy.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 42.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1502,174 +774,6 @@
 		"last_filter": "",
 		"selected_items":
 		[
-			[
-				"vre_pla",
-				"services/vbm/application/vre_playground.py"
-			],
-			[
-				"client",
-				"services/vbm/api/client.py"
-			],
-			[
-				"param",
-				"services/vbm/rechner/parameters.py"
-			],
-			[
-				"tax.",
-				"services/vbm/rechner/tax.py"
-			],
-			[
-				"vre",
-				"services/vbm/application/vre.py"
-			],
-			[
-				"optlib",
-				"services/vbm/rechner/calculator/optlib_neo.py"
-			],
-			[
-				"test_",
-				"valuenet.vbm/vbm/rechner/test/test_schema.py"
-			],
-			[
-				"luecken",
-				"vre-java-src/code/Entgeltoptimierer/src/rechner/logic/LueckenBerechnung.java"
-			],
-			[
-				"basics",
-				"vre-java-src/code/Entgeltoptimierer/src/utils/Basics.java"
-			],
-			[
-				"luece",
-				"valuenet.vbm/vbm/rechner/calculator/luecke.py"
-			],
-			[
-				"",
-				"__init__.py"
-			],
-			[
-				"ste",
-				"rechner_future/steuerrechner.py"
-			],
-			[
-				"brut",
-				"rechner_future/calculator/brutto.py"
-			],
-			[
-				"fa",
-				"lib/engine/keyboard/flyaroundHandler.py"
-			],
-			[
-				"timelin",
-				"src/timeline-extensions.js"
-			],
-			[
-				"migsubsi",
-				"migrations/m130621_083047_position_subsize_alter.php"
-			],
-			[
-				"add_more_ro",
-				"migrations/m140227_121658_add_more_roles.php"
-			],
-			[
-				"io",
-				"modules/Command/Helper/IO.php"
-			],
-			[
-				"stotest",
-				"tests/Module/Command/Model/StoryTest.php"
-			],
-			[
-				"debepos",
-				"models/DeliveryBillOrderPosition.php"
-			],
-			[
-				"bidapronrag",
-				"models/business/Tasks/BiDataProviderProductCategorySecondaryAggregationTask.php"
-			],
-			[
-				"provacon",
-				"controllers/ProductVariantController.php"
-			],
-			[
-				"orcont",
-				"controllers/OrderController.php"
-			],
-			[
-				"cdbcommand",
-				"commands/BiDataCommand.php"
-			],
-			[
-				"mautoc",
-				"extensions/Metronic/MAutoCompleteField.php"
-			],
-			[
-				"reconformmo",
-				"modules/Ac/Framework/RequestConfiguration/FormModel.php"
-			],
-			[
-				"supcon",
-				"controllers/SupplierController.php"
-			],
-			[
-				"main.p",
-				"config/main.php"
-			],
-			[
-				"bas",
-				"config/base.php"
-			],
-			[
-				"mana",
-				"modules/Ac/Framework/Manager.php"
-			],
-			[
-				"manager",
-				"modules/Ac/Framework/Manager.php"
-			],
-			[
-				"acl",
-				"config/acl.php"
-			],
-			[
-				"docma",
-				"models/Ac/Framework/Mapper/DocumentMapper.php"
-			],
-			[
-				"pro",
-				"models/Product.php"
-			],
-			[
-				"_orderlist",
-				"views/deliveryBill/_orderList.php"
-			],
-			[
-				"stddocum",
-				"models/Ac/Framework/Mapper/StdDocument.php"
-			],
-			[
-				"managertest",
-				"tests/Model/Ac/Framework/ManagerTest.php"
-			],
-			[
-				"order",
-				"models/Order.php"
-			],
-			[
-				"modemodel",
-				"models/PositionsReportModel.php"
-			],
-			[
-				"debilord",
-				"models/DeliveryBillOrder.php"
-			],
-			[
-				"warcomm",
-				"commands/WarehouseMovementCommand.php"
-			],
-			[
-				"debcon",
-				"controllers/DeliveryBillController.php"
-			]
 		],
 		"width": 0.0
 	},
@@ -1679,31 +783,27 @@
 		"last_filter": "",
 		"selected_items":
 		[
-			[
-				"",
-				"~/py/plt/plt.sublime-project"
-			]
 		],
 		"width": 380.0
 	},
 	"select_symbol":
 	{
-		"height": 320.0,
+		"height": 0.0,
 		"last_filter": "",
 		"selected_items":
 		[
 		],
-		"width": 444.0
+		"width": 0.0
 	},
 	"selected_group": 0,
 	"settings":
 	{
 	},
-	"show_minimap": false,
+	"show_minimap": true,
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 213.0,
+	"side_bar_width": 330.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
