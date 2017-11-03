@@ -133,12 +133,25 @@ class GLFW_Window(Context):
                 if not self._in_cycle:
                     glfwSwapBuffers(self._handle)
 
+        def _key_callback(window, keycode, scancode, action, option):
+            """ put glfw keyboard event data into active and
+                pressed keyboard buffer """
+            if action == GLFW_PRESS:
+                self.active_keys.add(GLFW_Context.KEYBOARD_MAP[keycode])
+            elif action == GLFW_RELEASE:
+                self.active_keys.remove(GLFW_Context.KEYBOARD_MAP[keycode])
+
         def _v2_callback(attr, window, width, height):
             setattr(self, attr, (width, height)) 
+
+
+        def _close_callback(*e):
+            self.on_close(self)
+
         glfwSetWindowSizeCallback(self._handle, _resize_callback)
         glfwSetFramebufferSizeCallback(self._handle, partial(_v2_callback, 'resolution'))
-        glfwSetWindowCloseCallback(self._handle, self._close_callback)
-        glfwSetKeyCallback(self._handle, self.key_callback)
+        glfwSetWindowCloseCallback(self._handle, _close_callback)
+        glfwSetKeyCallback(self._handle, _key_callback)
         glfwSetWindowTitle(self._handle, self.title)
 
         self.resolution = glfwGetFramebufferSize(self._handle)
@@ -146,19 +159,11 @@ class GLFW_Window(Context):
         self._glfw_initialized = True
 
 
-    def key_callback(self, window, keycode, scancode, action, option):
-        """ put glfw keyboard event data into active and
-            pressed keyboard buffer """
-        if action == GLFW_PRESS:
-            self.active_keys.add(GLFW_Context.KEYBOARD_MAP[keycode])
-        elif action == GLFW_RELEASE:
-            self.active_keys.remove(GLFW_Context.KEYBOARD_MAP[keycode])
-
-    def _close_callback(self, *e):
-        self.on_close(self)
-
     def make_context(self):
-
+        """
+        make the glfw handle the current context
+        and assigns itself to GPUPY_GL.CONTEXT.
+        """
         if not self._active:
             glfwMakeContextCurrent(self._handle)
             self._active = True
@@ -166,6 +171,13 @@ class GLFW_Window(Context):
         GPUPY_GL.CONTEXT = self
 
     def __call__(self):
+        """
+        runs the gl cycle and executed
+        the widget. 
+
+        Returns:
+        - Bool: whether the window should be closed or not
+        """        
         self.make_context()
 
         # GLFW close state

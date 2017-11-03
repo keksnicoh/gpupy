@@ -6,6 +6,8 @@ still under construction yo
 
 :author: Nicolas 'keksnicoh' Heimann
 """
+from gpupy.gl import GPUPY_GL
+GPUPY_GL.CHECK_VALUES = False
 from gpupy.gl.mesh import mesh3d_cube, mesh3d_rectangle # XXX
 from gpupy.gl.glfw import GLFW_window # XXX
 
@@ -21,6 +23,7 @@ import dicom
 import os 
 from time import time 
 import glob
+
 
 CUBE_FRAMEBUFFER = (400, 400)
 DATA = 'geometric1.npy'
@@ -198,6 +201,9 @@ class RaycastingDemoWidget():
 
 
     def _render_raycast(self):
+        self.texture_front.reactivate()
+        self.texture_back.reactivate()
+
         self.program_ray.use()
         glBindVertexArray(self.screen_vao)
         glDrawArrays(GL_TRIANGLES, 0, len(self.screen_buffer))
@@ -269,13 +275,9 @@ def main():
         if window.active_keys:
             if 76 in window.active_keys:
                 texture_widget.texture.interpolation_linear()
-                texture_widget.texture_front.reactivate()
-                texture_widget.texture_back.reactivate()
             if 78 in window.active_keys:
                 texture_widget.texture.interpolation_nearest()
-                texture_widget.texture_front.reactivate()
-                texture_widget.texture_back.reactivate()
-                
+
             if 264 in window.active_keys:
                 camera.position.z -= 10
                 texture_widget.force_viewbox_render = True

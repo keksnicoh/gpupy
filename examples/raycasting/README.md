@@ -5,4 +5,4 @@ currently 100% experimental
 python3.6 -m examples.raycasting.dicom
 ```
 
-![Philips MRI Dragonfrui](resources/raycasting_test_dragonfruit)
+![Philips MRI Dragonfrui](resources/raycasting_test_dragonfruit.png)

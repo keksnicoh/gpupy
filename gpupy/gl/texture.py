@@ -8,6 +8,7 @@ from gpupy.gl import GPUPY_GL
 from gpupy.gl.lib import imread, setter_dict
 from OpenGL.GL import *
 import numpy as np
+import os 
 
 # it is important to define at least those
 # texture parameters. otherwise the texture
@@ -220,8 +221,23 @@ class AbstractTexture():
 
         glBindTexture(self.gl_target, self.gl_texture_id)
 
-    def reactivate(self):
-        glActiveTexture(self._gl_texture_unit)
+    if GPUPY_GL.CHECK_VALUES: # just think about this approach more ... 
+        def reactivate(self):
+            if self._gl_texture_unit is None or self.gl_texture_unit is None:
+                raise RuntimeError('cannot reactivate since texture was never activated. (texture unit missing).')
+            glActiveTexture(self._gl_texture_unit)
+
+            try:
+                glBindTexture(self.gl_target, gl_texture_id(self.gl_texture_id))
+            except ValueError:
+                raise RuntimeError((
+                    'cannot reactivate since texture object '
+                    'does not have a valid texture id ({})'
+                ).format(self.gl_texture_id))
+    else:
+        def reactivate(self):
+            glActiveTexture(self._gl_texture_unit)
+            glBindTexture(self.gl_target, self.gl_texture_id)
 
     def unbind(self):
         """

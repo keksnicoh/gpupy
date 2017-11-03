@@ -1,7 +1,10 @@
 #-*- coding: utf-8 -*-
+import os 
 
 class GPUPY_GL:
     CONTEXT = None
+
+    CHECK_VALUES = os.environ.get('GPUPY_DEVELOPMENT', 0) == '1'
 
     """ whether the application is in debug mode. """
     DEBUG = False
