@@ -27,7 +27,7 @@ class Camera(object):
         dtype,
         buffer_base=None):
 
-        self.dtype              = dtype 
+        self.dtype = dtype 
         self.gl_buffer_base = buffer_base
         self._ubo = None 
 

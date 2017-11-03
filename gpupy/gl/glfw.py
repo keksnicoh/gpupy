@@ -32,13 +32,24 @@ def bootstrap_gl(version=def_version):
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 def run(*windows):
+    """ 
+    simple GLFW window runner
+
+    Arguments:
+        windows: A list of GLFW_Window's
+
+    """
     windows = list(windows[:])
     for window in create_runner(windows):
         if not window():
             windows.remove(window)
+
 def create_runner(windows):
     """
-    creates a simple runner 
+    creates a simple runner which is a generator
+    over the active windows. 
+
+    XXX: Is this bad?
     """
     while len(windows):
         glfwPollEvents()
@@ -61,20 +72,18 @@ class GLFW_Window(Context):
     title      = attributes.CastedAttribute(str, 'window')
     visible    = attributes.CastedAttribute(bool)
 
-    def __init__(self, size=(400, 400), title='gpupy glfw window', bootstrap=True, widget=None):
+    def __init__(self, 
+        size=(400, 400), 
+        title='gpupy glfw window',
+        bootstrap=True, 
+        widget=None
+    ):
         super().__init__()
         self._glfw_initialized = False
         self.size = size 
         self.title = title
         self.visible = True 
         self._active = False
-
-        self.on_ready  = Event()
-        self.on_cycle  = Event()
-        self.on_resize = Event()
-        self.on_close = Event()
-
-        
         self.active_keys = set()
 
         if bootstrap:
@@ -82,6 +91,7 @@ class GLFW_Window(Context):
 
         self.make_context()
         self.widget = widget or (lambda *a: True)
+
 
     @visible.on_change
     def set_visible(self, visible):
@@ -97,36 +107,44 @@ class GLFW_Window(Context):
 
 
     def bootstrap(self):
+        """
+        start GLFW window context
+        """
         if self._glfw_initialized:
             raise RuntimeError('allready initialized.')
+        
         self._handle = glfwCreateWindow(int(self.size[0]), int(self.size[1]), self.title)
+        
         if not self._handle:
             raise RuntimeError('glfw.CreateWindow() error')
+
         glfwWindowHint(GLFW_VISIBLE, int(self.visible))  
+
+        def _resize_callback(window, width, height):
+            self.size = (width, height)
+
+            if len(self.on_resize):
+                # at this point we only make a new context if we are not just
+                # within GLFW_Application.cycle method. E.g. if GLFW_Window.set_size()
+                # was performed within the GLFW_Window.cycle() method.
+                if not self._in_cycle:
+                    self.__gl_context_enable__()
+                self.on_resize(self)
+                if not self._in_cycle:
+                    glfwSwapBuffers(self._handle)
+
         def _v2_callback(attr, window, width, height):
-            setattr(self, attr, (width, height))    
-        glfwSetWindowSizeCallback(self._handle,      self.resize_callback)
+            setattr(self, attr, (width, height)) 
+        glfwSetWindowSizeCallback(self._handle, _resize_callback)
         glfwSetFramebufferSizeCallback(self._handle, partial(_v2_callback, 'resolution'))
-        glfwSetWindowCloseCallback(self._handle,     self._close_callback)
-        glfwSetKeyCallback(self._handle,             self.key_callback)
-        glfwSetWindowTitle(self._handle, 'wewf')
+        glfwSetWindowCloseCallback(self._handle, self._close_callback)
+        glfwSetKeyCallback(self._handle, self.key_callback)
+        glfwSetWindowTitle(self._handle, self.title)
+
         self.resolution = glfwGetFramebufferSize(self._handle)
 
         self._glfw_initialized = True
 
-    def resize_callback(self, window, width, height):
-        """ triggers on_resize event queue and swaps GLFW buffers. """
-        self.size = (width, height)
-
-        if len(self.on_resize):
-            # at this point we only make a new context if we are not just
-            # within GLFW_Application.cycle method. E.g. if GLFW_Window.set_size()
-            # was performed within the GLFW_Window.cycle() method.
-            if not self._in_cycle:
-                self.__gl_context_enable__()
-            self.on_resize(self)
-            if not self._in_cycle:
-                glfwSwapBuffers(self._handle)
 
     def key_callback(self, window, keycode, scancode, action, option):
         """ put glfw keyboard event data into active and
@@ -164,6 +182,11 @@ class GLFW_Window(Context):
 
         self._active = False 
         return True
+
+
+### DEPRECATED ---- REMOVE ALL DOWN HERE SOON
+
+
 
 class GLFW_Context(Context):
     KEYBOARD_MAP = {

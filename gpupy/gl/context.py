@@ -47,20 +47,23 @@ class Context():
 
 
     def buffer_base(self, name, index=None):
-        """ reserves a buffer base with a **name** at **index**.
-            if no **index** was given, the next free buffer base
-            will be reserved. 
+        """ 
+        reserves a buffer base with a **name** at **index**.
+        if no **index** was given, the next free buffer base
+        will be reserved. 
 
-            The reserved buffer index is then returned. 
+        The reserved buffer index is then returned. 
 
-            Usage:
-            ```python
+        Example:
+
+        ```python
             from gpupy.gl import VertexBuffer, GPUPY_GL
 
             ubo = VertexBuffer.to_device(ndarray, target=UNIFORM_BUFFER)
             ubo.bind_buffer_base(GPUPY_GL.CONTEXT.buffer_base('some_name'))
-            ```
-            """
+        ```
+
+        """
         i_max = glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS)
         if not name in self.gl_buffer_base_register:
             if index is not None and index in self.gl_buffer_base_register:
