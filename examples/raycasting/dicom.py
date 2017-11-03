@@ -118,7 +118,7 @@ class RaycastingDemoWidget():
 
         # create 3d texture 
         self.texture = Texture3D.from_numpy(self.volumedata)
-        self.texture.interpolation_linear()
+        self.texture.interpolation_nearest()
         self.texture.parameters.update({
             GL_TEXTURE_WRAP_S: GL_CLAMP_TO_BORDER,
             GL_TEXTURE_WRAP_T: GL_CLAMP_TO_BORDER,
@@ -267,6 +267,11 @@ def main():
     windows = [window]
     for window in create_runner(windows):    
         if window.active_keys:
+            if 76 in window.active_keys:
+                texture_widget.texture.interpolation_linear()
+            if 78 in window.active_keys:
+                texture_widget.texture.interpolation_nearest()
+
             if 264 in window.active_keys:
                 camera.position.z -= 10
                 texture_widget.force_viewbox_render = True
