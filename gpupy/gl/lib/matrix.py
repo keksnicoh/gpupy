@@ -28,8 +28,8 @@ def mat4_rot_y(angle):
 def mat4_rot_z(angle):
     """ creates 4x4 rotation matrix around y axis """
     return np.array([
-        np.cos(angle), -np.sin(angle), 0, 0,
-        np.sin(angle), np.cos(angle), 0, 0,
+        np.cos(-angle), -np.sin(-angle), 0, 0,
+        np.sin(-angle), np.cos(-angle), 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1,
     ], np.float32).reshape((4, 4)).T

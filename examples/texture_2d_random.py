@@ -7,11 +7,10 @@ random texture on a 2d plane.
 """
 
 from gpupy.gl import glfw
-from gpupy.gl.buffer import create_vao_from_program_buffer_object
 from gpupy.gl.glx.camera import Cartesian2D
-from gpupy.gl.mesh import mesh3d_rectangle
+from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
 from gpupy.gl.lib import attributes
-from gpupy.gl import GPUPY_GL, create_program, BufferObject, Texture2D
+from gpupy.gl import GPUPY_GL, create_program, Texture2D
 
 from OpenGL.GL import *
 
@@ -49,6 +48,7 @@ class TextWidget():
         self.size = size
         self.init()
 
+
     def init(self):
         # note that in Widget init the context should be active!
         glEnable(GL_BLEND)
@@ -66,14 +66,16 @@ class TextWidget():
         # base which is reserved for the active context. 
         self.program.uniform_blocks['camera'] = GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera')
 
+        # the mesh represents VAO and VBO
+        self.mesh = StridedVertexMesh(
+            mesh3d_rectangle(center=(-self.size[0]/2, -self.size[1]/2), *self.size), 
+            GL_TRIANGLES, 
+            attribute_locations=self.program.attributes)
+
         # create texture and buffers
-        self.texture     = Texture2D.from_numpy(np.random.random((500, 500, 3)).astype(np.float32))
-        verticies        = mesh3d_rectangle(center=(-self.size[0]/2, -self.size[1]/2), *self.size)
-        self.render_data = BufferObject.to_device(verticies)
-        self.vao         = create_vao_from_program_buffer_object(self.program, self.render_data)
-        
-        # some shortcuts for texture parameters
+        self.texture = Texture2D.from_numpy(np.random.random((500, 500, 3)).astype(np.float32))
         self.texture.interpolation_linear()
+        self.texture.activate(0)
 
         self.step        = 1
         self.last_random = 1
@@ -85,11 +87,8 @@ class TextWidget():
         # render me
         glClear(GL_COLOR_BUFFER_BIT)
         self.program.use()
-        self.texture.bind()
-        glActiveTexture(GL_TEXTURE0);
-        glBindVertexArray(self.vao)
-        glDrawArrays(GL_TRIANGLES, 0, len(self.render_data))
-        glBindVertexArray(0)
+        self.texture.reactivate()
+        self.mesh.draw()
         self.texture.unbind()
         self.program.unuse()
 
@@ -98,6 +97,7 @@ class TextWidget():
 
         # to keep the widget alive return True
         return True
+
 
     def _update_data(self):
         # do some funny stuff
@@ -121,9 +121,19 @@ class TextWidget():
 
 if __name__ == '__main__':
     glfw.bootstrap_gl()
+
     window = glfw.GLFW_Window()
-    camera = Cartesian2D(screensize=window.size)
     window.widget = TextWidget(size=window.size)
+    camera = Cartesian2D(screensize=window.size)
+
+    # window resize => rerender widget. 
+    window.on_resize.append(lambda *e: window.widget())
+
+    # let the camera roll
+    window.on_cycle.append(lambda *e: camera.__setattr__('roll', camera.roll+0.01))
+
+    # run the app
     glfw.run(window)
+
 else:
     raise Exception('please run as __main__.')

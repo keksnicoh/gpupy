@@ -85,7 +85,7 @@ class GLFW_Window(Context):
         self.visible = True 
         self._active = False
         self.active_keys = set()
-
+        self._in_cycle = False
         if bootstrap:
             self.bootstrap()
 
@@ -128,7 +128,8 @@ class GLFW_Window(Context):
                 # within GLFW_Application.cycle method. E.g. if GLFW_Window.set_size()
                 # was performed within the GLFW_Window.cycle() method.
                 if not self._in_cycle:
-                    self.__gl_context_enable__()
+                    self.make_context()
+                    self.on_cycle(self)
                 self.on_resize(self)
                 if not self._in_cycle:
                     glfwSwapBuffers(self._handle)
@@ -179,6 +180,7 @@ class GLFW_Window(Context):
         - Bool: whether the window should be closed or not
         """        
         self.make_context()
+        self._in_cycle = True 
 
         # GLFW close state
         if glfwWindowShouldClose(self._handle):
@@ -186,13 +188,15 @@ class GLFW_Window(Context):
             return False
 
         # run widget and close if return value is False
+        self.on_cycle(self)
         success = self.widget()
         glfwSwapBuffers(self._handle)
+        self._in_cycle = False
         if not success:
             self._active = False 
             return False
 
-        self._active = False 
+        self._active = True 
         return True
 
 

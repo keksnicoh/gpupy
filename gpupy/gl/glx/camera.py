@@ -99,7 +99,7 @@ class Cartesian2D(Camera):
     # -- api --
 
     def __buffer__(self):
-        mat_projection = np.array([
+        mat_projection = mat4_rot_z(self.roll) @ np.array([
             1, 0, 0, -self.position.x,
             0, 1, 0, -self.position.y,
             0, 0, 1, 0,
