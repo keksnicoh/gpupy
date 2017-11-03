@@ -3,10 +3,10 @@
 EXPERIMENTAL - CAMERAS WILL LISTEN TO VECTOR EVENTS
 """
 from gpupy.gl import GPUPY_GL
-from gpupy.gl.common import *
+from gpupy.gl.lib import *
 from gpupy.gl.buffer import BufferObject
 from gpupy.gl.matrix import *
-from gpupy.gl.common.vector import * 
+from gpupy.gl.lib.vector import * 
 import numpy as np
 
 from OpenGL.GL import *
@@ -144,6 +144,116 @@ class Camera2D(Camera):
             1, 0, 0, -self.position.x,
             0, 1, 0, -self.position.y,
             0, 0, 1, 0,
+            0, 0, 0, 1,
+        ], dtype=np.float32).reshape((4, 4)).T
+
+    def _create_projection_matrix(self):
+        self._mat_projection = np.array([
+            2.0 / self.screensize.x, 0,                         0, 0,
+            0,                       -2.0 / self.screensize.y,  0, 0,
+            0,                       0,                         1, 0,
+            0,                       0,                         0, 1,
+        ], dtype=np.float32).reshape((4, 4)).T
+
+
+
+
+class Camera3D(Camera):
+    DTYPE = np.dtype([
+        ('mat_view',         np.float32, (4, 4)),
+        ('mat_projection',   np.float32, (4, 4)),
+        ('position',         np.float32, 3),
+        ('roll',             np.float32),
+        ('direction',        np.float32, 3),
+        ('_b1',             np.float32), 
+        ('direction_right',  np.float32, 3),
+        ('_b2',             np.float32),
+        ('direction_top',    np.float32, 3),
+    ])
+
+    def __init__(self, world_up):
+
+        super().__init__(Camera2D.DTYPE, buffer_base or GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
+        self._camera = np.zeros(1, dtype=Camera2D.DTYPE)
+        self._mat_projection = None 
+        self._mat_view = None
+
+        self.right = (1, 0, 0)
+        self.top = (0, 1, 0)
+        self.direction = (0, 0, -1)
+
+        self.commit()
+
+        Camera3D.look_at(up=1, position=1, target=1)
+
+        camera = Camera3D(up=(0, 1, 0))
+        camera.position = (0, 0, 0)
+        camera.tagret = (1, 2, 3)
+        camera.roll = 0
+
+
+    # -- api --
+    def __matricies__(self):
+        return self._mat_projection, self._mat_view
+
+    def __buffer__(self):
+        self._camera['mat_view']        = self._mat_view
+        self._camera['mat_projection']  = self._mat_projection
+        self._camera['roll']            = self.roll
+        self._camera['position']        = self.position
+        self._camera['direction']       = self.direction
+        self._camera['direction_right'] = self.right
+        self._camera['direction_top']   = self.top
+        return self._camera
+
+    # -- camera control properties --
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        self._position.xyz = value
+
+    @property
+    def screensize(self):
+        return self._screensize
+    
+    @screensize.setter
+    def screensize(self, value):
+        self._screensize.xy = value
+
+    @property 
+    def roll(self):
+        return self._roll 
+
+    @roll.setter
+    def roll(self, roll):
+        old_roll = roll
+        self._roll = roll
+        self.roll_changed(self.roll, old_roll)
+
+    # -- camera control events --
+
+    def roll_changed(self, roll, *e):
+        self._create_view_matrix()
+        self.commit()
+
+    def position_changed(self, position, *e):
+        self._create_view_matrix()
+        self.commit()
+
+    def screensize_changed(self, screensize, *e):
+        self._create_projection_matrix()
+        self.commit()
+
+    # -- matrix methods 
+
+    def _create_view_matrix(self):
+        self._mat_view = np.array([
+            1, 0, 0, -self.position.x,
+            0, 1, 0, -self.position.y,
+            0, 0, 1, -self.position.Z,
             0, 0, 0, 1,
         ], dtype=np.float32).reshape((4, 4)).T
 

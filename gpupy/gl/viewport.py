@@ -6,7 +6,7 @@ viewport
 """
 
 from OpenGL.GL import *
-from gpupy.gl.common.vector import * 
+from gpupy.gl.lib.vector import * 
 
 class Viewport():
 

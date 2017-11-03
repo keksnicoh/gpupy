@@ -281,22 +281,23 @@ def mesh3d_rectangle(a=1, b=1, color=(1, 1, 1, 1), center=(0, 0)):
     mesh['tex'][i] = (1, 0)
     return mesh
 
-def mesh3d_cube(a=1, b=1, c=1, color=(1, 1, 1, 1)):
+def mesh3d_cube(size, color=(1, 1, 1, 1), center=False):
+    a,b,c=size
     if not callable(color):
-        b = color
+        erg = color
         del color
-        color = lambda a: b
+        color = lambda a: erg
     mesh = np.zeros(12*3, dtype=MESH_DTYPE)
     i = 0
     mesh['vertex'][i] = (0, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
-    mesh['vertex'][i] = (100, 100, 0)
+    mesh['vertex'][i] = (a, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
-    mesh['vertex'][i] = (100, 0, 0)
+    mesh['vertex'][i] = (a, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
@@ -304,67 +305,67 @@ def mesh3d_cube(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
-    mesh['vertex'][i] = (0, 100, 0)
+    mesh['vertex'][i] = (0, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
     i += 1
-    mesh['vertex'][i] = (100, 100, 0)
+    mesh['vertex'][i] = (a, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, 1)
 
     i += 1
-    mesh['vertex'][i] = (100, 0, -100)
+    mesh['vertex'][i] = (a, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
     i += 1
-    mesh['vertex'][i] = (100, 100, -100)
+    mesh['vertex'][i] = (a, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
     i += 1
-    mesh['vertex'][i] = (0, 0, -100)
+    mesh['vertex'][i] = (0, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
     i += 1
-    mesh['vertex'][i] = (100, 100, -100)
+    mesh['vertex'][i] = (a, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
     i += 1
-    mesh['vertex'][i] = (0, 100, -100)
+    mesh['vertex'][i] = (0, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
     i += 1
-    mesh['vertex'][i] = (0, 0, -100)
+    mesh['vertex'][i] = (0, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 0, -1)
 
     i += 1
-    mesh['vertex'][i] = (0, 100, 0)
+    mesh['vertex'][i] = (0, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 1, 0)
     i += 1
-    mesh['vertex'][i] = (0, 100, -100)
+    mesh['vertex'][i] = (0, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 1, 0)
     i += 1
-    mesh['vertex'][i] = (100, 100, -100)
+    mesh['vertex'][i] = (a, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 1, 0)
     i += 1
-    mesh['vertex'][i] = (0, 100, 0)
+    mesh['vertex'][i] = (0, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 1, 0)
     i += 1
-    mesh['vertex'][i] = (100, 100, -100)
+    mesh['vertex'][i] = (a, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 1, 0)
     i += 1
-    mesh['vertex'][i] = (100, 100, 0)
+    mesh['vertex'][i] = (a, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, 1, 0)
     i += 1
 
 
-    mesh['vertex'][i] = (0, 0, -100)
+    mesh['vertex'][i] = (0, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
@@ -372,7 +373,7 @@ def mesh3d_cube(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
-    mesh['vertex'][i] = (100, 0, -100)
+    mesh['vertex'][i] = (a, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
@@ -380,38 +381,38 @@ def mesh3d_cube(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
-    mesh['vertex'][i] = (100, 0, 0)
+    mesh['vertex'][i] = (a, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
-    mesh['vertex'][i] = (100, 0, -100)
+    mesh['vertex'][i] = (a, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (0, -1, 0)
     i += 1
 
 
 
-    mesh['vertex'][i] = (100, 0, -100)
+    mesh['vertex'][i] = (a, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (100, 0, 0)
+    mesh['vertex'][i] = (a, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (100, 100, -100)
+    mesh['vertex'][i] = (a, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (100, 0, 0)
+    mesh['vertex'][i] = (a, 0, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (100, 100, 0)
+    mesh['vertex'][i] = (a, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (100, 100, -100)
+    mesh['vertex'][i] = (a, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (1, 0, 0)
     i += 1
@@ -420,11 +421,11 @@ def mesh3d_cube(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (0, 0, -100)
+    mesh['vertex'][i] = (0, 0, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (0, 100, -100)
+    mesh['vertex'][i] = (0, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
@@ -432,14 +433,23 @@ def mesh3d_cube(a=1, b=1, c=1, color=(1, 1, 1, 1)):
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (0, 100, -100)
+    mesh['vertex'][i] = (0, b, -c)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
-    mesh['vertex'][i] = (0, 100, 0)
+    mesh['vertex'][i] = (0, b, 0)
     mesh['color'][i] = color(i)
     mesh['normal'][i] = (-1, 0, 0)
     i += 1
 
+    if center:
+        for i, vertex in enumerate(mesh['vertex']):
+         #   mesh['vertex'][i][0] *= 0.5
+            mesh['vertex'][i][0] += -a * 0.5
 
+          #  mesh['vertex'][i][1] *= 0.5
+            mesh['vertex'][i][1] += -b * 0.5
+
+          #  mesh['vertex'][i][2] *= 0.5
+            mesh['vertex'][i][2] += c * 0.5
     return mesh

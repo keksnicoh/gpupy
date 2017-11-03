@@ -8,10 +8,12 @@ XXX
  - orthigraphic projection: cannot move in z direction.
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl.common import *
+
+from gpupy.gl.lib import *
 from gpupy.gl.buffer import BufferObject
 from gpupy.gl.matrix import *
 import numpy as np
+from gpupy.gl import GPUPY_GL
 
 from OpenGL.GL import *
 
@@ -87,7 +89,7 @@ class Camera(object):
 
     def __init__(
         self,
-        screensize=(2.0, 2.0),
+        screensize=[2.0, 2.0],
         projection=PROJECTION_ORTHOGRAPHIC,
         dtype=DTYPE,
         fov=DEFAULT_FOV,
@@ -111,7 +113,6 @@ class Camera(object):
         """
 
         self.screensize         = screensize#
-        ensure_vec2(int, screensize)
         self.initial_screensize = screensize#ensure_vec2(int, screensize)
         self.projection         = projection
         self.dtype              = dtype
@@ -157,7 +158,9 @@ class Camera(object):
         camera = np.zeros(1, self.dtype)
 
         self._ubo = BufferObject.to_device(camera, target=GL_UNIFORM_BUFFER)
-        self._ubo.bind_buffer_base(self.buffer_base if self.buffer_base is not None else GlConfig.STATE.RESERVED_BUFFER_BASE['gpupy.gl.camera'])
+        self._ubo.bind_buffer_base(self.buffer_base 
+                                   if self.buffer_base is not None 
+                                   else GPUPY_GL.CONTEXT.buffer_base('gpupy.gl.camera'))
 
         self.gl_buffer_base = self._ubo.gl_buffer_base
         self._camera = camera
@@ -214,7 +217,7 @@ class Camera(object):
         return (projection_matrix, rot_roll.dot(rot_pitch.dot(rot_yaw.dot(position_matrix.dot(reflection_xy)))).T)
 
     def set_screensize(self, framebuffer_size):
-        pass
+        self.screensize = framebuffer_size
 
     def create_projection_matrix(self):
         """ creates projection matricies. Thanks
@@ -228,12 +231,15 @@ class Camera(object):
             ], dtype=np.float32).reshape((4, 4)).T
 
         elif self.projection == Camera.PROJECTION_PERSPECTIVE:
-            return np.array([
+            print(self.near, self.right, self.left)
+            a = np.array([
                 2.0 * self.near / (self.right - self.left), 0,                                          (self.right + self.left) / (self.right - self.left), 0,
                 0,                                          2.0 * self.near / (self.top - self.bottom), (self.top + self.bottom) / (self.top - self.bottom), 0,
                 0,                                          0,                                          - (self.far + self.near) / (self.far - self.near),   -2.0 * self.far * self.near / (self.far - self.near),
                 0,                                          0,                                          -1,                                                  0
             ], dtype=np.float32).reshape((4, 4)).T
+            print(a)
+            return a
 
         else:
             raise ValueError('invalid camera projection. Available camera projections: Camera.PROJECTION_ORTHOGRAPHIC, Camera.PROJECTION_PERSPECTIVE')
@@ -264,7 +270,7 @@ class Camera(object):
             note that this function will override the projection
             configuration r, l, t, b by assuming a symmetric
             viewport. """
-        self.screensize = ensure_vec2(float, screensize)
+        self.screensize = screensize
         self._update_symmetric_projection_screensize()
         send and self.send()
 

@@ -12,12 +12,12 @@ vieport resolution.
 """
 
 from gpupy.gl.components.widgets import Widget
-from gpupy.gl.common import attributes
-from gpupy.gl.common.observables import transform_observables
+from gpupy.gl.lib import attributes
+from gpupy.gl.lib.observables import transform_observables
 
 from gpupy.gl import * 
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
-from gpupy.gl.common.vector import *
+from gpupy.gl.lib.vector import *
 
 from OpenGL.GL import *
 
@@ -25,6 +25,7 @@ import numpy as np
 
 import os 
 from functools import partial 
+from time import time 
 
 class AbstractGrid(Widget):
     """
@@ -38,12 +39,14 @@ class AbstractGrid(Widget):
 
     # grid configuration
     major_grid         = attributes.VectorAttribute(2, (.5, .5))
-    major_grid_width   = attributes.CastedAttribute(float,  1.5)
+    major_grid_width   = attributes.CastedAttribute(float,  0.5)
     major_grid_color   = attributes.VectorAttribute(4, (0, 0, 0, 1))
 
-    minor_grid_width   = attributes.CastedAttribute(float,  1)
+    minor_grid_width   = attributes.CastedAttribute(float,  .5)
     minor_grid_color   = attributes.VectorAttribute(4, (0, 0, 0, 1))
     minor_grid_n       = attributes.VectorAttribute(2, (5, 5))
+
+    antialiasing   = attributes.CastedAttribute(float,  .5)
 
     # style
     background_color  = attributes.VectorAttribute(4, (1, 1, 1, 1))
@@ -64,6 +67,7 @@ class AbstractGrid(Widget):
         self.position = position
         self.size = size
         self.cs = cs
+        self._t = time()
 
         self.major_grid = major_grid
         self.major_grid_color = major_grid_color 
@@ -113,21 +117,25 @@ class AbstractGrid(Widget):
 
         # -- cartesian
         # add this extra bit and assure that u_limits1 != u_limit2
-        l1 = self.cs.values * 1.0001
+        l1 = self.cs.values * 1.000
         mg = self.major_grid.values 
         cs = self.cs.values 
 
-        self.program.uniform('u_limits1',            l1)
-        self.program.uniform('u_limits2',            cs)
-        self.program.uniform('u_major_grid_step',    mg)
-        self.program.uniform('u_minor_grid_step',    self.major_grid.values/self.minor_grid_n)
-        self.program.uniform('u_major_grid_width',   self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0]))
-        self.program.uniform('u_minor_grid_width',   self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0]))
-        self.program.uniform('u_major_grid_color',   self.major_grid_color)
-        self.program.uniform('u_minor_grid_color',   self.minor_grid_color)
-        self.program.uniform('iResolution',          self.resolution)
-        self.program.uniform('u_antialias',          2)
-        self.program.uniform('c_bg',                 self.background_color)
+        Mw = self.minor_grid_width * max(1.0, self.resolution[0] / self.size[0])
+        mw = self.major_grid_width  * max(1.0, self.resolution[0] / self.size[0])
+        aa = self.antialiasing
+
+        self.program.uniform('u_limits1',          l1)
+        self.program.uniform('u_limits2',          cs)
+        self.program.uniform('u_major_grid_step',  mg)
+        self.program.uniform('u_minor_grid_step',  self.major_grid.values / self.minor_grid_n)
+        self.program.uniform('u_major_grid_width', Mw)
+        self.program.uniform('u_minor_grid_width', mw)
+        self.program.uniform('u_major_grid_color', self.major_grid_color)
+        self.program.uniform('u_minor_grid_color', self.minor_grid_color)
+        self.program.uniform('u_resolution',       self.resolution)
+        self.program.uniform('u_antialias',        aa)
+        self.program.uniform('c_bg',               self.background_color)
 
         self._req_uniforms = False
 
@@ -151,7 +159,7 @@ class AbstractGrid(Widget):
         return self
 
     def tick(self):
-        if self._req_uniforms:
+        if True or self._req_uniforms:
             self.upload_uniforms()
         super().tick()
 

@@ -1,5 +1,5 @@
-from gpupy.gl.common import Event 
-from gpupy.gl.common.attributes import ObservablesAccessor
+from gpupy.gl.lib import Event 
+from gpupy.gl.lib.attributes import ObservablesAccessor
 from weakref import WeakKeyDictionary
 
 from functools import partial 

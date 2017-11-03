@@ -8,7 +8,7 @@ from PyQt5.QtGui import (
     )
 from OpenGL.GL import * 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget, QWidget, QGridLayout
-from gpupy.gl.common import Event
+from gpupy.gl.lib import Event
 from gpupy.plot.plotter2d import Plotter2d
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl import GPUPY_GL

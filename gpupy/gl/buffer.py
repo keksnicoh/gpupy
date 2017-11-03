@@ -87,6 +87,13 @@ class BufferObject():
         GL_UNIFORM_BUFFER: 'GL_UNIFORM_BUFFER',
     }
 
+    VALID_BUFFER_TARGETS = [
+        GL_ATOMIC_COUNTER_BUFFER,
+        GL_TRANSFORM_FEEDBACK_BUFFER,
+        GL_UNIFORM_BUFFER,
+        GL_SHADER_STORAGE_BUFFER
+    ]
+
     _BOUND_BUFFER_BASES = []
 
     @classmethod
@@ -106,34 +113,50 @@ class BufferObject():
     @classmethod
     def zeros(cls, shape, dtype, target=GL_ARRAY_BUFFER):
         data = np.zeros(shape, dtype=dtype)
-        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, 
+                  data.dtype, 
+                  allocator=_create_new_vbo_allocator(data), 
+                  target=target)
         vbo.host = data
         return vbo 
 
     @classmethod
     def zeros_like(cls, data, target=GL_ARRAY_BUFFER):
         data = np.zeros_like(data)
-        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, 
+                  data.dtype, 
+                  allocator=_create_new_vbo_allocator(data), 
+                  target=target)
         vbo.host = data
         return vbo 
 
     @classmethod
     def ones(cls, shape, dtype, target=GL_ARRAY_BUFFER):
         data = np.ones(shape, dtype=dtype)
-        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, 
+                  data.dtype, 
+                  allocator=_create_new_vbo_allocator(data), 
+                  target=target)
         vbo.host = data
         return vbo 
 
     @classmethod
     def ones_like(cls, data, target=GL_ARRAY_BUFFER):
         data = ones_like.ones(data)
-        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target)
+        vbo = cls(data.shape, 
+                  data.dtype, 
+                  allocator=_create_new_vbo_allocator(data), 
+                  target=target)
         vbo.host = data
         return vbo 
 
     @classmethod
     def to_device(cls, data, target=GL_ARRAY_BUFFER, usage=GL_STATIC_DRAW):
-        vbo = cls(data.shape, data.dtype, allocator=_create_new_vbo_allocator(data), target=target, usage=usage)
+        vbo = cls(data.shape, 
+                  data.dtype, 
+                  allocator=_create_new_vbo_allocator(data), 
+                  target=target, 
+                  usage=usage)
         vbo.host = data
         return vbo 
 
@@ -143,13 +166,17 @@ class BufferObject():
         vbo.host = data
         return vbo 
 
-    def __init__(self, shape=None, dtype=None, target=GL_ARRAY_BUFFER, usage=GL_STATIC_DRAW, allocator=None):
+    def __init__(self, 
+                 shape=None, 
+                 dtype=None, 
+                 target=GL_ARRAY_BUFFER, 
+                 usage=GL_STATIC_DRAW, 
+                 allocator=None):
 
         self.shape = shape if type(shape) is tuple else (shape, )
         self.dtype = np.dtype(dtype)
         self.itemsize = np.dtype(dtype).itemsize
         self.host = None 
-
         try:
             self.nbytes = self.itemsize*reduce(mul, self.shape)
         except:
@@ -161,8 +188,13 @@ class BufferObject():
         self._cl_array = None
         self._allocator = allocator or _create_new_vbo_allocator()
 
-        self.gl_vbo_id = self._allocator(self.nbytes, self._target, self._usage)
+        # allocator returns buffer id.
+        self.gl_vbo_id = self._allocator(self.nbytes, 
+                                         self._target, 
+                                         self._usage)
 
+        # check if the gpu buffer size and usage
+        # is correct (compared to self._usage, self.nbytes)
         self.sync_with_vbo(True)
 
         self.gl_buffer_base = None
@@ -183,27 +215,27 @@ class BufferObject():
         """
         glBindBuffer(self._target, self.gl_vbo_id)
         nbytes = glGetBufferParameteriv(self._target, GL_BUFFER_SIZE)
+        usage = glGetBufferParameteriv(self._target, GL_BUFFER_USAGE)
+
+        # check if host and gpu size are equal
         if check and nbytes != self.nbytes:
-            raise GlError('vbo({}) has size {}b but BufferObject requires its size to be {}b'.format(
-                self.gl_vbo_id,
-                nbytes,
-                self.nbytes
-            ))
+            raise GlError((
+                'vbo({}) has size {}b but BufferObject '
+                'requires its size to be {}b'
+            ).format(self.gl_vbo_id, nbytes, self.nbytes))
 
         validate_nbytes_dtype(nbytes, self.itemsize)
-        self._nbytes = nbytes
+        self.nbytes = nbytes
 
-        usage = glGetBufferParameteriv(self._target, GL_BUFFER_USAGE)
+        # check if host and gpu usage are equal
         if check and self._usage is not None and usage != self._usage:
-            raise GlError(
-                'vbo({},usage={}) does not equal defined BufferObject.usage {}'.format(
-                    self.gl_vbo_id,
-                    usage,
-                    self._usage
-                )
-            )
-        self._usage = usage
+            raise GlError((
+                'vbo({},usage={}) does not equal '
+                'defined BufferObject.usage {}'
+            ).format(self.gl_vbo_id, usage, self._usage))
 
+        # remember usage and unbind 
+        self._usage = usage
         glBindBuffer(self._target, 0)
 
     def set(self, ndarray, offset=0, length=None):
@@ -250,10 +282,15 @@ class BufferObject():
         note that interoperatibility must be enabled.
         """
         if self._cl_buffer is None:
+            allocator = lambda b: cl.GLBuffer(
+                ctx, 
+                cl.mem_flags.READ_WRITE, 
+                int(self.gl_vbo_id))
+
             self._cl_array = cl.array.Array(
                 queue,
                 self.shape,
-                self.dtype, allocator=lambda b: cl.GLBuffer(ctx, cl.mem_flags.READ_WRITE, int(self.gl_vbo_id))
+                self.dtype, allocator=allocator
             )
 
         return self._cl_array
@@ -269,23 +306,30 @@ class BufferObject():
         wrapper for glBindBufferBase.
         raises an exception if buffer has wrong target.
         """
-        valid_targets = [
-            GL_ATOMIC_COUNTER_BUFFER,
-            GL_TRANSFORM_FEEDBACK_BUFFER,
-            GL_UNIFORM_BUFFER,
-            GL_SHADER_STORAGE_BUFFER
-        ]
-        if self._target not in valid_targets:
-            raise GlError('cannot use bind_buffer_base: bad target "{}". Allowed targets are {}. OpenGL Specs {}'.format(
-                self.TARGET_TO_STR[self._target],
-                ', '.join(self.TARGET_TO_STR[t] for t in valid_targets),
-                DOCS['glBindBufferBase']))
+        valid_targets = self.VALID_BUFFER_TARGETS
 
+        # the target is not supported (OpenGL specs)
+        if self._target not in valid_targets:
+            str_target = self.TARGET_TO_STR[self._target]
+            valid_targets_str = ', '.join(
+                self.TARGET_TO_STR[t] for t in valid_targets)
+            gl_docs_link = DOCS['glBindBufferBase']
+            raise GlError((
+                'cannot use bind_buffer_base: bad target "{}".'
+                ' Allowed targets are {}. OpenGL Specs {}'
+            ).format(str_target, valid_targets_str, gl_docs_link))
+
+        # one must define buffer base index at least once
         if index is None:
             if self.gl_buffer_base is None:
-                raise GlError('argument index must be an integer if this buffer was never bound before.')
+                raise GlError((
+                    'argument index must be an integer '
+                    'if this buffer was never bound before.'
+                ))
+
             index = self.gl_buffer_base
 
+        # bind buffer and remember buffer base
         glBindBufferBase(self._target, index, self.gl_vbo_id)
         self.gl_buffer_base = index
 
@@ -295,12 +339,10 @@ class BufferObject():
 # to host and host buffer has a specific itemsize (numpy dtype)
 def validate_nbytes_dtype(nbytes, itemsize):
     if nbytes % itemsize > 0:
-        raise GlError(
-            'buffersize {}b must be dividable by itemsize {}b'.format(
-                nbytes,
-                itemsize
-            )
-        )
+        raise GlError((
+            'buffersize {}b must be dividable by '
+            'itemsize {}b'
+        ).format(nbytes, itemsize))
 
 # inspired by pyopencl
 def _create_new_vbo_allocator(data=None):
@@ -328,7 +370,12 @@ def create_vao_from_program_buffer_object(program, buffer_object):
             components = 1
         else:
             components = buffer_object.dtype[attribute].subdtype[1][0]
-        glVertexAttribPointer(pointer, components, GL_FLOAT, GL_FALSE, buffer_object.dtype.itemsize, c_void_p(buffer_object.dtype.fields[attribute][1]))
+        glVertexAttribPointer(pointer, 
+                              components, 
+                              GL_FLOAT, 
+                              GL_FALSE, 
+                              buffer_object.dtype.itemsize, 
+                              c_void_p(buffer_object.dtype.fields[attribute][1]))
         glEnableVertexAttribArray(pointer)
 
     glBindVertexArray(0)

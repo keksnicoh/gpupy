@@ -26,21 +26,26 @@ class Framebuffer():
         }
         self.gl_framebuffer_id = glGenFramebuffers(1)
 
-    def color_attachment(self, texture, n=0, target=None):
+    def color_attachment(self, texture, attachment=0, target=None, level=0):
         self.use()
 
         if hasattr(texture, 'gl_target'):
             if target is not None and texture.gl_target != target:
-                raise ValueError('explicit declaration of arg target(%s) differs from texture.gl_target(%s)', target, texture.gl_target)
+                raise ValueError(
+                    'explicit declaration of arg target(%s) differs from texture.gl_target(%s)', 
+                    target, 
+                    texture.gl_target)
+
             target = texture.gl_target
+            
         elif target is None:
             target = GL_TEXTURE_2D
 
         assert_framebuffer_target(target)
 
-        attachment = globals()['GL_COLOR_ATTACHMENT%d' % n]
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, target, gl_texture_id(texture), 0);
-        
+        attachment = globals()['GL_COLOR_ATTACHMENT%d' % attachment]
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, target, gl_texture_id(texture), level);
+
         self.unuse()
 
     def use(self):

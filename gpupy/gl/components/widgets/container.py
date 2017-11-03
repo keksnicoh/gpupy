@@ -1,11 +1,11 @@
 from gpupy.gl.components.widgets import Widget 
 
-from gpupy.gl.common.vector import *
+from gpupy.gl.lib.vector import *
 from gpupy.gl import * 
 from gpupy.gl.components.camera import Camera2D
-from gpupy.gl.common import attributes
+from gpupy.gl.lib import attributes
 from gpupy.gl.mesh import * 
-from gpupy.gl.common import Event 
+from gpupy.gl.lib import Event 
 
 import numpy as np 
 from OpenGL.GL import *

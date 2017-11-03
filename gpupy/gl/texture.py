@@ -5,7 +5,7 @@ texture utilities
 :author: Nicolas 'keksnicoh' Heimann
 """
 from gpupy.gl import GPUPY_GL
-from gpupy.gl.common import imread
+from gpupy.gl.lib import imread, setter_dict
 from OpenGL.GL import *
 import numpy as np
 
@@ -70,6 +70,9 @@ class AbstractTexture():
         self._gl_internal_format = None
         self._gl_type = None
         self._data = None
+
+        # -- for better user experience (XXX maybe remove me when this is not cool)
+        self.parameters = setter_dict(self.parameter)
 
     @property
     def channels(self):
@@ -231,8 +234,10 @@ class AbstractTexture():
                 glTexParameterf(self.gl_target, p, v)
 
     def tex_parameterf(self, pname, param):
+        self.gl_texture_parameters[pname] = param
         with self:
             glTexParameterf(self.gl_target, pname, param)
+
     def interpolate_linear(self):
         self.interpolation_linear()
 
@@ -242,6 +247,8 @@ class AbstractTexture():
 
 
     def parameter(self, p, v):
+        self.gl_texture_parameters[p] = v
+
         with self:
             glTexParameterf(self.gl_target, p, v)
             
@@ -391,7 +398,8 @@ class Texture2D(AbstractTexture):
 
     @classmethod
     def imread(cls, name, flatten=False, mode=None, normalize=255.0, dtype=np.float32):
-        return cls.to_device(imread(name, flatten=False, mode=None, normalize=255.0, dtype=np.float32))
+        data = imread(name, flatten=flatten, mode=mode, normalize=normalize, dtype=dtype)
+        return cls.to_device(data)
 
 
     def __init__(self,

@@ -5,7 +5,7 @@ like QT, GLFW, SDL, ...
 :author: keksnicoh
 """
 
-from gpupy.gl.common import attributes, Event
+from gpupy.gl.lib import attributes, Event
 from gpupy.gl import GPUPY_GL
 from OpenGL.GL import * 
 
@@ -73,7 +73,7 @@ class Context():
 
             # find lowest free index
             ui = sorted(self.gl_buffer_base_register.values())
-            for i in range(0, len(ui) - 1):
+            for i in range(len(ui) - 1):
                 if ui[i+1] - ui[i] != 1:
                     self._next_free_gl_buffer_base_index = ui[i] + 1
                     return

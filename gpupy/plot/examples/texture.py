@@ -7,7 +7,7 @@ import numpy as np
 @plot2d 
 def plot(plotter):
     # -- test texture
-    keksnicoh = domain.TextureDomain.colorwheel('keksnicoh')
+    keksnicoh = domain.colorwheel('keksnicoh')
     keksnicoh.smooth(False)
 
     # -- random sampler
@@ -17,7 +17,38 @@ def plot(plotter):
     #
     # uses the default fragment_kernel. Note that if not domain
     # is given one must define a custom fragment_kernel
-    plotter += FragmentGraph(keksnicoh, cs=(0, 2, 0, 1))
+    homer = domain.colorwheel('homer')
+
+    # homer - original
+    plotter += FragmentGraph(homer, cs=(1, 2, 0, 1))
+
+    # homer - greyscale_luminosity
+    plotter += FragmentGraph(
+        domain=homer, 
+        cs=(1, 2, -1, 0), 
+        fragment_kernel="""vec4 fragment_kernel(vec2 c) {
+            vec3 x = $D.domain(c);
+            float _r=0.21*x.x+0.72*x.y+0.07*x.z; 
+            return vec4(_r, _r, _r, 1);
+        }""")
+    # homer - greyscale_lightness
+    plotter += FragmentGraph(
+        domain=homer, 
+        cs=(0, 1, 0, 1), 
+        fragment_kernel="""vec4 fragment_kernel(vec2 c) {
+            vec3 x = $D.domain(c);
+            float M = max(x.x, max(x.y, x.z)); float m = min(x.x, min(x.y, x.z)); 
+            return vec4(m+M, m+M,m+M,2)/2;
+        }""")
+    # homer - greyscale_avg
+    plotter += FragmentGraph(
+        domain=homer, 
+        cs=(0, 1, -1, 0), 
+        fragment_kernel="""vec4 fragment_kernel(vec2 c) {
+            vec3 x = $D.domain(c);
+            return vec4(x.x+x.y+x.z, x.x+x.y+x.z, x.x+x.y+x.z, 3) / 3;
+        }""")
+
 
     # dynamic configuration space
     def upper_right(cs):
@@ -70,22 +101,6 @@ def plot(plotter):
     graph_plane.on_tick.append(timer)
     plotter += graph_plane
 
-    # -- complex plane plot
-    #
-    # plot sin(z) using the colorwheel "complex".
-    cplane = nputil.cplane(-2*np.pi, 2*np.pi, -1.5, 1.5)
-    csin = np.sin(cplane)
-    cgraph = FragmentGraph(domain={'zs': domain.TextureDomain.to_device_2d(csin),
-                                   'c': domain.TextureDomain.colorwheel('complex')},
-                           cs=(-0.5*np.pi, 0.5*np.pi, -1.5/4, 1.5/4),
-                           fragment_kernel="""vec4 fragment_kernel(vec2 z) {
-        float L = 3;
-        vec2 n = $D.zs(z);
-        n += vec2(L/2, L/2);
-        n /= L;    
-        return vec4($D.c(n), 1);
-    }""")
-    plotter += cgraph
 
 if __name__ == '__main__':
     plot()

@@ -4,7 +4,7 @@ matrix utilities..
 
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl.common.vector import *
+from gpupy.gl.lib.vector import *
 import numpy as np
 
 
@@ -38,8 +38,8 @@ def mat4_rot_z(angle):
 
 def mat4_translation(x=0, y=0, z=0):
     return np.array([
-        1, 0, 0, -x,
-        0, 1, 0, -y,
+        1, 0, 0, x,
+        0, 1, 0, y,
         0, 0, 1, z,
         0, 0, 0, 1,
     ], np.float32).reshape((4, 4))

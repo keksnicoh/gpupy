@@ -8,8 +8,8 @@ from gpupy.gl.components.widgets.grid import CartesianGrid
 from gpupy.gl.components.widgets.container import Container
 from gpupy.gl.mesh import mesh3d_rectangle, StridedVertexMesh
 
-from gpupy.gl.common import Event, attributes, observables
-from gpupy.gl.common.vector import *
+from gpupy.gl.lib import Event, attributes, observables
+from gpupy.gl.lib.vector import *
 from gpupy.gl import *
 from gpupy.gl import GPUPY_GL as _G
 
@@ -22,15 +22,24 @@ from collections import OrderedDict
 DEFAULT_STYLE = {
     'border':                '0 1 1 0 #528682ff',
     'border':                '0 1 1 0 #ff8500ff',
+    'border':                '0 1 1 0 #ffffffff',
+
     'background-color':      '#303233ff',
     'background-color':      '#202122ff',
     'background-color':      '#101011ff',
+    'background-color':      '#232323ff',
+
+
     'plot-scaling':          '.5',
     'plot-background-color': '#161c20ff',
+    'plot-background-color': '#121212ff',
     'plot-padding':          '0 0 0 0',
     'min-size':              '100 100',
     'grid-color':            '#5f6f77ff',
     'grid-sub-color':        '#3c4c55ff',
+
+    'grid-color':            '#5c5c5cff',
+    'grid-sub-color':        '#2b2b2bff',
 }
 
 
@@ -250,7 +259,7 @@ class Plotter2d(Widget):
             the plotcontainer manages border, margin padding
             and contains the main plot framebuffer """
 
-        plot_container = Container(
+        layer = Container(
             size=self.size, 
             position=self.position, 
             margin=self._plot_margin, 
@@ -258,11 +267,12 @@ class Plotter2d(Widget):
             border=self._style['border'][0], 
             border_color=self._style['border'][1])
 
-        self.plotframe = FrameWidget(position=plot_container.content_position,
-                                     size=plot_container.content_size,
-                                     resulution=plot_container.content_size,
-                                     clear_color=(0, 0, 0, 0))
-        self.layer = plot_container
+        self.plotframe = FrameWidget(
+            position=layer.content_position,
+            size=layer.content_size,
+            resulution=layer.content_size,
+            clear_color=(0, 0, 0, 0))
+        self.layer = layer
         self.layer.content_size.on_change.append(self.update_ubo)
 
     def tick(self):
@@ -288,6 +298,7 @@ class Plotter2d(Widget):
         self.grid.render()
         self.layer.render() 
         self.plotframe.render()
+
 
 
 class PrePlotEvent():

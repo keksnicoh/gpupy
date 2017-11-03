@@ -3,7 +3,7 @@ from gpupy.gl.glfw import GLFW_Context, GLFW_run
 from gpupy.plot.plotter2d import Plotter2d
 from OpenGL.GL import *
 from gpupy.gl import *
-from gpupy.gl.common.vector import *
+from gpupy.gl.lib.vector import *
 import numpy as np
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.glfw import GLFW_window
@@ -49,7 +49,7 @@ class Plotter2dBasic():
         s = self.window.size
         self.plotter = Plotter2d(size, cs=(-4, 4, -4, 4))
         self._plot(self.plotter)
-        self.plotter.layer.border = (2,2,2,2)
+        self.plotter.layer.border = (1,1,1,1)
         self.plotter.layer.margin = (30, 30, 30, 30)
         self.border = 3 
 

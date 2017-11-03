@@ -14,7 +14,7 @@ should be applied.
 # XXX
 # - generic domain names? prefixes...
 
-from gpupy.gl.common import attributes, imread
+from gpupy.gl.lib import attributes, imread
 from gpupy.gl.glsl import dtype_is_struct, dtype_vector, dtype_fields_glsl
 from gpupy.gl import Texture3D, Texture2D, Texture1D
 
@@ -52,6 +52,7 @@ __all__ = [
     'FunctionDomain',
     'enable_for_program',
     'domains_to_subsitutions',
+    'colorwheel'
 ]
 class DomainError(Exception): 
     pass
@@ -85,7 +86,9 @@ def empty_like(): pass
 def ones_like(): pass 
 def zeros_like(): pass 
 def sarange(): pass
-def sarray(): pass 
+def sarray(data): 
+    return TextureDomain.to_device_2d(data)
+
 def sempty(): pass 
 def srandom(): pass 
 def szeros(): pass 
@@ -94,7 +97,10 @@ def sempty_like(): pass
 def sones_like(): pass 
 def szeros_like(): pass 
 
+def colorwheel(name):
+    return TextureDomain.colorwheel(name)
 
+# XXX - not the right place for this method here
 def enable_domains(program, domains, texunit=0):
     # -- enable domains.
     # 
@@ -177,7 +183,7 @@ class AbstractDomain():
         return []
 
 
-class SequencialDomain(AbstractDomain):
+class _GlslAttributePointerDomain(AbstractDomain):
     """
     defines the API for discrete domains like
     vertex attributes
@@ -201,7 +207,7 @@ class SequencialDomain(AbstractDomain):
         """
         raise NotImplementedError('abstract method')
 
-class ContinuousDomain(AbstractDomain):
+class _GlslDeclarationDomain(AbstractDomain):
     """
     defines the API for a continuos domain like
     functions or texture samplers.
@@ -214,7 +220,7 @@ class ContinuousDomain(AbstractDomain):
     
 
 
-class VertexDomain(SequencialDomain):
+class VertexDomain(_GlslAttributePointerDomain):
     """
     vertex domain provides vertex attributes for 
     glsl shader by a given BufferObject
@@ -296,7 +302,7 @@ class VertexDomain(SequencialDomain):
         return len(self.buffer)
 
 
-class TextureDomain(ContinuousDomain):
+class TextureDomain(_GlslDeclarationDomain):
     """
 
     Allows to use gpupy.gl.texture's as plot 
@@ -422,7 +428,7 @@ class TextureDomain(ContinuousDomain):
         header = self.__class__._GLSL_TEMPLATE_DECRL.format(d=t.dimension, upref=upref)
         return header + '\n\n' + declr
 
-class RandomDomain(ContinuousDomain):
+class RandomDomain(_GlslDeclarationDomain):
     GLSL_TIMESEED = """
         uniform float rd_${FNAME};
         uniform float rd2_${FNAME};
@@ -471,18 +477,10 @@ class RandomDomain(ContinuousDomain):
 
 
 
-class FunctionDomain(ContinuousDomain):
+class FunctionDomain(_GlslDeclarationDomain):
     """ 
-
-    domain generated within fragment shader.
-    note that this domain requires one calculation of the
-    data on for each rendering. 
-
-    this should be used
-
-    a) to see some quick results
-    b) to combine other domains
-
+    FunctionDomain allows to define custom
+    GLSL function as a domain.
     """
     def __init__(self, glsl):
         self.glsl = glsl

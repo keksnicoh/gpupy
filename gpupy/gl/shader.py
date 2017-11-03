@@ -25,9 +25,9 @@ XXX
 """
 
 from gpupy.gl.errors import GlError
-from gpupy.gl.common import *
+from gpupy.gl.lib import *
 from gpupy.gl.glsl import * 
-from gpupy.gl.common.vector import * 
+from gpupy.gl.lib.vector import * 
 from gpupy.gl import GPUPY_GL
 
 from gpupy.gl.texture import gl_texture_unit
@@ -45,6 +45,18 @@ STRING_SHADER_NAMES = {
     GL_TESS_EVALUATION_SHADER: 'GL_TESS_EVALUATION_SHADER',
     GL_COMPUTE_SHADER        : 'GL_COMPUTE_SHADER',
 }
+
+def create_program(vertex=None, fragment=None, link=True):
+    program = Program()
+    if vertex is not None:
+        program.shaders.append(Shader(GL_VERTEX_SHADER, vertex))
+    if fragment is not None:
+        program.shaders.append(Shader(GL_FRAGMENT_SHADER, fragment))   
+
+    if link:
+        program.link()
+
+    return program
 
 class ShaderError(GlError):
     def __init__(self, shader, msg, *args, **kwargs):
@@ -565,6 +577,7 @@ class Shader():
 class UniformManager():
     pass
 
+
 class Program():
     """
     opengl render program representation
@@ -578,11 +591,14 @@ class Program():
         self.shaders    = []
         self.gl_shader_id      = None
         self.attributes = {}
-        self.uniforms   = {}
+        self._uniforms   = {}
         self._uniform_changes = {}
         self._uniform_values = {}
         self.uniform_block_index = {}
         self.uniform_dtype = None
+
+        self.uniforms = setter_dict(self.uniform)
+        self.uniform_blocks = setter_dict(self.uniform_block_binding)
 
 
     def get_shader(self, gl_type):
@@ -687,15 +703,22 @@ class Program():
                         GPUPY_GL.hint('good explanation: http://stackoverflow.com/a/38172697/2072459')
 
 
-    def uniform(self, name, value, flush=False):
+    def uniform(self, name, value=None, flush=False):
         """
         set uniform *name* value to *value*. if *flush* then
         the change will be flushed to gpu directly. Otherwise
         the uniform changes will be send to gpu when the
         shader is in use.
         """
-        if not name in self.uniforms:
-            raise ProgramError('unkown uniform "{}". Available: {}'.format(name, ', '.join(list(self.uniforms.keys()))))
+
+        # shorthard
+        if value is None and isinstance(name, dict):
+            for (k, v) in name.items():
+                self.uniform(k, v, flush=flush)
+            return
+
+        if not name in self._uniforms:
+            raise ProgramError('unkown uniform "{}". Available: {}'.format(name, ', '.join(list(self._uniforms.keys()))))
         if flush or self.gl_shader_id == Program.__LAST_USE_GL_ID:
             self._uniform(name, value)
         else:
@@ -744,8 +767,8 @@ class Program():
     _DTYPE_TEXTURE_UNIT = {'sampler1D', 'sampler2D', 'sampler3D', 'sampler2DMS', 'sampler2DArray'}
 
     def _uniform(self, name, value):
-        dtype = self.uniforms[name][1]
-        location = self.uniforms[name][0]
+        dtype = self._uniforms[name][1]
+        location = self._uniforms[name][0]
 
         # XXX
         # - remove deprecated mat*() calls
@@ -825,15 +848,15 @@ class Program():
         """
         configures uniforms cache
         """
-        self.uniforms = {}
+        self._uniforms = {}
         for shader in self.shaders:
 
             for k, u in shader.uniforms.items():
                 # check whether any uniform is defined in 2 shaders with different types.
-                if k in self.uniforms and self.uniforms[k][1] != u[0]:
+                if k in self._uniforms and self._uniforms[k][1] != u[0]:
                     raise ShaderError(shader, 'uniform "{name}" appears twice with different types: {t1}, {t2}'.format(
                         name=k,
-                        t1=self.uniforms[k][1],
+                        t1=self._uniforms[k][1],
                         t2=u[0]
                     ))
 
@@ -843,7 +866,7 @@ class Program():
                                       'Maybe it was never used within main() function?').format(k))
                     GPUPY_GL.hint(('uniforms must be used at least once within the main() function of the shader. '
                                    'Otherwise, one cannot recieve block index by glGetUniformLocation() function.'))
-                self.uniforms[k] = (location, u[0], u[1])
+                self._uniforms[k] = (location, u[0], u[1])
                 self._uniform_values[k] = None
 
 

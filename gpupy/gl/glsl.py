@@ -85,6 +85,24 @@ NPVECTOR_TO_GLVECTOR = {
     '<f4': 'vec', 
     '<f8': 'dvec'
 }
+import re
+def flat_dict(a, b=None, prefix='', seperator='.'):
+    if b is None:
+        b = {}
+    for (k, v) in context:
+        key = prefix + str(k)
+        if isinstance(v, dict):
+            flat_dict(v.items(), 
+                b=b, 
+                prefix=key + seperator, 
+                seperator=seperator)
+        elif isinstance(v, list):
+            flat_dict(enumerate(v), 
+                b=b, 
+                prefix=key + seperator, 
+                seperator=seperator)
+        else:
+            b[key] = v
 
 def parse_template(template, context):
     """
@@ -115,11 +133,15 @@ def parse_template(template, context):
                 flat_context[prefix+str(k)] = v
     _flattenize(context.items())
 
-    import re
     # $xyz.derp
-    substitutions = set(re.findall(r'[^\$]\$([a-zA-Z0-9_.]{3,})', template, flags=re.MULTILINE))
+    substitutions = set(re.findall(
+        r'[^\$]\$([a-zA-Z0-9_.]{3,})', 
+        template, flags=re.MULTILINE))
+
     # ${hello.hi}
-    substitutions |= set(re.findall(r'[^\$]\$\{([a-zA-Z0-9_.]{3,})\}', template, flags=re.MULTILINE))
+    substitutions |= set(re.findall(
+        r'[^\$]\$\{([a-zA-Z0-9_.]{3,})\}', 
+        template, flags=re.MULTILINE))
 
     # -- check for missing substitutions
     missing_subst = substitutions - set(flat_context.keys())

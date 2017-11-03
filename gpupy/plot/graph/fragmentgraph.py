@@ -13,7 +13,7 @@ from . import DomainGraph, DomainProgram
 from gpupy.plot import domain, plotter2d
 
 from gpupy.gl.mesh import StridedVertexMesh, mesh3d_rectangle
-from gpupy.gl.common import attributes
+from gpupy.gl.lib import attributes
 from gpupy.gl import GPUPY_GL as G_, Shader, components
 from gpupy.gl.glsl import Template
 
@@ -30,7 +30,7 @@ class FragmentGraph(DomainGraph):
 
 
     FRAGMENT_KERNELS = {
-        'expr': lambda e: "vec4 fragment_kernel(vec2 txcoord) { return "+e+"; }",
+        'expr': lambda e: "vec4 fragment_kernel(vec2 txcoord) { \n\treturn "+e+"; \n}",
     }
     cs = attributes.VectorAttribute(4)
 

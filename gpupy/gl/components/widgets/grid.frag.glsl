@@ -17,7 +17,7 @@ uniform float u_minor_grid_width;
 uniform vec4 u_major_grid_color;
 uniform vec4 u_minor_grid_color;
 uniform mat4 mat_model;
-uniform vec2 iResolution;
+uniform vec2 u_resolution;
 uniform vec4 c_bg;
 in vec2 v_texcoord;
 out vec4 f_out;
@@ -88,11 +88,11 @@ float screen_distance(vec4 A, vec4 B)
 
     vec4 pA = camera.mat_projection* camera.mat_view* mat_model *A;
     pA /= pA.w;
-    pA.xy = pA.xy * iResolution/2.0;
+    pA.xy = pA.xy * u_resolution/2.0;
 
     vec4 pB = camera.mat_projection* camera.mat_view* mat_model *B;
     pB /= pB.w;
-    pB.xy = pB.xy * iResolution/2.0;
+    pB.xy = pB.xy * u_resolution/2.0;
 
     return length(pA.xy - pB.xy);
 }
@@ -103,7 +103,7 @@ float screen_distance(vec2 A, vec4 B)
 {
     vec4 pB = camera.mat_projection* camera.mat_view* mat_model*B;
     pB /= pB.w;
-    pB.xy = pB.xy * iResolution/2.0;
+    pB.xy = pB.xy * u_resolution/2.0;
 
     return length(A.xy - pB.xy);
 }
@@ -129,7 +129,7 @@ void main()
 
     vec4 pNP1 = camera.mat_projection* camera.mat_view* mat_model*vec4(NP1,0,1);
     pNP1 /= pNP1.w;
-    pNP1.xy = pNP1.xy * iResolution/2.0;
+    pNP1.xy = pNP1.xy * u_resolution/2.0;
 
     tick = get_tick(NP2.x+0.5, u_limits2[0], u_limits2[1], u_major_grid_step[0]);
     P = transform_forward(vec2(tick,P2.y));

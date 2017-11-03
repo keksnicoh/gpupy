@@ -1,16 +1,18 @@
 #-*- coding: utf-8 -*-
 """
-open a single glfw window without any controller
+opens a single glfw widow with the
+void controller. 
 
 :author: Nicolas 'keksnicoh' Heimann
 """
-from gpupy.gl.glfw import GLFW_WindowFunction
-
-@GLFW_WindowFunction
-def main(window):
-    print('we should see a window right now.')
+from gpupy.gl.glfw import bootstrap_gl, create_runner, GLFW_Window
 
 if __name__ == '__main__':
-    main()
+    bootstrap_gl()
+    windows = [GLFW_Window()]
+    for window in create_runner(windows):
+    	if not window():
+    		windows.remove(window)
 
-
+else:
+	raise Exception('please run as __main__.')

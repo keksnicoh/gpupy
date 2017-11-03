@@ -10,14 +10,13 @@ not defined yet. still in experiment.
 :author: keksnicoh
 """
 
-from gpupy.gl.common import attributes
+from gpupy.gl.lib import attributes
 from gpupy.gl import components, Program, Shader, GPUPY_GL as G_
 from gpupy.plot.domain import safe_name
 from OpenGL.GL import * 
 
 from collections import OrderedDict
 import os
-
 
 class DomainGraph(components.widgets.Widget):
     """ 
@@ -133,7 +132,7 @@ class DomainProgram(Program):
                 if field is not None:
                     substkey += '.{}'.format(field)
                 domain_sfnames.update({substkey: glsl_id})
-        print(domain_sfnames)
+
         frg_shader.substitutions.update(domain_sfnames)
         vrt_shader.substitutions.update(domain_sfnames)
 

@@ -17,7 +17,7 @@ __path__ = extend_path(__path__, __name__)
 from gpupy.gl.gpupygl import GPUPY_GL
 from gpupy.gl.buffer import BufferObject 
 from gpupy.gl.texture import Texture2D, Texture1D, Texture3D 
-from gpupy.gl.shader import Shader, Program 
+from gpupy.gl.shader import Shader, Program, create_program
 from gpupy.gl.camera import Camera 
 from gpupy.gl.framebuffer import Framebuffer 
 from gpupy.gl.viewport import Viewport
@@ -26,5 +26,5 @@ from OpenGL import GL as _GL
 GL = _GL
 
 __all__ = ['BufferObject', 'Texture2D', 'Texture1D', 
-           'Texture3D', 'Shader', 'Program', 'Camera', 'Framebuffer', 'Viewport', 'GPUPY_GL', 'GL']
+           'Texture3D', 'Shader', 'Program', 'Camera', 'Framebuffer', 'Viewport', 'GPUPY_GL', 'GL', 'create_program']
 

@@ -7,7 +7,7 @@ simple glprimitives graph
 from . import DomainGraph, DomainProgram
 from gpupy.plot import domain, plotter2d
 
-from gpupy.gl.common import attributes
+from gpupy.gl.lib import attributes
 from gpupy.gl import GPUPY_GL as G_, Shader, components
 from OpenGL.GL import (
     GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, glEnable, glBindVertexArray,

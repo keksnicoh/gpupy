@@ -1,8 +1,8 @@
 # RUBBISH 
-from gpupy.gl.common.vector import *
+from gpupy.gl.lib.vector import *
 from collections import OrderedDict
 from gpupy.gl.components.widgets import Widget
-from gpupy.gl.common import Event
+from gpupy.gl.lib import Event
 import numpy as np 
 from functools import partial 
 class ObservableOrderedDict(OrderedDict):

@@ -1,5 +1,5 @@
 from gpupy.gl.components import Component 
-from gpupy.gl.common import Event 
+from gpupy.gl.lib import Event 
 
 class Widget(Component):
     """

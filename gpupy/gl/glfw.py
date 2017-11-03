@@ -7,10 +7,156 @@ window context OpenGL library.
 from functools import partial
 from gpupy.gl.context import *
 from gpupy.gl.vendor.glfw import * 
-from gpupy.gl.common import attributes, Event
-from gpupy.gl.common import *
+from gpupy.gl.lib import attributes, Event
+from gpupy.gl.lib import *
+from gpupy.gl import GPUPY_GL
 
 def_version = GlVersion('4.1', core_profile=True, forward_compat=True)
+
+def bootstrap_gl(version=def_version):
+    """ 
+    bootstrap GL with a given **def_version** 
+    """
+    if not glfwInit():
+        raise RuntimeError('glfw.Init() error')
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version.version[0]);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version.version[1]);
+
+    if version.forward_compat != True:
+        raise RuntimeError('version.forward_compat=False not supported in GLFW_Application at the moment')
+    if version.core_profile != True:
+        raise RuntimeError('version.core_profile=False not supported in GLFW_Application at the moment')
+    
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, glbool(True));
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+def create_runner(windows):
+    """
+    creates a simple runner 
+    """
+    while len(windows):
+        glfwPollEvents()
+        for window in windows:
+            try:
+                yield window
+            except CloseContextException as e:
+                windows.remove(window)
+                del window
+            except Exception as e:
+                del windows[:]
+                glfwTerminate()
+                raise e
+    glfwTerminate()        
+
+class GLFW_Window(Context):
+    size       = attributes.VectorAttribute(2)
+    resolution = attributes.VectorAttribute(2)
+    position   = attributes.VectorAttribute(2)
+    title      = attributes.CastedAttribute(str, 'window')
+    visible    = attributes.CastedAttribute(bool)
+
+    def __init__(self, size=(400, 400), title='gpupy glfw window', bootstrap=True):
+        super().__init__()
+        self._glfw_initialized = False
+        self.size = size 
+        self.title = title
+        self.visible = True 
+        self._active = False
+
+        self.on_ready  = Event()
+        self.on_cycle  = Event()
+        self.on_resize = Event()
+        self.on_close = Event()
+
+        self.widget = lambda *a: True
+        self.active_keys = set()
+
+        if bootstrap:
+            self.bootstrap()
+
+
+    @visible.on_change
+    def set_visible(self, visible):
+        if visible:
+            glfwShowWindow(self._handle)
+        else:
+            glfwHideWindow(self._handle)
+
+
+    @size.on_change
+    def set_size(self, size):
+        glfwSetWindowSize(self._handle, int(size[0]), int(size[1]))
+
+
+    def bootstrap(self):
+        if self._glfw_initialized:
+            raise RuntimeError('allready initialized.')
+        self._handle = glfwCreateWindow(int(self.size[0]), int(self.size[1]), self.title)
+        if not self._handle:
+            raise RuntimeError('glfw.CreateWindow() error')
+        glfwWindowHint(GLFW_VISIBLE, int(self.visible))  
+        def _v2_callback(attr, window, width, height):
+            setattr(self, attr, (width, height))    
+        glfwSetWindowSizeCallback(self._handle,      self.resize_callback)
+        glfwSetFramebufferSizeCallback(self._handle, partial(_v2_callback, 'resolution'))
+        glfwSetWindowCloseCallback(self._handle,     self._close_callback)
+        glfwSetKeyCallback(self._handle,             self.key_callback)
+        glfwSetWindowTitle(self._handle, 'wewf')
+        self.resolution = glfwGetFramebufferSize(self._handle)
+
+        self._glfw_initialized = True
+
+    def resize_callback(self, window, width, height):
+        """ triggers on_resize event queue and swaps GLFW buffers. """
+        self.size = (width, height)
+
+        if len(self.on_resize):
+            # at this point we only make a new context if we are not just
+            # within GLFW_Application.cycle method. E.g. if GLFW_Window.set_size()
+            # was performed within the GLFW_Window.cycle() method.
+            if not self._in_cycle:
+                self.__gl_context_enable__()
+            self.on_resize(self)
+            if not self._in_cycle:
+                glfwSwapBuffers(self._handle)
+
+    def key_callback(self, window, keycode, scancode, action, option):
+        """ put glfw keyboard event data into active and
+            pressed keyboard buffer """
+        if action == GLFW_PRESS:
+            self.active_keys.add(GLFW_Context.KEYBOARD_MAP[keycode])
+        elif action == GLFW_RELEASE:
+            self.active_keys.remove(GLFW_Context.KEYBOARD_MAP[keycode])
+
+    def _close_callback(self, *e):
+        self.on_close(self)
+
+    def make_context(self):
+
+        if not self._active:
+            glfwMakeContextCurrent(self._handle)
+            self._active = True
+
+        GPUPY_GL.CONTEXT = self
+
+    def __call__(self):
+        self.make_context()
+
+        # GLFW close state
+        if glfwWindowShouldClose(self._handle):
+            self._active = False 
+            return False
+
+        # run widget and close if return value is False
+        success = self.widget()
+        glfwSwapBuffers(self._handle)
+        if not success:
+            self._active = False 
+            return False
+
+        self._active = False 
+        return True
 
 class GLFW_Context(Context):
     KEYBOARD_MAP = {
@@ -82,7 +228,7 @@ class GLFW_Context(Context):
         glfwSetFramebufferSizeCallback(self._handle, partial(_v2_callback, 'resolution'))
         glfwSetWindowCloseCallback(self._handle,     self._close_callback)
         glfwSetKeyCallback(self._handle,             self.key_callback)
-
+        glfwSetWindowTitle(self._handle, 'wewf')
         self.resolution = glfwGetFramebufferSize(self._handle)
 
         self._glfw_initialized = True
@@ -152,7 +298,7 @@ def GLFW_run(*windows, version=def_version):
         raise RuntimeError('version.core_profile=False not supported in GLFW_Application at the moment')
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, glbool(True));
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    #glfwWindowHint(GLFW_DECORATED, False);
     for window in windows:
         window.bootstrap()
         window.context()
@@ -164,6 +310,7 @@ def GLFW_run(*windows, version=def_version):
             try:
                 yield window
                 window.cycle()
+
             except CloseContextException as e:
                 windows.remove(window)
                 del window
@@ -171,6 +318,7 @@ def GLFW_run(*windows, version=def_version):
                 del windows[:]
                 glfwTerminate()
                 raise e
+
     glfwTerminate()
 
 

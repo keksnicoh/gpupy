@@ -12,7 +12,7 @@ plotter(window_size=(400, 400)).plot('x**x', 'sin(x)')
 from gpupy.plot.plotter2d import Plotter2d
 from OpenGL.GL import *
 from gpupy.gl import *
-from gpupy.gl.common.vector import *
+from gpupy.gl.lib.vector import *
 import numpy as np
 from gpupy.gl.components.camera import Camera2D
 from gpupy.gl.glfw import GLFW_window
